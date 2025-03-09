@@ -2,27 +2,31 @@
 const VKIntegration = {
   // Инициализация VK Mini Apps
   init: function(successCallback = null, errorCallback = null) {
-    // Проверяем, доступен ли VK API
-    if (typeof window.VK === 'undefined') {
-      // Загружаем VK API
+    // Проверяем, доступен ли VK Bridge
+    if (typeof window.vkBridge === 'undefined') {
+      // Пытаемся загрузить VK Bridge
       const script = document.createElement('script');
-      script.src = 'https://vk.com/js/api/openapi.js?169';
+      script.src = 'https://unpkg.com/@vkontakte/vk-bridge/dist/browser.min.js';
       script.onload = () => {
-        this._initVKApp(successCallback, errorCallback);
+        // После загрузки скрипта инициализируем Bridge
+        setTimeout(() => {
+          this._initVKBridge(successCallback, errorCallback);
+        }, 300); // Небольшая задержка для уверенности, что скрипт загружен
       };
       script.onerror = () => {
         if (errorCallback) {
-          errorCallback('Не удалось загрузить VK API');
+          errorCallback('Не удалось загрузить VK Bridge');
         }
       };
       document.head.appendChild(script);
     } else {
-      this._initVKApp(successCallback, errorCallback);
+      // VK Bridge уже доступен
+      this._initVKBridge(successCallback, errorCallback);
     }
   },
   
-  // Внутренний метод инициализации VK Mini Apps
-  _initVKApp: function(successCallback, errorCallback) {
+  // Внутренний метод инициализации VK Bridge
+  _initVKBridge: function(successCallback, errorCallback) {
     try {
       // Инициализируем VK Mini Apps
       window.vkBridge.send('VKWebAppInit')
