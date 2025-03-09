@@ -308,9 +308,9 @@ function nextQuestion() {
 // Запуск таймера
 function startTimer() {
   // Получаем лимит времени для текущей сложности
-  const difficulty = anatomyQuiz.difficultyLevels ? 
+  const difficulty = anatomyQuiz && anatomyQuiz.difficultyLevels ? 
     anatomyQuiz.difficultyLevels.find(d => d.id === selectedDifficulty) : null;
-  timeLeft = difficulty ? difficulty.timeLimit : 30;
+  timeLeft = difficulty && difficulty.timeLimit ? difficulty.timeLimit : 30;
   
   // Обновляем отображение таймера
   updateTimerDisplay();
@@ -342,9 +342,9 @@ function updateTimerDisplay() {
   timerValue.textContent = timeLeft;
   
   // Обновляем полосу прогресса
-  const difficulty = anatomyQuiz.difficultyLevels ? 
+  const difficulty = anatomyQuiz && anatomyQuiz.difficultyLevels ? 
     anatomyQuiz.difficultyLevels.find(d => d.id === selectedDifficulty) : null;
-  const maxTime = difficulty ? difficulty.timeLimit : 30;
+  const maxTime = difficulty && difficulty.timeLimit ? difficulty.timeLimit : 30;
   const progressWidth = (timeLeft / maxTime) * 100;
   timerProgress.style.width = `${progressWidth}%`;
   
@@ -408,8 +408,10 @@ function updateUserStatsAfterQuiz() {
   }
   
   // Обновляем общую статистику
-  anatomyQuiz.userStats.totalQuestions += selectedCategory.questions.length;
-  anatomyQuiz.userStats.correctAnswers += correctAnswers;
+  if (selectedCategory && selectedCategory.questions) {
+    anatomyQuiz.userStats.totalQuestions += selectedCategory.questions.length;
+    anatomyQuiz.userStats.correctAnswers += correctAnswers;
+  }
   
   // Обновляем статистику по категории
   if (!anatomyQuiz.userStats.categoryProgress) {
@@ -423,8 +425,10 @@ function updateUserStatsAfterQuiz() {
     };
   }
   
-  anatomyQuiz.userStats.categoryProgress[selectedCategory.id].totalQuestions = selectedCategory.questions.length;
-  anatomyQuiz.userStats.categoryProgress[selectedCategory.id].correctAnswers = correctAnswers;
+  if (selectedCategory && selectedCategory.questions) {
+    anatomyQuiz.userStats.categoryProgress[selectedCategory.id].totalQuestions = selectedCategory.questions.length;
+    anatomyQuiz.userStats.categoryProgress[selectedCategory.id].correctAnswers = correctAnswers;
+  }
   
   // Проверяем, завершена ли категория полностью
   if (correctAnswers === selectedCategory.questions.length) {
@@ -456,7 +460,8 @@ function showResultScreen() {
   if (resultTotal) resultTotal.textContent = selectedCategory.questions.length;
   
   // Вычисляем процент успеха
-  const percent = Math.round((correctAnswers / selectedCategory.questions.length) * 100);
+  const percent = selectedCategory && selectedCategory.questions ? 
+    Math.round((correctAnswers / selectedCategory.questions.length) * 100) : 0;
   if (resultPercentage) resultPercentage.textContent = `${percent}%`;
   
   // Вычисляем время
@@ -470,7 +475,7 @@ function showResultScreen() {
   let hintsEarned = 0;
   
   // Если категория пройдена полностью
-  if (correctAnswers === selectedCategory.questions.length) {
+  if (selectedCategory && selectedCategory.questions && correctAnswers === selectedCategory.questions.length) {
     coinsEarned += 5;
     hintsEarned += 1;
   }
