@@ -1,11 +1,17 @@
 // Интеграция с ВКонтакте
-const bridge = window.vkBridge; // Определяем переменную bridge
-
 const VKIntegration = {
   // Инициализация приложения
   init: function() {
+    // Получаем доступ к VK Bridge через глобальную переменную
+    const vkBridge = window.vkBridge;
+    
+    if (!vkBridge) {
+      console.error('VK Bridge не доступен');
+      return;
+    }
+    
     // Инициализируем VK Bridge
-    bridge.send('VKWebAppInit')
+    vkBridge.send('VKWebAppInit')
       .then(data => {
         console.log('VK Bridge инициализирован', data);
         
@@ -17,7 +23,7 @@ const VKIntegration = {
       });
       
     // Настраиваем отслеживание событий
-    bridge.subscribe(event => {
+    vkBridge.subscribe(event => {
       if (event.detail.type === 'VKWebAppViewRestore') {
         // Обновляем UI при восстановлении приложения
         UI.renderMainMenu();
@@ -27,7 +33,10 @@ const VKIntegration = {
   
   // Загрузка информации о пользователе
   loadUserInfo: function() {
-    bridge.send('VKWebAppGetUserInfo')
+    const vkBridge = window.vkBridge;
+    if (!vkBridge) return;
+    
+    vkBridge.send('VKWebAppGetUserInfo')
       .then(data => {
         console.log('Информация о пользователе получена', data);
         // Сохраняем имя пользователя для приветствия
@@ -47,7 +56,10 @@ const VKIntegration = {
   
   // Функция для добавления приложения в избранное
   addToFavorites: function() {
-    bridge.send('VKWebAppAddToFavorites')
+    const vkBridge = window.vkBridge;
+    if (!vkBridge) return;
+    
+    vkBridge.send('VKWebAppAddToFavorites')
       .then(data => {
         console.log('Приложение добавлено в избранное', data);
         // Показываем благодарственное сообщение
@@ -62,6 +74,9 @@ const VKIntegration = {
   
   // Расшаривание результатов
   shareResults: function() {
+    const vkBridge = window.vkBridge;
+    if (!vkBridge) return;
+    
     const percentage = Math.round((anatomyQuiz.userStats.correctAnswers / anatomyQuiz.userStats.totalQuestions) * 100) || 0;
     
     let message = '';
@@ -80,7 +95,7 @@ const VKIntegration = {
       }
     }
     
-    bridge.send('VKWebAppShare', {
+    vkBridge.send('VKWebAppShare', {
       message: message
     })
     .then(data => {
@@ -99,7 +114,13 @@ const VKIntegration = {
   
   // Показать рекламу
   showAd: function(onComplete) {
-    bridge.send('VKWebAppShowNativeAds', {ad_format: 'interstitial'})
+    const vkBridge = window.vkBridge;
+    if (!vkBridge) {
+      if (onComplete) onComplete(false);
+      return;
+    }
+    
+    vkBridge.send('VKWebAppShowNativeAds', {ad_format: 'interstitial'})
       .then(data => {
         console.log('Реклама показана', data);
         if (onComplete) onComplete(true);
@@ -112,7 +133,10 @@ const VKIntegration = {
   
   // Пригласить друзей
   inviteFriends: function() {
-    bridge.send('VKWebAppShowInviteBox', {})
+    const vkBridge = window.vkBridge;
+    if (!vkBridge) return;
+    
+    vkBridge.send('VKWebAppShowInviteBox', {})
       .then(data => {
         console.log('Приглашение отправлено', data);
         if (UI && UI.showNotification) {
@@ -126,7 +150,10 @@ const VKIntegration = {
   
   // Запрос у пользователя разрешения на отправку уведомлений
   requestNotificationsPermission: function() {
-    bridge.send('VKWebAppAllowNotifications')
+    const vkBridge = window.vkBridge;
+    if (!vkBridge) return;
+    
+    vkBridge.send('VKWebAppAllowNotifications')
       .then(data => {
         if (data.result) {
           console.log('Разрешения на уведомления получены');
@@ -144,8 +171,11 @@ const VKIntegration = {
   
   // Отправка сообщения в сообщество
   joinCommunity: function() {
+    const vkBridge = window.vkBridge;
+    if (!vkBridge) return;
+    
     // Замените YOUR_GROUP_ID на ID вашего сообщества
-    bridge.send('VKWebAppJoinGroup', { group_id: 'YOUR_GROUP_ID' })
+    vkBridge.send('VKWebAppJoinGroup', { group_id: 'YOUR_GROUP_ID' })
       .then(data => {
         console.log('Пользователь вступил в сообщество', data);
         if (UI && UI.showNotification) {
@@ -160,7 +190,14 @@ const VKIntegration = {
 
 // Улучшенная функция для публикации результатов
 function shareResults() {
-  VKIntegration.shareResults();
+  if (VKIntegration && VKIntegration.shareResults) {
+    VKIntegration.shareResults();
+  } else {
+    console.error('VKIntegration не доступен');
+    if (UI && UI.showNotification) {
+      UI.showNotification('Функция поделиться временно недоступна', 'error');
+    }
+  }
 }
 
 // Показывать рекламу после каждой завершенной категории
