@@ -260,7 +260,7 @@ UI.renderMainMenu = function() {
 document.addEventListener('DOMContentLoaded', function() {
   // Добавляем дополнительные стили
   const styleElement = document.createElement('style');
-  styleElement.textContent = additionalStyles; // Удалите ссылку на styles
+  styleElement.textContent = additionalStyles; // Только дополнительные стили
   document.head.appendChild(styleElement);
   
   // Загружаем статистику пользователя
