@@ -18,8 +18,8 @@ let startTime = 0; // Время начала вопроса
 
 // Инициализация приложения
 function initApp() {
-  // Загружаем прогресс из localStorage
-  if (anatomyQuiz.utils && anatomyQuiz.utils.loadProgress) {
+  if (anatomyQuiz && anatomyQuiz.utils && typeof anatomyQuiz.utils.loadProgress === 'function') {
+    // Загружаем прогресс из localStorage
     anatomyQuiz.utils.loadProgress();
   }
   
@@ -38,9 +38,9 @@ function initApp() {
 
 // Применение пользовательских настроек
 function applySettings() {
-  const settings = anatomyQuiz.uiSettings;
+  if (!anatomyQuiz || !anatomyQuiz.uiSettings) return;
   
-  if (!settings) return;
+  const settings = anatomyQuiz.uiSettings;
   
   // Тема оформления
   document.body.className = settings.theme === 'dark' ? 'dark-theme' : '';
@@ -67,9 +67,9 @@ function applySettings() {
 
 // Обновление статистики пользователя на экране
 function updateUserStats() {
-  const stats = anatomyQuiz.userStats;
+  if (!anatomyQuiz || !anatomyQuiz.userStats) return;
   
-  if (!stats) return;
+  const stats = anatomyQuiz.userStats;
   
   const totalQuestionsElement = document.getElementById('total-questions');
   const correctAnswersElement = document.getElementById('correct-answers');
@@ -84,12 +84,12 @@ function updateUserStats() {
 
 // Отображение категорий на главном экране
 function renderCategories() {
+  if (!anatomyQuiz || !anatomyQuiz.categories) return;
+  
   const categoriesContainer = document.getElementById('categories-container');
   if (!categoriesContainer) return;
   
   categoriesContainer.innerHTML = '';
-  
-  if (!anatomyQuiz.categories) return;
   
   anatomyQuiz.categories.forEach((category, index) => {
     // Создаем карточку категории
@@ -153,6 +153,7 @@ function startQuiz(category) {
 // Загрузка текущего вопроса
 function loadQuestion() {
   if (!selectedCategory || !selectedCategory.questions || currentQuestionIndex >= selectedCategory.questions.length) {
+    console.error("Ошибка загрузки вопроса");
     return;
   }
 
@@ -235,6 +236,7 @@ function selectAnswer(index) {
 // Проверка правильности ответа
 function checkAnswer() {
   if (!selectedCategory || !selectedCategory.questions || currentQuestionIndex >= selectedCategory.questions.length) {
+    console.error("Ошибка проверки ответа");
     return;
   }
   
@@ -306,7 +308,8 @@ function nextQuestion() {
 // Запуск таймера
 function startTimer() {
   // Получаем лимит времени для текущей сложности
-  const difficulty = anatomyQuiz.difficultyLevels.find(d => d.id === selectedDifficulty);
+  const difficulty = anatomyQuiz.difficultyLevels ? 
+    anatomyQuiz.difficultyLevels.find(d => d.id === selectedDifficulty) : null;
   timeLeft = difficulty ? difficulty.timeLimit : 30;
   
   // Обновляем отображение таймера
@@ -339,7 +342,8 @@ function updateTimerDisplay() {
   timerValue.textContent = timeLeft;
   
   // Обновляем полосу прогресса
-  const difficulty = anatomyQuiz.difficultyLevels.find(d => d.id === selectedDifficulty);
+  const difficulty = anatomyQuiz.difficultyLevels ? 
+    anatomyQuiz.difficultyLevels.find(d => d.id === selectedDifficulty) : null;
   const maxTime = difficulty ? difficulty.timeLimit : 30;
   const progressWidth = (timeLeft / maxTime) * 100;
   timerProgress.style.width = `${progressWidth}%`;
@@ -391,6 +395,8 @@ function finishQuiz() {
 
 // Обновление статистики пользователя после квиза
 function updateUserStatsAfterQuiz() {
+  if (!anatomyQuiz) return;
+  
   // Проверяем доступность userStats
   if (!anatomyQuiz.userStats) {
     anatomyQuiz.userStats = {
