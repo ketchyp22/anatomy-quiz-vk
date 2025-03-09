@@ -735,6 +735,45 @@ input:checked + .slider:before {
   color: white;
 }
 
+/* Кнопки VK интеграции */
+.vk-integration-buttons {
+  margin-top: 20px;
+  margin-bottom: 20px;
+}
+
+.vk-buttons {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.vk-button {
+  flex: 1;
+  min-width: 150px;
+  padding: 12px;
+  border-radius: 8px;
+  border: none;
+  background-color: #4a76a8;  /* Фирменный цвет VK */
+  color: white;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color 0.3s, transform 0.3s;
+  text-align: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.vk-button:hover {
+  background-color: #5b88bd;
+  transform: translateY(-2px);
+}
+
+.vk-button:active {
+  transform: translateY(0);
+}
+
 /* Уведомление */
 .notification {
   position: fixed;
