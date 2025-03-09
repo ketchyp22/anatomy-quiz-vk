@@ -1,21 +1,90 @@
 <!DOCTYPE html>
-<html>
+<html lang="ru">
 <head>
-    <title>Тест</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <title>Квиз по анатомии</title>
+    
+    <!-- Подключение стилей -->
+    <link rel="stylesheet" href="styles.css">
+    
+    <!-- Подключаем VK Bridge (важно загрузить перед другими скриптами) -->
+    <script src="https://unpkg.com/@vkontakte/vk-bridge/dist/browser.min.js"></script>
+    
+    <!-- Объявление глобальной переменной bridge -->
+    <script>
+        // Создаем глобальную переменную bridge для доступа к VK Bridge
+        var bridge = window.vkBridge;
+        
+        // Проверка доступности VK Bridge
+        if (!bridge) {
+            console.error('VK Bridge не доступен. Используем заглушку.');
+            bridge = {
+                send: function() { 
+                    console.log('VK Bridge недоступен');
+                    return Promise.resolve({});
+                },
+                subscribe: function() {}
+            };
+        }
+    </script>
 </head>
 <body>
-    <h1>Тест приложения</h1>
-    <div id="content"></div>
+    <div id="app">
+        <!-- Здесь будет отображаться контент приложения -->
+        <div class="loading-container">
+            <div class="loading-spinner"></div>
+            <p>Загрузка...</p>
+        </div>
+    </div>
+
+    <!-- Подключаем скрипты приложения в правильном порядке -->
+    <script src="quiz-data.js"></script>
+    <script src="ui-components.js"></script>
+    <script src="vk-integration.js"></script>
     <script>
-        document.getElementById('content').innerHTML = 'JavaScript работает!';
-        
-        // Отобразим ошибку, если есть
-        try {
-            const test = styles; // Проверим существует ли переменная styles
-            document.getElementById('content').innerHTML += '<br>Переменная styles существует!';
-        } catch(e) {
-            document.getElementById('content').innerHTML += '<br>Ошибка: ' + e.message;
-        }
+        // Инициализация приложения
+        document.addEventListener('DOMContentLoaded', function() {
+            // Добавляем дополнительные стили (если нужно)
+            const additionalStyles = `
+                .notification {
+                    position: fixed;
+                    bottom: 20px;
+                    left: 50%;
+                    transform: translateX(-50%);
+                    background-color: rgba(73, 134, 204, 0.9);
+                    color: white;
+                    padding: 12px 20px;
+                    border-radius: 8px;
+                    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+                    z-index: 1000;
+                    font-size: 16px;
+                    max-width: 90%;
+                }
+            `;
+            
+            const styleElement = document.createElement('style');
+            styleElement.textContent = additionalStyles;
+            document.head.appendChild(styleElement);
+            
+            // Загружаем статистику пользователя
+            if (UI && UI.loadUserStats) {
+                UI.loadUserStats();
+            }
+            
+            // Инициализируем интеграцию с ВКонтакте
+            if (VKIntegration && VKIntegration.init) {
+                VKIntegration.init();
+            }
+            
+            // Отображаем главное меню
+            if (UI && UI.renderMainMenu) {
+                UI.renderMainMenu();
+            } else {
+                document.getElementById('app').innerHTML = '<div class="error-message">Ошибка: Компоненты UI не загружены.</div>';
+            }
+        });
     </script>
 </body>
 </html>
