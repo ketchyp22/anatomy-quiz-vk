@@ -1,28 +1,21 @@
 <!DOCTYPE html>
-<html lang="ru">
+<html>
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <meta name="theme-color" content="#4986CC">
-    <meta name="format-detection" content="telephone=no">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <title>Квиз по анатомии</title>
-    <!-- Подключаем VK Bridge -->
-    <script src="https://unpkg.com/@vkontakte/vk-bridge/dist/browser.min.js"></script>
+    <title>Тест</title>
 </head>
 <body>
-    <div id="app">
-        <!-- Здесь будет отображаться контент приложения -->
-        <div class="loading-container">
-            <div class="loading-spinner"></div>
-            <p>Загрузка...</p>
-        </div>
-    </div>
-
-    <!-- Подключаем скрипты приложения -->
-    <script src="quiz-data.js"></script>
-    <script src="ui-components.js"></script>
-    <script src="vk-integration.js"></script>
-    <script src="main.js"></script>
+    <h1>Тест приложения</h1>
+    <div id="content"></div>
+    <script>
+        document.getElementById('content').innerHTML = 'JavaScript работает!';
+        
+        // Отобразим ошибку, если есть
+        try {
+            const test = styles; // Проверим существует ли переменная styles
+            document.getElementById('content').innerHTML += '<br>Переменная styles существует!';
+        } catch(e) {
+            document.getElementById('content').innerHTML += '<br>Ошибка: ' + e.message;
+        }
+    </script>
 </body>
 </html>
