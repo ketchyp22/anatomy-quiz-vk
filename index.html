@@ -5,6 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Анатомический Квиз</title>
     <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="ui-components.css">
+    <script src="https://unpkg.com/@vkontakte/vk-bridge/dist/browser.min.js"></script>
 </head>
 <body>
     <!-- Главный экран -->
@@ -150,6 +152,15 @@
             <button id="retry-button" class="retry-button">🔄 Повторить</button>
             <button id="menu-button" class="menu-button">📋 В главное меню</button>
         </div>
+        
+        <div class="vk-integration-buttons" style="display: none;">
+            <div class="section-title">Поделиться результатом:</div>
+            <div class="vk-buttons">
+                <button id="share-result-button" class="vk-button">📢 Поделиться</button>
+                <button id="invite-friends-button" class="vk-button">👥 Пригласить друзей</button>
+                <button id="add-to-favorites-button" class="vk-button">⭐ В избранное</button>
+            </div>
+        </div>
     </div>
     
     <!-- Экран достижений -->
@@ -258,6 +269,8 @@
     
     <!-- Скрипты -->
     <script src="data.js"></script>
+    <script src="ui-components.js"></script>
+    <script src="vk-integration.js"></script>
     <script src="app.js"></script>
 </body>
 </html>
