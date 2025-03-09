@@ -1,51 +1,8 @@
 // Инициализация приложения при загрузке документа
 document.addEventListener('DOMContentLoaded', function() {
-  // Инициализируем VK, если приложение запущено в VK
-  initVK();
-  
   // Инициализация приложения
   initApp();
 });
-
-// Инициализация VK интеграции
-function initVK() {
-  // Проверяем, запущено ли приложение внутри VK
-  const isVKApp = window.location.href.indexOf('vk_') !== -1 || 
-                  (window.parent !== window && document.referrer.indexOf('vk.com') !== -1);
-  
-  if (isVKApp) {
-    VKIntegration.init(
-      // Успешная инициализация
-      () => {
-        console.log('VK интеграция инициализирована');
-        
-        // Пытаемся загрузить прогресс пользователя из VK Storage
-        VKIntegration.loadUserProgress((progress, error) => {
-          if (progress && !error) {
-            if (progress.stats) {
-              anatomyQuiz.userStats = progress.stats;
-            }
-            
-            if (progress.settings) {
-              anatomyQuiz.uiSettings = progress.settings;
-            }
-            
-            // Применяем загруженные настройки
-            applySettings();
-            updateUserStats();
-            renderCategories();
-          }
-        });
-      },
-      // Ошибка инициализации
-      (error) => {
-        console.error('Ошибка инициализации VK интеграции', error);
-        
-        // Показываем уведомление пользователю
-        UIComponents.createNotification('Не удалось подключиться к VK. Прогресс будет сохранен локально.', 'warning');
-      }
-    );
-  }
 
 // Глобальные переменные для хранения состояния приложения
 let currentScreen = 'main-menu'; // Текущий экран
@@ -62,7 +19,9 @@ let startTime = 0; // Время начала вопроса
 // Инициализация приложения
 function initApp() {
   // Загружаем прогресс из localStorage
-  anatomyQuiz.utils.loadProgress();
+  if (anatomyQuiz.utils && anatomyQuiz.utils.loadProgress) {
+    anatomyQuiz.utils.loadProgress();
+  }
   
   // Применяем пользовательские настройки
   applySettings();
@@ -81,6 +40,8 @@ function initApp() {
 function applySettings() {
   const settings = anatomyQuiz.uiSettings;
   
+  if (!settings) return;
+  
   // Тема оформления
   document.body.className = settings.theme === 'dark' ? 'dark-theme' : '';
   
@@ -97,8 +58,11 @@ function applySettings() {
   });
   
   // Переключатели
-  document.getElementById('sound-toggle').checked = settings.sound;
-  document.getElementById('animations-toggle').checked = settings.animations;
+  const soundToggle = document.getElementById('sound-toggle');
+  const animToggle = document.getElementById('animations-toggle');
+  
+  if (soundToggle) soundToggle.checked = settings.sound;
+  if (animToggle) animToggle.checked = settings.animations;
 }
 
 // Обновление статистики пользователя на экране
@@ -125,10 +89,7 @@ function renderCategories() {
   
   categoriesContainer.innerHTML = '';
   
-  if (!anatomyQuiz.categories || !Array.isArray(anatomyQuiz.categories)) {
-    console.error('Категории не найдены');
-    return;
-  }
+  if (!anatomyQuiz.categories) return;
   
   anatomyQuiz.categories.forEach((category, index) => {
     // Создаем карточку категории
@@ -143,7 +104,7 @@ function renderCategories() {
     
     // Рассчитываем прогресс по категории
     let progress = 0;
-    if (anatomyQuiz.userStats.categoryProgress[category.id]) {
+    if (anatomyQuiz.userStats && anatomyQuiz.userStats.categoryProgress && anatomyQuiz.userStats.categoryProgress[category.id]) {
       const categoryStats = anatomyQuiz.userStats.categoryProgress[category.id];
       progress = Math.round((categoryStats.correctAnswers / categoryStats.totalQuestions) * 100);
     }
@@ -180,7 +141,7 @@ function startQuiz(category) {
   
   // Получаем лимит времени для выбранной сложности
   const difficulty = anatomyQuiz.difficultyLevels.find(d => d.id === selectedDifficulty);
-  timeLeft = difficulty.timeLimit;
+  timeLeft = difficulty ? difficulty.timeLimit : 30;
   
   // Переходим к экрану вопроса
   showScreen('question-screen');
@@ -192,20 +153,25 @@ function startQuiz(category) {
 // Загрузка текущего вопроса
 function loadQuestion() {
   if (!selectedCategory || !selectedCategory.questions || currentQuestionIndex >= selectedCategory.questions.length) {
-    console.error('Ошибка загрузки вопроса');
     return;
   }
 
   const question = selectedCategory.questions[currentQuestionIndex];
   
   // Обновляем информацию в шапке
-  document.getElementById('current-category-icon').textContent = selectedCategory.icon;
-  document.getElementById('current-category-name').textContent = selectedCategory.name;
-  document.getElementById('current-question').textContent = currentQuestionIndex + 1;
-  document.getElementById('total-category-questions').textContent = selectedCategory.questions.length;
+  const categoryIcon = document.getElementById('current-category-icon');
+  const categoryName = document.getElementById('current-category-name');
+  const currentQuestion = document.getElementById('current-question');
+  const totalCategoryQuestions = document.getElementById('total-category-questions');
+  
+  if (categoryIcon) categoryIcon.textContent = selectedCategory.icon;
+  if (categoryName) categoryName.textContent = selectedCategory.name;
+  if (currentQuestion) currentQuestion.textContent = currentQuestionIndex + 1;
+  if (totalCategoryQuestions) totalCategoryQuestions.textContent = selectedCategory.questions.length;
   
   // Устанавливаем текст вопроса
-  document.getElementById('question-text').textContent = question.question;
+  const questionText = document.getElementById('question-text');
+  if (questionText) questionText.textContent = question.question;
   
   // Отображаем варианты ответов
   renderAnswerOptions(question);
@@ -223,24 +189,26 @@ function loadQuestion() {
 // Отображение вариантов ответа
 function renderAnswerOptions(question) {
   const answersContainer = document.getElementById('answers-container');
+  if (!answersContainer) return;
+  
   answersContainer.innerHTML = '';
   
-  if (question && Array.isArray(question.options)) {
-    question.options.forEach((option, index) => {
-      const optionElement = document.createElement('div');
-      optionElement.className = 'answer-option animated';
-      optionElement.style.animationDelay = `${index * 0.1}s`;
-      optionElement.textContent = option;
-      optionElement.dataset.index = index;
-      
-      // Добавляем обработчик клика
-      optionElement.addEventListener('click', () => {
-        selectAnswer(index);
-      });
-      
-      answersContainer.appendChild(optionElement);
+  if (!question || !question.options) return;
+  
+  question.options.forEach((option, index) => {
+    const optionElement = document.createElement('div');
+    optionElement.className = 'answer-option animated';
+    optionElement.style.animationDelay = `${index * 0.1}s`;
+    optionElement.textContent = option;
+    optionElement.dataset.index = index;
+    
+    // Добавляем обработчик клика
+    optionElement.addEventListener('click', () => {
+      selectAnswer(index);
     });
-  }
+    
+    answersContainer.appendChild(optionElement);
+  });
 }
 
 // Выбор варианта ответа
@@ -256,7 +224,7 @@ function selectAnswer(index) {
   
   // Выделяем выбранный вариант
   const options = document.querySelectorAll('.answer-option');
-  options[index].classList.add('selected');
+  if (options[index]) options[index].classList.add('selected');
   
   // Проверяем ответ после небольшой задержки
   setTimeout(() => {
@@ -267,7 +235,6 @@ function selectAnswer(index) {
 // Проверка правильности ответа
 function checkAnswer() {
   if (!selectedCategory || !selectedCategory.questions || currentQuestionIndex >= selectedCategory.questions.length) {
-    console.error('Ошибка проверки ответа');
     return;
   }
   
@@ -306,6 +273,8 @@ function showExplanation(explanation, isCorrect) {
   const modal = document.getElementById('explanation-modal');
   const content = document.getElementById('explanation-content');
   
+  if (!modal || !content) return;
+  
   content.innerHTML = `
     <div class="${isCorrect ? 'correct-answer' : 'incorrect-answer'}">
       <p class="result-message">${isCorrect ? 'Правильно!' : 'Неправильно!'}</p>
@@ -338,7 +307,7 @@ function nextQuestion() {
 function startTimer() {
   // Получаем лимит времени для текущей сложности
   const difficulty = anatomyQuiz.difficultyLevels.find(d => d.id === selectedDifficulty);
-  timeLeft = difficulty.timeLimit;
+  timeLeft = difficulty ? difficulty.timeLimit : 30;
   
   // Обновляем отображение таймера
   updateTimerDisplay();
@@ -364,12 +333,15 @@ function updateTimerDisplay() {
   const timerValue = document.getElementById('timer-value');
   const timerProgress = document.getElementById('timer-progress');
   
+  if (!timerValue || !timerProgress) return;
+  
   // Обновляем текст
   timerValue.textContent = timeLeft;
   
   // Обновляем полосу прогресса
   const difficulty = anatomyQuiz.difficultyLevels.find(d => d.id === selectedDifficulty);
-  const progressWidth = (timeLeft / difficulty.timeLimit) * 100;
+  const maxTime = difficulty ? difficulty.timeLimit : 30;
+  const progressWidth = (timeLeft / maxTime) * 100;
   timerProgress.style.width = `${progressWidth}%`;
   
   // Меняем цвет при малом количестве времени
@@ -419,6 +391,16 @@ function finishQuiz() {
 
 // Обновление статистики пользователя после квиза
 function updateUserStatsAfterQuiz() {
+  // Проверяем доступность userStats
+  if (!anatomyQuiz.userStats) {
+    anatomyQuiz.userStats = {
+      totalQuestions: 0,
+      correctAnswers: 0,
+      categoriesCompleted: 0,
+      categoryProgress: {}
+    };
+  }
+  
   // Обновляем общую статистику
   anatomyQuiz.userStats.totalQuestions += selectedCategory.questions.length;
   anatomyQuiz.userStats.correctAnswers += correctAnswers;
@@ -443,564 +425,96 @@ function updateUserStatsAfterQuiz() {
     anatomyQuiz.userStats.categoriesCompleted++;
   }
   
-  // Обновляем дату последней игры и серию дней
-  updateStreakDays();
-  
-  // Обновляем лучшую и худшую категории
-  updateBestWorstCategories();
-  
   // Сохраняем прогресс
-  anatomyQuiz.utils.saveProgress();
-  
-  // Если активна VK интеграция, сохраняем прогресс в VK Storage
-  if (typeof VKIntegration !== 'undefined' && typeof window.vkBridge !== 'undefined') {
-    VKIntegration.saveUserProgress(
-      anatomyQuiz.userStats,
-      anatomyQuiz.uiSettings,
-      (success) => {
-        if (!success) {
-          console.error('Не удалось сохранить прогресс в VK');
-        }
-      }
-    );
-    
-    // Отправляем событие для аналитики
-    VKIntegration.trackUserEngagement('quiz_completed', {
-      category_id: selectedCategory.id,
-      category_name: selectedCategory.name,
-      correct_answers: correctAnswers,
-      total_questions: selectedCategory.questions.length,
-      score_percent: Math.round((correctAnswers / selectedCategory.questions.length) * 100)
-    });
-  }
-}
-
-// Обновление серии дней
-function updateStreakDays() {
-  if (!anatomyQuiz.userStats) return;
-  
-  const lastPlayed = anatomyQuiz.userStats.lastPlayed;
-  const today = new Date().toISOString().split('T')[0];
-  
-  if (lastPlayed) {
-    const lastDate = new Date(lastPlayed).toISOString().split('T')[0];
-    
-    // Если уже играли сегодня, оставляем без изменений
-    if (lastDate === today) return;
-    
-    // Вычисляем вчерашнюю дату
-    const yesterday = new Date();
-    yesterday.setDate(yesterday.getDate() - 1);
-    const yesterdayStr = yesterday.toISOString().split('T')[0];
-    
-    // Если играли вчера, увеличиваем серию
-    if (lastDate === yesterdayStr) {
-      anatomyQuiz.userStats.streakDays = (anatomyQuiz.userStats.streakDays || 0) + 1;
-    } else {
-      // Если был пропуск, начинаем новую серию
-      anatomyQuiz.userStats.streakDays = 1;
-    }
-  } else {
-    // Первая игра
-    anatomyQuiz.userStats.streakDays = 1;
-  }
-  
-  // Обновляем дату последней игры
-  anatomyQuiz.userStats.lastPlayed = new Date().toISOString();
-}
-
-// Обновление лучшей и худшей категорий
-function updateBestWorstCategories() {
-  const categories = Object.entries(anatomyQuiz.userStats.categoryProgress);
-  
-  if (categories.length > 0) {
-    let bestId = categories[0][0];
-    let worstId = categories[0][0];
-    let bestScore = 0;
-    let worstScore = 100;
-    
-    categories.forEach(([id, stats]) => {
-      if (stats.totalQuestions > 0) {
-        const score = (stats.correctAnswers / stats.totalQuestions) * 100;
-        
-        if (score > bestScore) {
-          bestScore = score;
-          bestId = id;
-        }
-        
-        if (score < worstScore) {
-          worstScore = score;
-          worstId = id;
-        }
-      }
-    });
-    
-    anatomyQuiz.userStats.bestCategory = bestId;
-    anatomyQuiz.userStats.worstCategory = worstId;
+  if (anatomyQuiz.utils && anatomyQuiz.utils.saveProgress) {
+    anatomyQuiz.utils.saveProgress();
   }
 }
 
 // Показ экрана результатов
 function showResultScreen() {
   // Обновляем информацию о категории
-  document.getElementById('result-category-icon').textContent = selectedCategory.icon;
-  document.getElementById('result-category-name').textContent = selectedCategory.name;
+  const categoryIcon = document.getElementById('result-category-icon');
+  const categoryName = document.getElementById('result-category-name');
+  
+  if (categoryIcon) categoryIcon.textContent = selectedCategory.icon;
+  if (categoryName) categoryName.textContent = selectedCategory.name;
   
   // Обновляем статистику
-  document.getElementById('result-correct').textContent = correctAnswers;
-  document.getElementById('result-total').textContent = selectedCategory.questions.length;
+  const resultCorrect = document.getElementById('result-correct');
+  const resultTotal = document.getElementById('result-total');
+  const resultPercentage = document.getElementById('result-percentage');
+  const resultTime = document.getElementById('result-time');
+  
+  if (resultCorrect) resultCorrect.textContent = correctAnswers;
+  if (resultTotal) resultTotal.textContent = selectedCategory.questions.length;
   
   // Вычисляем процент успеха
   const percent = Math.round((correctAnswers / selectedCategory.questions.length) * 100);
-  document.getElementById('result-percentage').textContent = `${percent}%`;
+  if (resultPercentage) resultPercentage.textContent = `${percent}%`;
   
   // Вычисляем время
   const totalTime = Math.ceil((Date.now() - startTime) / 1000);
   const minutes = Math.floor(totalTime / 60);
   const seconds = totalTime % 60;
-  document.getElementById('result-time').textContent = `${minutes}:${seconds.toString().padStart(2, '0')}`;
+  if (resultTime) resultTime.textContent = `${minutes}:${seconds.toString().padStart(2, '0')}`;
   
   // Рассчитываем награды
-  let coinsEarned = correctAnswers * anatomyQuiz.rewards.correctAnswer.coins;
+  let coinsEarned = correctAnswers;
   let hintsEarned = 0;
   
   // Если категория пройдена полностью
   if (correctAnswers === selectedCategory.questions.length) {
-    coinsEarned += anatomyQuiz.rewards.categoryCompletion.coins;
-    hintsEarned += anatomyQuiz.rewards.categoryCompletion.hints;
+    coinsEarned += 5;
+    hintsEarned += 1;
   }
   
-  document.getElementById('reward-coins').textContent = `+${coinsEarned}`;
-  document.getElementById('reward-hints').textContent = `+${hintsEarned}`;
+  const rewardCoins = document.getElementById('reward-coins');
+  const rewardHints = document.getElementById('reward-hints');
   
-  // Проверяем разблокировку достижений
-  const newAchievements = checkUnlockedAchievements();
-  const achievementContainer = document.getElementById('achievement-container');
-  
-  if (newAchievements.length > 0) {
-    achievementContainer.innerHTML = '';
-    achievementContainer.classList.add('visible');
-    
-    newAchievements.forEach(achievement => {
-      achievementContainer.innerHTML += `
-        <div class="achievement">
-          <span class="achievement-icon">${achievement.icon}</span>
-          <div class="achievement-info">
-            <h4>${achievement.name}</h4>
-            <p>${achievement.description}</p>
-          </div>
-        </div>
-      `;
-    });
-  } else {
-    achievementContainer.classList.remove('visible');
-  }
-  
-  // Проверяем наличие VK интеграции и показываем соответствующие кнопки
-  const vkButtonsContainer = document.querySelector('.vk-integration-buttons');
-  if (typeof VKIntegration !== 'undefined' && typeof window.vkBridge !== 'undefined' && vkButtonsContainer) {
-    vkButtonsContainer.style.display = 'block';
-    
-    // Настраиваем кнопки VK
-    setupVKButtons(percent);
-  }
+  if (rewardCoins) rewardCoins.textContent = `+${coinsEarned}`;
+  if (rewardHints) rewardHints.textContent = `+${hintsEarned}`;
   
   // Показываем экран результатов
   showScreen('result-screen');
 }
 
-// Настройка кнопок интеграции с VK
-function setupVKButtons(scorePercent) {
-  const shareButton = document.getElementById('share-result-button');
-  const inviteButton = document.getElementById('invite-friends-button');
-  const favoritesButton = document.getElementById('add-to-favorites-button');
-  
-  // Кнопка Поделиться
-  if (shareButton) {
-    shareButton.addEventListener('click', () => {
-      const shareMessage = `Я прошел квиз по теме "${selectedCategory.name}" в приложении "Анатомический Квиз" с результатом ${scorePercent}%!`;
-      
-      VKIntegration.shareResults(shareMessage, [], (success) => {
-        if (success) {
-          showNotification('Результат успешно опубликован!', 'success');
-        } else {
-          showNotification('Не удалось опубликовать результат', 'error');
-        }
-      });
-    });
-  }
-  
-  // Кнопка Пригласить друзей
-  if (inviteButton) {
-    inviteButton.addEventListener('click', () => {
-      VKIntegration.inviteFriends((success) => {
-        if (success) {
-          showNotification('Приглашения отправлены!', 'success');
-        } else {
-          showNotification('Не удалось отправить приглашения', 'error');
-        }
-      });
-    });
-  }
-  
-  // Кнопка Добавить в избранное
-  if (favoritesButton) {
-    favoritesButton.addEventListener('click', () => {
-      VKIntegration.addToFavorites((success) => {
-        if (success) {
-          showNotification('Приложение добавлено в избранное!', 'success');
-        } else {
-          showNotification('Не удалось добавить в избранное', 'error');
-        }
-      });
-    });
-  }
-}
-
-// Проверка разблокированных достижений
-function checkUnlockedAchievements() {
-  const newAchievements = [];
-  const achievements = anatomyQuiz.utils.checkAchievements();
-  
-  if (achievements && Array.isArray(achievements)) {
-    achievements.forEach(achievementId => {
-      const achievement = anatomyQuiz.achievements.find(a => a.id === achievementId);
-      
-      if (achievement && !achievement.unlocked) {
-        achievement.unlocked = true;
-        newAchievements.push(achievement);
-      }
-    });
-  }
-  
-  return newAchievements;
-}
-
 // Переключение между экранами
 function showScreen(screenId) {
   // Скрываем текущий экран
-  document.querySelector(`.screen.active`).classList.remove('active');
+  const activeScreen = document.querySelector(`.screen.active`);
+  if (activeScreen) activeScreen.classList.remove('active');
   
   // Показываем новый экран
-  document.getElementById(screenId).classList.add('active');
+  const newScreen = document.getElementById(screenId);
+  if (newScreen) newScreen.classList.add('active');
   
   // Обновляем текущий экран
   currentScreen = screenId;
 }
 
-// Использование подсказки
-function useHint(hintType) {
-  // Проверяем, доступны ли подсказки
-  if (anatomyQuiz.hints.available <= 0) {
-    alert('У вас нет доступных подсказок!');
-    return;
-  }
-  
-  // Применяем подсказку в зависимости от типа
-  switch (hintType) {
-    case 'fifty_fifty':
-      applyFiftyFiftyHint();
-      break;
-    case 'extra_time':
-      applyExtraTimeHint();
-      break;
-    case 'hint':
-      applyTextHint();
-      break;
-  }
-  
-  // Уменьшаем количество доступных подсказок
-  anatomyQuiz.hints.available--;
-  
-  // Сохраняем прогресс
-  anatomyQuiz.utils.saveProgress();
-}
-
-// Подсказка 50/50
-function applyFiftyFiftyHint() {
-  const question = selectedCategory.questions[currentQuestionIndex];
-  const options = document.querySelectorAll('.answer-option');
-  
-  // Собираем индексы неправильных ответов
-  const incorrectIndices = [];
-  for (let i = 0; i < options.length; i++) {
-    if (i !== question.correctAnswer) {
-      incorrectIndices.push(i);
-    }
-  }
-  
-  // Выбираем случайно два неправильных ответа для скрытия
-  const shuffled = incorrectIndices.sort(() => 0.5 - Math.random());
-  const toHide = shuffled.slice(0, 2);
-  
-  // Скрываем выбранные варианты
-  toHide.forEach(index => {
-    options[index].classList.add('disabled');
-    options[index].style.opacity = '0.3';
-  });
-}
-
-// Подсказка с дополнительным временем
-function applyExtraTimeHint() {
-  // Добавляем 30 секунд к оставшемуся времени
-  timeLeft += 30;
-  
-  // Обновляем отображение таймера
-  updateTimerDisplay();
-}
-
-// Текстовая подсказка
-function applyTextHint() {
-  const question = selectedCategory.questions[currentQuestionIndex];
-  const correctOption = question.options[question.correctAnswer];
-  
-  // Показываем модальное окно с подсказкой
-  const modal = document.getElementById('explanation-modal');
-  const content = document.getElementById('explanation-content');
-  
-  content.innerHTML = `
-    <div class="hint-content">
-      <h4>Подсказка</h4>
-      <p>Обратите внимание на ответ, который содержит "${correctOption.substring(0, 3)}..."</p>
-    </div>
-  `;
-  
-  modal.classList.add('active');
-  
-  // Закрываем по клику на кнопку
-  document.getElementById('explanation-close').addEventListener('click', () => {
-    modal.classList.remove('active');
-  });
-}
-
-// Отображение экрана достижений
-function showAchievementsScreen() {
-  // Отрисовываем достижения
-  renderAchievements();
-  
-  // Показываем экран
-  showScreen('achievements-screen');
-}
-
-// Отрисовка достижений
-function renderAchievements() {
-  const container = document.getElementById('achievements-container');
-  container.innerHTML = '';
-  
-  anatomyQuiz.achievements.forEach((achievement, index) => {
-    const card = document.createElement('div');
-    card.className = `achievement-card ${achievement.unlocked ? 'unlocked' : 'locked'} animated`;
-    card.style.animationDelay = `${index * 0.1}s`;
-    
-    card.innerHTML = `
-      <div class="achievement-icon">${achievement.icon}</div>
-      <div class="achievement-name">${achievement.name}</div>
-      <div class="achievement-description">${achievement.description}</div>
-    `;
-    
-    container.appendChild(card);
-  });
-}
-
-// Отображение экрана настроек
-function showSettingsScreen() {
-  // Применяем текущие настройки
-  applySettings();
-  
-  // Показываем экран
-  showScreen('settings-screen');
-}
-
-// Изменение темы
-function changeTheme(theme) {
-  // Обновляем тему в настройках
-  anatomyQuiz.uiSettings.theme = theme;
-  
-  // Применяем тему
-  document.body.className = theme === 'dark' ? 'dark-theme' : '';
-  
-  // Сохраняем настройки
-  anatomyQuiz.utils.saveProgress();
-}
-
-// Изменение размера шрифта
-function changeFontSize(size) {
-  // Обновляем размер в настройках
-  anatomyQuiz.uiSettings.fontSize = size;
-  
-  // Удаляем предыдущие классы размера
-  document.body.classList.remove('font-small', 'font-medium', 'font-large');
-  
-  // Применяем новый размер
-  document.body.classList.add(`font-${size}`);
-  
-  // Сохраняем настройки
-  anatomyQuiz.utils.saveProgress();
-}
-
-// Переключение звука
-function toggleSound(enabled) {
-  anatomyQuiz.uiSettings.sound = enabled;
-  anatomyQuiz.utils.saveProgress();
-}
-
-// Переключение анимаций
-function toggleAnimations(enabled) {
-  anatomyQuiz.uiSettings.animations = enabled;
-  anatomyQuiz.utils.saveProgress();
-}
-
-// Сброс прогресса
-function resetProgress() {
-  // Используем метод из объекта данных
-  anatomyQuiz.utils.resetProgress();
-  
-  // Обновляем статистику на экране
-  updateUserStats();
-  
-  // Перерисовываем категории
-  renderCategories();
-  
-  // Показываем уведомление
-  showNotification('Ваш прогресс был успешно сброшен.', 3000);
-  
-  // Если активна VK интеграция, сохраняем сброшенный прогресс
-  if (typeof VKIntegration !== 'undefined' && typeof window.vkBridge !== 'undefined') {
-    VKIntegration.saveUserProgress(
-      anatomyQuiz.userStats,
-      anatomyQuiz.uiSettings,
-      (success) => {
-        if (!success) {
-          console.error('Не удалось сохранить сброшенный прогресс в VK');
-        }
-      }
-    );
-  }
-}
-
-// Отображение экрана учебных материалов
-function showLearningScreen() {
-  // Отображаем категории учебных материалов
-  renderLearningCategories();
-  
-  // Показываем экран
-  showScreen('learning-screen');
-}
-
-// Отрисовка категорий учебных материалов
-function renderLearningCategories() {
-  const categoriesContainer = document.querySelector('.learning-categories');
-  categoriesContainer.innerHTML = '';
-  
-  // Добавляем кнопки для всех категорий
-  anatomyQuiz.categories.forEach((category, index) => {
-    const categoryButton = document.createElement('div');
-    categoryButton.className = `learning-category ${index === 0 ? 'active' : ''}`;
-    categoryButton.textContent = category.name;
-    categoryButton.dataset.categoryId = category.id;
-    
-    categoryButton.addEventListener('click', () => {
-      // Снимаем активный класс со всех кнопок
-      document.querySelectorAll('.learning-category').forEach(button => {
-        button.classList.remove('active');
-      });
-      
-      // Делаем текущую кнопку активной
-      categoryButton.classList.add('active');
-      
-      // Загружаем материалы для выбранной категории
-      loadLearningMaterials(category.id);
-    });
-    
-    categoriesContainer.appendChild(categoryButton);
-  });
-  
-  // Загружаем материалы первой категории по умолчанию
-  if (anatomyQuiz.categories.length > 0) {
-    loadLearningMaterials(anatomyQuiz.categories[0].id);
-  }
-}
-
-// Загрузка учебных материалов для выбранной категории
-function loadLearningMaterials(categoryId) {
-  const contentContainer = document.getElementById('learning-content');
-  contentContainer.innerHTML = '';
-  
-  // Фильтруем материалы по выбранной категории
-  const materials = anatomyQuiz.learningMaterials.filter(material => material.categoryId === parseInt(categoryId));
-  
-  if (materials.length > 0) {
-    materials.forEach(material => {
-      const materialDiv = document.createElement('div');
-      materialDiv.className = 'learning-material';
-      
-      // Формируем HTML для материала
-      let content = `
-        <h3 class="learning-title">${material.title}</h3>
-        <div class="learning-text">${material.content}</div>
-      `;
-      
-      // Добавляем изображение, если оно есть
-      if (material.imageUrl) {
-        content += `<img src="${material.imageUrl}" alt="${material.title}" class="learning-image">`;
-      }
-      
-      // Если материал заблокирован, показываем соответствующий индикатор
-      if (!material.unlocked) {
-        content += `<div class="locked-indicator">🔒 Продолжайте проходить квизы, чтобы разблокировать</div>`;
-      }
-      
-      materialDiv.innerHTML = content;
-      contentContainer.appendChild(materialDiv);
-    });
-    
-    // Активируем первый материал
-    const firstMaterial = contentContainer.querySelector('.learning-material');
-    if (firstMaterial) {
-      firstMaterial.classList.add('active');
-    }
-  } else {
-    // Если материалов нет, показываем сообщение
-    contentContainer.innerHTML = '<p class="no-materials">Для этой категории пока нет учебных материалов.</p>';
-  }
-}
-
-// Показ модального окна подтверждения
-function showConfirmModal(message, confirmCallback) {
-  UIComponents.createModal('Подтверждение', message, [
-    {
-      text: 'Да',
-      primary: true,
-      callback: () => {
-        if (confirmCallback) confirmCallback();
-      }
-    },
-    {
-      text: 'Отмена',
-      callback: () => {}
-    }
-  ]);
-}
-
-// Закрытие модального окна подтверждения
-function closeConfirmModal(confirmed) {
-  const modal = document.getElementById('confirmation-modal');
-  
-  // Вызываем callback, если пользователь подтвердил
-  if (confirmed && window.confirmCallback) {
-    window.confirmCallback();
-  }
-  
-  // Очищаем callback
-  window.confirmCallback = null;
-  
-  // Скрываем модальное окно
-  modal.classList.remove('active');
-}
-
 // Показ уведомления
 function showNotification(message, duration = 3000) {
-  UIComponents.createNotification(message, 'info', duration);
+  // Создаем элемент уведомления
+  let notification = document.getElementById('notification');
+  
+  if (!notification) {
+    notification = document.createElement('div');
+    notification.id = 'notification';
+    notification.className = 'notification';
+    document.body.appendChild(notification);
+  }
+  
+  // Устанавливаем текст
+  notification.textContent = message;
+  
+  // Показываем уведомление
+  notification.classList.add('active');
+  
+  // Скрываем через указанное время
+  setTimeout(() => {
+    notification.classList.remove('active');
+  }, duration);
 }
 
 // Настройка обработчиков событий
@@ -1024,85 +538,96 @@ function setupEventListeners() {
   });
   
   // Кнопка возврата в меню из экрана вопроса
-  document.getElementById('back-to-menu').addEventListener('click', () => {
-    if (confirm('Вы уверены, что хотите вернуться в главное меню? Прогресс будет потерян.')) {
-      clearInterval(timerInterval);
-      showScreen('main-menu');
-    }
-  });
+  const backToMenu = document.getElementById('back-to-menu');
+  if (backToMenu) {
+    backToMenu.addEventListener('click', () => {
+      if (confirm('Вы уверены, что хотите вернуться в главное меню? Прогресс будет потерян.')) {
+        clearInterval(timerInterval);
+        showScreen('main-menu');
+      }
+    });
+  }
   
   // Кнопки на экране результатов
-  document.getElementById('retry-button').addEventListener('click', () => {
-    startQuiz(selectedCategory);
-  });
+  const retryButton = document.getElementById('retry-button');
+  const menuButton = document.getElementById('menu-button');
   
-  document.getElementById('menu-button').addEventListener('click', () => {
-    showScreen('main-menu');
-  });
+  if (retryButton) {
+    retryButton.addEventListener('click', () => {
+      if (selectedCategory) {
+        startQuiz(selectedCategory);
+      }
+    });
+  }
+  
+  if (menuButton) {
+    menuButton.addEventListener('click', () => {
+      showScreen('main-menu');
+    });
+  }
   
   // Кнопки в нижнем меню
-  document.querySelector('.achievements-button').addEventListener('click', () => {
-    showAchievementsScreen();
-  });
+  const achievementsButton = document.querySelector('.achievements-button');
+  const settingsButton = document.querySelector('.settings-button');
+  const learningButton = document.querySelector('.learning-button');
   
-  document.querySelector('.settings-button').addEventListener('click', () => {
-    showSettingsScreen();
-  });
-  
-  document.querySelector('.learning-button').addEventListener('click', () => {
-    showLearningScreen();
-  });
-  
-  // Кнопки подсказок
-  document.querySelectorAll('.hint-button').forEach(button => {
-    button.addEventListener('click', () => {
-      useHint(button.dataset.hint);
+  if (achievementsButton) {
+    achievementsButton.addEventListener('click', () => {
+      showScreen('achievements-screen');
     });
-  });
+  }
+  
+  if (settingsButton) {
+    settingsButton.addEventListener('click', () => {
+      showScreen('settings-screen');
+    });
+  }
+  
+  if (learningButton) {
+    learningButton.addEventListener('click', () => {
+      showScreen('learning-screen');
+    });
+  }
   
   // Кнопки возврата из разных экранов
-  document.getElementById('achievements-back').addEventListener('click', () => {
-    showScreen('main-menu');
-  });
+  const achievementsBack = document.getElementById('achievements-back');
+  const settingsBack = document.getElementById('settings-back');
+  const learningBack = document.getElementById('learning-back');
   
-  document.getElementById('settings-back').addEventListener('click', () => {
-    showScreen('main-menu');
-  });
+  if (achievementsBack) {
+    achievementsBack.addEventListener('click', () => {
+      showScreen('main-menu');
+    });
+  }
   
-  document.getElementById('learning-back').addEventListener('click', () => {
-    showScreen('main-menu');
-  });
+  if (settingsBack) {
+    settingsBack.addEventListener('click', () => {
+      showScreen('main-menu');
+    });
+  }
+  
+  if (learningBack) {
+    learningBack.addEventListener('click', () => {
+      showScreen('main-menu');
+    });
+  }
   
   // Настройка темы
   document.querySelectorAll('.theme-button').forEach(button => {
     button.addEventListener('click', () => {
       document.querySelectorAll('.theme-button').forEach(b => b.classList.remove('active'));
       button.classList.add('active');
-      changeTheme(button.dataset.theme);
+      const theme = button.dataset.theme;
+      if (theme) {
+        document.body.className = theme === 'dark' ? 'dark-theme' : '';
+        // Сохраняем настройку
+        if (anatomyQuiz.uiSettings) {
+          anatomyQuiz.uiSettings.theme = theme;
+          if (anatomyQuiz.utils && anatomyQuiz.utils.saveProgress) {
+            anatomyQuiz.utils.saveProgress();
+          }
+        }
+      }
     });
   });
-  
-  // Настройка размера шрифта
-  document.querySelectorAll('.font-button').forEach(button => {
-    button.addEventListener('click', () => {
-      document.querySelectorAll('.font-button').forEach(b => b.classList.remove('active'));
-      button.classList.add('active');
-      changeFontSize(button.dataset.font);
-    });
-  });
-  
-  // Переключатели настроек
-  document.getElementById('sound-toggle').addEventListener('change', (e) => {
-    toggleSound(e.target.checked);
-  });
-  
-  document.getElementById('animations-toggle').addEventListener('change', (e) => {
-    toggleAnimations(e.target.checked);
-  });
-  
-  // Кнопка сброса прогресса
-  document.getElementById('reset-progress').addEventListener('click', () => {
-    if (confirm('Вы уверены, что хотите сбросить весь прогресс? Это действие нельзя отменить.')) {
-      resetProgress();
-    }
-  });
+}
