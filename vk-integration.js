@@ -1,211 +1,275 @@
-// Интеграция с ВКонтакте
+// Интеграция с VK для Анатомического Квиза
 const VKIntegration = {
-  // Инициализация приложения
-  init: function() {
-    // Получаем доступ к VK Bridge через глобальную переменную
-    const vkBridge = window.vkBridge;
-    
-    if (!vkBridge) {
-      console.error('VK Bridge не доступен');
+  // Инициализация VK Mini Apps
+  init: function(successCallback = null, errorCallback = null) {
+    // Проверяем, доступен ли VK API
+    if (typeof window.VK === 'undefined') {
+      // Загружаем VK API
+      const script = document.createElement('script');
+      script.src = 'https://vk.com/js/api/openapi.js?169';
+      script.onload = () => {
+        this._initVKApp(successCallback, errorCallback);
+      };
+      script.onerror = () => {
+        if (errorCallback) {
+          errorCallback('Не удалось загрузить VK API');
+        }
+      };
+      document.head.appendChild(script);
+    } else {
+      this._initVKApp(successCallback, errorCallback);
+    }
+  },
+  
+  // Внутренний метод инициализации VK Mini Apps
+  _initVKApp: function(successCallback, errorCallback) {
+    try {
+      // Инициализируем VK Mini Apps
+      window.vkBridge.send('VKWebAppInit')
+        .then(data => {
+          console.log('VK Mini Apps инициализирован', data);
+          if (successCallback) {
+            successCallback(data);
+          }
+        })
+        .catch(error => {
+          console.error('Ошибка инициализации VK Mini Apps', error);
+          if (errorCallback) {
+            errorCallback(error);
+          }
+        });
+    } catch (e) {
+      console.error('Ошибка инициализации VK Mini Apps', e);
+      if (errorCallback) {
+        errorCallback(e);
+      }
+    }
+  },
+  
+  // Получение данных пользователя
+  getUserInfo: function(callback) {
+    if (typeof window.vkBridge === 'undefined') {
+      callback(null, new Error('VK Bridge не инициализирован'));
       return;
     }
     
-    // Инициализируем VK Bridge
-    vkBridge.send('VKWebAppInit')
+    window.vkBridge.send('VKWebAppGetUserInfo')
       .then(data => {
-        console.log('VK Bridge инициализирован', data);
-        
-        // Загружаем информацию о пользователе
-        this.loadUserInfo();
+        callback(data);
       })
       .catch(error => {
-        console.error('Ошибка инициализации VK Bridge:', error);
+        console.error('Ошибка получения данных пользователя', error);
+        callback(null, error);
       });
-      
-    // Настраиваем отслеживание событий
-    vkBridge.subscribe(event => {
-      if (event.detail.type === 'VKWebAppViewRestore') {
-        // Обновляем UI при восстановлении приложения
-        UI.renderMainMenu();
-      }
-    });
-  },
-  
-  // Загрузка информации о пользователе
-  loadUserInfo: function() {
-    const vkBridge = window.vkBridge;
-    if (!vkBridge) return;
-    
-    vkBridge.send('VKWebAppGetUserInfo')
-      .then(data => {
-        console.log('Информация о пользователе получена', data);
-        // Сохраняем имя пользователя для приветствия
-        if (data && data.first_name) {
-          this.userName = data.first_name;
-          // Если есть элемент приветствия, обновляем его
-          const greetingElement = document.querySelector('.user-greeting');
-          if (greetingElement) {
-            greetingElement.textContent = `Привет, ${this.userName}!`;
-          }
-        }
-      })
-      .catch(error => {
-        console.error('Ошибка получения информации о пользователе:', error);
-      });
-  },
-  
-  // Функция для добавления приложения в избранное
-  addToFavorites: function() {
-    const vkBridge = window.vkBridge;
-    if (!vkBridge) return;
-    
-    vkBridge.send('VKWebAppAddToFavorites')
-      .then(data => {
-        console.log('Приложение добавлено в избранное', data);
-        // Показываем благодарственное сообщение
-        if (UI && UI.showNotification) {
-          UI.showNotification('Спасибо, что добавили нас в избранное! 💙');
-        }
-      })
-      .catch(error => {
-        console.error('Ошибка добавления в избранное:', error);
-      });
-  },
-  
-  // Расшаривание результатов
-  shareResults: function() {
-    const vkBridge = window.vkBridge;
-    if (!vkBridge) return;
-    
-    const percentage = Math.round((anatomyQuiz.userStats.correctAnswers / anatomyQuiz.userStats.totalQuestions) * 100) || 0;
-    
-    let message = '';
-    
-    if (currentCategory) {
-      // Если делимся из результатов категории
-      const categoryPercentage = Math.round((score / currentCategory.questions.length) * 100);
-      message = `Я прошел тест по теме "${currentCategory.name}" в квизе по анатомии и набрал ${categoryPercentage}%! Попробуй свои силы!`;
-    } else {
-      // Если делимся общими результатами
-      message = `Я прошел квиз по анатомии и ответил правильно на ${anatomyQuiz.userStats.correctAnswers} из ${anatomyQuiz.userStats.totalQuestions} вопросов (${percentage}%)! Проверь свои знания об организме человека!`;
-      
-      // Добавляем информацию о достижениях, если они есть
-      if (anatomyQuiz.userStats.achievements.length > 0) {
-        message += `\n\nМои достижения: ${anatomyQuiz.userStats.achievements.length} 🏆`;
-      }
-    }
-    
-    vkBridge.send('VKWebAppShare', {
-      message: message
-    })
-    .then(data => {
-      console.log('Результат успешно опубликован', data);
-      if (UI && UI.showNotification) {
-        UI.showNotification('Спасибо, что поделились результатом! 👍');
-      }
-    })
-    .catch(error => {
-      console.error('Ошибка при публикации:', error);
-      if (UI && UI.showNotification) {
-        UI.showNotification('Не удалось поделиться результатом 😔', 'error');
-      }
-    });
   },
   
   // Показать рекламу
-  showAd: function(onComplete) {
-    const vkBridge = window.vkBridge;
-    if (!vkBridge) {
-      if (onComplete) onComplete(false);
+  showAds: function(callback) {
+    if (typeof window.vkBridge === 'undefined') {
+      callback(false, new Error('VK Bridge не инициализирован'));
       return;
     }
     
-    vkBridge.send('VKWebAppShowNativeAds', {ad_format: 'interstitial'})
+    window.vkBridge.send('VKWebAppShowNativeAds', {ad_format: 'interstitial'})
       .then(data => {
-        console.log('Реклама показана', data);
-        if (onComplete) onComplete(true);
+        callback(true, data);
       })
       .catch(error => {
-        console.error('Ошибка показа рекламы:', error);
-        if (onComplete) onComplete(false);
+        console.error('Ошибка показа рекламы', error);
+        callback(false, error);
+      });
+  },
+  
+  // Поделиться результатами
+  shareResults: function(message, attachments = [], callback = null) {
+    if (typeof window.vkBridge === 'undefined') {
+      if (callback) callback(false, new Error('VK Bridge не инициализирован'));
+      return;
+    }
+    
+    window.vkBridge.send('VKWebAppShare', {
+      message: message,
+      attachments: attachments.join(',')
+    })
+      .then(data => {
+        if (callback) callback(true, data);
+      })
+      .catch(error => {
+        console.error('Ошибка при отправке поста', error);
+        if (callback) callback(false, error);
+      });
+  },
+  
+  // Добавить в избранное
+  addToFavorites: function(callback) {
+    if (typeof window.vkBridge === 'undefined') {
+      callback(false, new Error('VK Bridge не инициализирован'));
+      return;
+    }
+    
+    window.vkBridge.send('VKWebAppAddToFavorites')
+      .then(data => {
+        callback(true, data);
+      })
+      .catch(error => {
+        console.error('Ошибка добавления в избранное', error);
+        callback(false, error);
       });
   },
   
   // Пригласить друзей
-  inviteFriends: function() {
-    const vkBridge = window.vkBridge;
-    if (!vkBridge) return;
+  inviteFriends: function(callback) {
+    if (typeof window.vkBridge === 'undefined') {
+      callback(false, new Error('VK Bridge не инициализирован'));
+      return;
+    }
     
-    vkBridge.send('VKWebAppShowInviteBox', {})
+    window.vkBridge.send('VKWebAppShowInviteBox')
       .then(data => {
-        console.log('Приглашение отправлено', data);
-        if (UI && UI.showNotification) {
-          UI.showNotification('Спасибо за приглашение друзей! 🎉');
-        }
+        callback(true, data);
       })
       .catch(error => {
-        console.error('Ошибка отправки приглашения:', error);
+        console.error('Ошибка отправки приглашений', error);
+        callback(false, error);
       });
   },
   
-  // Запрос у пользователя разрешения на отправку уведомлений
-  requestNotificationsPermission: function() {
-    const vkBridge = window.vkBridge;
-    if (!vkBridge) return;
+  // Сохранение данных в VK Storage
+  saveData: function(key, value, callback) {
+    if (typeof window.vkBridge === 'undefined') {
+      callback(false, new Error('VK Bridge не инициализирован'));
+      return;
+    }
     
-    vkBridge.send('VKWebAppAllowNotifications')
+    const strValue = typeof value === 'object' ? JSON.stringify(value) : String(value);
+    
+    window.vkBridge.send('VKWebAppStorageSet', {
+      key: key,
+      value: strValue
+    })
       .then(data => {
-        if (data.result) {
-          console.log('Разрешения на уведомления получены');
-          if (UI && UI.showNotification) {
-            UI.showNotification('Теперь вы будете получать уведомления о новых вопросах! 🔔');
-          }
-        } else {
-          console.log('Пользователь отклонил запрос на уведомления');
-        }
+        callback(true, data);
       })
       .catch(error => {
-        console.error('Ошибка запроса разрешений на уведомления:', error);
+        console.error(`Ошибка сохранения данных [${key}]`, error);
+        callback(false, error);
       });
   },
   
-  // Отправка сообщения в сообщество
-  joinCommunity: function() {
-    const vkBridge = window.vkBridge;
-    if (!vkBridge) return;
+  // Загрузка данных из VK Storage
+  loadData: function(keys, callback) {
+    if (typeof window.vkBridge === 'undefined') {
+      callback(null, new Error('VK Bridge не инициализирован'));
+      return;
+    }
     
-    // Замените YOUR_GROUP_ID на ID вашего сообщества
-    vkBridge.send('VKWebAppJoinGroup', { group_id: 'YOUR_GROUP_ID' })
+    const keysArray = Array.isArray(keys) ? keys : [keys];
+    
+    window.vkBridge.send('VKWebAppStorageGet', {
+      keys: keysArray
+    })
       .then(data => {
-        console.log('Пользователь вступил в сообщество', data);
-        if (UI && UI.showNotification) {
-          UI.showNotification('Спасибо, что присоединились к нашему сообществу! 👋');
+        const results = {};
+        if (data.keys) {
+          data.keys.forEach(item => {
+            try {
+              // Пытаемся распарсить как JSON
+              results[item.key] = JSON.parse(item.value);
+            } catch (e) {
+              // Если не получается, оставляем как строку
+              results[item.key] = item.value;
+            }
+          });
         }
+        callback(results);
       })
       .catch(error => {
-        console.error('Ошибка при вступлении в сообщество:', error);
+        console.error(`Ошибка загрузки данных [${keys.join(', ')}]`, error);
+        callback(null, error);
       });
-  }
-};
-
-// Улучшенная функция для публикации результатов
-function shareResults() {
-  if (VKIntegration && VKIntegration.shareResults) {
-    VKIntegration.shareResults();
-  } else {
-    console.error('VKIntegration не доступен');
-    if (UI && UI.showNotification) {
-      UI.showNotification('Функция поделиться временно недоступна', 'error');
+  },
+  
+  // Загрузить прогресс пользователя
+  loadUserProgress: function(callback) {
+    this.loadData(['user_stats', 'user_settings'], (data, error) => {
+      if (error) {
+        callback(null, error);
+        return;
+      }
+      
+      const userProgress = {
+        stats: data.user_stats || null,
+        settings: data.user_settings || null
+      };
+      
+      callback(userProgress);
+    });
+  },
+  
+  // Сохранить прогресс пользователя
+  saveUserProgress: function(stats, settings, callback) {
+    const saveOperations = [
+      new Promise((resolve, reject) => {
+        this.saveData('user_stats', stats, (success, error) => {
+          if (success) resolve();
+          else reject(error);
+        });
+      }),
+      new Promise((resolve, reject) => {
+        this.saveData('user_settings', settings, (success, error) => {
+          if (success) resolve();
+          else reject(error);
+        });
+      })
+    ];
+    
+    Promise.all(saveOperations)
+      .then(() => {
+        callback(true);
+      })
+      .catch(error => {
+        console.error('Ошибка сохранения прогресса', error);
+        callback(false, error);
+      });
+  },
+  
+  // Показать лидерборд
+  showLeaderboard: function(userResult) {
+    if (typeof window.vkBridge === 'undefined') {
+      console.error('VK Bridge не инициализирован');
+      return;
+    }
+    
+    window.vkBridge.send('VKWebAppShowLeaderBoardBox', {
+      user_result: userResult
+    })
+      .then(data => {
+        console.log('Лидерборд показан', data);
+      })
+      .catch(error => {
+        console.error('Ошибка показа лидерборда', error);
+      });
+  },
+  
+  // Отправить событие о вовлечении пользователя (для внутренней аналитики VK)
+  trackUserEngagement: function(action, extraParams = {}) {
+    if (typeof window.vkBridge === 'undefined') {
+      console.error('VK Bridge не инициализирован');
+      return;
+    }
+    
+    try {
+      const params = Object.assign({ 
+        action: action,
+        timestamp: Date.now()
+      }, extraParams);
+      
+      window.vkBridge.send('VKWebAppTrackEvent', {
+        type: 'user_engagement',
+        data: params
+      });
+    } catch (e) {
+      console.error('Ошибка отправки события', e);
     }
   }
-}
-
-// Показывать рекламу после каждой завершенной категории
-function showAdAfterCategory(callback) {
-  // Показываем рекламу с 50% вероятностью, чтобы не раздражать пользователей
-  if (Math.random() > 0.5) {
-    VKIntegration.showAd(callback);
-  } else if (callback) {
-    callback(true);
-  }
-}
+};
