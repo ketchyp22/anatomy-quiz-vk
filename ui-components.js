@@ -1,352 +1,392 @@
-// Улучшенный UI компонент
-const UI = {
-  // Отображение главного меню
-  renderMainMenu: function() {
-    // Проверка и обновление ежедневной активности
-    this.checkDailyStreak();
-    
-    const mainContainer = document.getElementById('app');
-    mainContainer.innerHTML = `
-      <div class="quiz-container fade-in">
-        <div class="app-header">
-          <h1>Анатомия Человека</h1>
-          <p>Проверьте свои знания о человеческом теле</p>
-        </div>
-        
-        <div class="categories-container">
-          ${anatomyQuiz.categories.map((category, index) => `
-            <div class="category-card fade-in delay-${index + 1}" onclick="UI.startCategory(${category.id})">
-              <div class="category-icon">${category.icon}</div>
-              <h3>${category.name}</h3>
-              <p>${category.questions.length} вопросов</p>
-            </div>
-          `).join('')}
-        </div>
-        
-        <div class="stats-panel fade-in delay-4">
-          <h3>Ваша статистика</h3>
-          <div class="stats-card">
-            <div class="stat-item">
-              <div class="stat-value">${anatomyQuiz.userStats.correctAnswers}</div>
-              <div class="stat-label">Правильных ответов</div>
-            </div>
-            <div class="stat-item">
-              <div class="stat-value">${anatomyQuiz.userStats.totalQuestions}</div>
-              <div class="stat-label">Всего вопросов</div>
-            </div>
-            <div class="stat-item">
-              <div class="stat-value">${anatomyQuiz.userStats.categoriesCompleted}</div>
-              <div class="stat-label">Категорий</div>
-            </div>
-          </div>
-          ${this.renderAchievements()}
-          ${anatomyQuiz.userStats.streakDays > 0 ? 
-            `<div class="streak-info">
-              <p>🔥 Вы играете ${anatomyQuiz.userStats.streakDays} ${this.getDayWord(anatomyQuiz.userStats.streakDays)} подряд!</p>
-            </div>` : ''}
-        </div>
-        
-        <button class="button fade-in delay-4" onclick="shareResults()">
-          <span class="button-icon">📱</span> Поделиться результатами
-        </button>
-      </div>
-    `;
-  },
-  
-  // Метод для отображения достижений
-  renderAchievements: function() {
-    if (anatomyQuiz.userStats.achievements.length === 0) {
-      return '<p>У вас пока нет достижений. Пройдите квиз, чтобы получить награды!</p>';
-    }
-    
-    return `
-      <div class="achievements-section">
-        <h4>Ваши достижения:</h4>
-        <div class="achievements-list">
-          ${anatomyQuiz.userStats.achievements.map(achievement => {
-            const achievementData = anatomyQuiz.achievements.find(a => a.id === achievement) || 
-                                   { name: achievement, icon: "🏆" };
-            return `
-              <div class="achievement-item">
-                <span class="achievement-icon">${achievementData.icon}</span>
-                <span class="achievement-name">${achievementData.name}</span>
-              </div>
-            `;
-          }).join('')}
-        </div>
-      </div>
-    `;
-  },
-  
-  // Склонение слова "день"
-  getDayWord: function(days) {
-    if (days % 10 === 1 && days % 100 !== 11) {
-      return "день";
-    } else if ((days % 10 >= 2 && days % 10 <= 4) && (days % 100 < 10 || days % 100 >= 20)) {
-      return "дня";
-    } else {
-      return "дней";
-    }
-  },
-  
-  // Проверка и обновление ежедневной активности
-  checkDailyStreak: function() {
-    const today = new Date().toDateString();
-    const lastPlayed = anatomyQuiz.userStats.lastPlayed;
-    
-    if (!lastPlayed) {
-      // Первый запуск
-      anatomyQuiz.userStats.streakDays = 1;
-      anatomyQuiz.userStats.lastPlayed = today;
-    } else if (lastPlayed !== today) {
-      const lastDate = new Date(lastPlayed);
-      const currentDate = new Date(today);
-      
-      // Вычисляем разницу в днях
-      const timeDiff = currentDate.getTime() - lastDate.getTime();
-      const dayDiff = Math.round(timeDiff / (1000 * 3600 * 24));
-      
-      if (dayDiff === 1) {
-        // Последовательный день
-        anatomyQuiz.userStats.streakDays += 1;
-        
-        // Проверка на достижение
-        if (anatomyQuiz.userStats.streakDays >= 3 && 
-            !anatomyQuiz.userStats.achievements.includes("daily_streak")) {
-          anatomyQuiz.userStats.achievements.push("daily_streak");
-          this.showAchievementNotification("Ежедневная активность");
-        }
-      } else if (dayDiff > 1) {
-        // Пропущен день, сбрасываем счетчик
-        anatomyQuiz.userStats.streakDays = 1;
-      }
-      
-      anatomyQuiz.userStats.lastPlayed = today;
-    }
-    
-    // Сохраняем данные
-    this.saveUserStats();
-  },
-  
-  // Запуск категории
-  startCategory: function(categoryId) {
-    currentCategory = anatomyQuiz.categories.find(cat => cat.id === categoryId);
-    currentQuestionIndex = 0;
-    score = 0;
-    
-    this.renderQuestion();
-  },
-  
-  // Отображение вопроса
-  renderQuestion: function() {
-    const currentQuestion = currentCategory.questions[currentQuestionIndex];
-    const mainContainer = document.getElementById('app');
-    
-    mainContainer.innerHTML = `
-      <div class="quiz-container fade-in">
-        <h2>${currentCategory.name} ${currentCategory.icon}</h2>
-        <div class="progress-bar">
-          <div class="progress" style="width: ${(currentQuestionIndex / currentCategory.questions.length) * 100}%"></div>
-        </div>
-        <div class="question-card">
-          <div class="question-number">Вопрос ${currentQuestionIndex + 1} из ${currentCategory.questions.length}</div>
-          <p class="question-text">${currentQuestion.question}</p>
-          <div class="options-container">
-            ${currentQuestion.options.map((option, index) => `
-              <div class="option fade-in delay-${index + 1}" onclick="UI.checkAnswer(${index})">
-                <span class="option-letter">${String.fromCharCode(65 + index)}</span>
-                <span class="option-text">${option}</span>
-              </div>
-            `).join('')}
-          </div>
-        </div>
-      </div>
-    `;
-  },
-  
-  // Проверка ответа
-  checkAnswer: function(selectedIndex) {
-    const currentQuestion = currentCategory.questions[currentQuestionIndex];
-    const isCorrect = selectedIndex === currentQuestion.correctAnswer;
-    
-    // Обновляем статистику
-    anatomyQuiz.userStats.totalQuestions++;
-    if (isCorrect) {
-      anatomyQuiz.userStats.correctAnswers++;
-      score++;
-    }
-    
-    // Показываем результат ответа
-    this.showAnswerResult(isCorrect, currentQuestion.explanation, selectedIndex);
-    
-    // Сохраняем статистику
-    this.saveUserStats();
-  },
-  
-  // Отображение результата ответа
-  showAnswerResult: function(isCorrect, explanation, selectedIndex) {
-    const optionsElements = document.querySelectorAll('.option');
-    const currentQuestion = currentCategory.questions[currentQuestionIndex];
-    
-    // Отмечаем выбранный ответ
-    optionsElements[selectedIndex].classList.add('selected');
-    
-    // Отмечаем правильный ответ
-    optionsElements[currentQuestion.correctAnswer].classList.add('correct-answer');
-    
-    // Если выбран неправильный ответ, отмечаем его красным
-    if (!isCorrect) {
-      optionsElements[selectedIndex].classList.add('wrong-answer');
-    }
-    
-    // Добавляем объяснение
-    const questionCard = document.querySelector('.question-card');
-    const explanationDiv = document.createElement('div');
-    explanationDiv.classList.add('explanation', 'fade-in');
-    explanationDiv.innerHTML = `
-      <p class="${isCorrect ? 'correct' : 'incorrect'}">${isCorrect ? '✓ Правильно!' : '✗ Неправильно'}</p>
-      <p>${explanation}</p>
-      <button class="button" onclick="UI.nextQuestion()">Далее</button>
-    `;
-    questionCard.appendChild(explanationDiv);
-    
-    // Блокируем клики по другим вариантам
-    optionsElements.forEach(option => {
-      option.style.pointerEvents = 'none';
-    });
-  },
-  
-  // Переход к следующему вопросу или завершение категории
-  nextQuestion: function() {
-    currentQuestionIndex++;
-    
-    if (currentQuestionIndex < currentCategory.questions.length) {
-      this.renderQuestion();
-    } else {
-      this.showCategoryResults();
-    }
-  },
-  
-  // Отображение результатов категории
-  showCategoryResults: function() {
-    const mainContainer = document.getElementById('app');
-    const percentage = Math.round((score / currentCategory.questions.length) * 100);
-    const isPerfect = percentage === 100;
-    
-    // Проверяем, была ли эта категория уже завершена
-    const isNewCompletion = !anatomyQuiz.userStats.achievements.includes(`expert_${currentCategory.id}`);
-    
-    // Обновляем статистику категорий если это новое прохождение
-    if (isNewCompletion) {
-      anatomyQuiz.userStats.categoriesCompleted++;
-    }
-    
-    // Проверяем достижения
-    let newAchievements = [];
-    
-    if (isPerfect && isNewCompletion) {
-      const achievement = `expert_${currentCategory.id}`;
-      if (!anatomyQuiz.userStats.achievements.includes(achievement)) {
-        anatomyQuiz.userStats.achievements.push(achievement);
-        newAchievements.push("Эксперт в категории");
-      }
-    }
-    
-    // Проверяем завершение всех категорий
-    const completedAllCategories = anatomyQuiz.categories.every(category => 
-      anatomyQuiz.userStats.achievements.includes(`expert_${category.id}`)
-    );
-    
-    if (completedAllCategories && !anatomyQuiz.userStats.achievements.includes("quiz_master")) {
-      anatomyQuiz.userStats.achievements.push("quiz_master");
-      newAchievements.push("Мастер анатомии");
-    }
-    
-    // Сохраняем статистику
-    this.saveUserStats();
-    
-    // Определяем сообщение результата
-    let resultMessage = "";
-    if (percentage < 40) {
-      resultMessage = "Стоит повторить материал!";
-    } else if (percentage < 70) {
-      resultMessage = "Неплохой результат, но можно лучше!";
-    } else if (percentage < 100) {
-      resultMessage = "Отличный результат!";
-    } else {
-      resultMessage = "Идеально! Вы настоящий эксперт!";
-    }
-    
-    mainContainer.innerHTML = `
-      <div class="quiz-container">
-        <div class="results-card fade-in">
-          <h2>Результаты: ${currentCategory.name} ${currentCategory.icon}</h2>
-          <div class="score-circle fade-in delay-1">
-            <span class="score-text">${percentage}%</span>
-          </div>
-          <p class="result-message fade-in delay-2">${resultMessage}</p>
-          <p class="fade-in delay-2">Вы ответили правильно на ${score} из ${currentCategory.questions.length} вопросов.</p>
-          
-          ${newAchievements.length > 0 ? 
-            newAchievements.map(achievement => 
-              `<div class="achievement fade-in delay-3">🏆 Новое достижение: ${achievement}!</div>`
-            ).join('') : ''}
-          
-          <div class="buttons-container fade-in delay-4">
-            <button class="button button-secondary" onclick="UI.renderMainMenu()">На главную</button>
-            <button class="button button-success" onclick="UI.startCategory(${currentCategory.id})">Попробовать снова</button>
-            <button class="button" onclick="shareResults()">Поделиться</button>
-          </div>
-        </div>
-      </div>
-    `;
-  },
-  
-  // Показать уведомление о новом достижении
-  showAchievementNotification: function(achievementName) {
-    const achievementData = anatomyQuiz.achievements.find(a => a.name === achievementName) || 
-                          { name: achievementName, icon: "🏆", description: "Новое достижение!" };
-    
-    const notification = document.createElement('div');
-    notification.className = 'achievement-notification fade-in';
-    notification.innerHTML = `
-      <div class="achievement-notification-icon">${achievementData.icon}</div>
-      <div class="achievement-notification-content">
-        <div class="achievement-notification-title">Новое достижение!</div>
-        <div class="achievement-notification-name">${achievementData.name}</div>
-        <div class="achievement-notification-desc">${achievementData.description}</div>
-      </div>
-    `;
-    
-    document.body.appendChild(notification);
-    
-    // Удаляем уведомление через 5 секунд
-    setTimeout(() => {
-      notification.classList.add('fade-out');
-      setTimeout(() => {
-        document.body.removeChild(notification);
-      }, 500);
-    }, 5000);
-  },
-  
-  // Сохранение статистики пользователя
-  saveUserStats: function() {
-    try {
-      localStorage.setItem('anatomyQuizStats', JSON.stringify(anatomyQuiz.userStats));
-    } catch (e) {
-      console.error("Ошибка при сохранении статистики:", e);
-    }
-  },
-  
-  // Загрузка статистики пользователя
-  loadUserStats: function() {
-    try {
-      const savedStats = localStorage.getItem('anatomyQuizStats');
-      if (savedStats) {
-        anatomyQuiz.userStats = JSON.parse(savedStats);
-      }
-    } catch (e) {
-      console.error("Ошибка при загрузке статистики:", e);
-    }
+/* Стили UI-компонентов для Анатомического Квиза */
+
+/* Карточка */
+.card {
+  background-color: var(--card-color);
+  border-radius: 8px;
+  padding: 15px;
+  box-shadow: 0 2px 5px var(--shadow-color);
+  margin-bottom: 15px;
+  transition: transform 0.3s, box-shadow 0.3s;
+}
+
+.card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px var(--shadow-color);
+}
+
+/* Кнопка */
+.btn {
+  cursor: pointer;
+  border: none;
+  border-radius: 8px;
+  padding: 10px 15px;
+  font-weight: 500;
+  transition: all 0.3s;
+  background-color: var(--card-color);
+  color: var(--text-color);
+  box-shadow: 0 2px 5px var(--shadow-color);
+  margin: 5px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px var(--shadow-color);
+}
+
+.btn:active {
+  transform: translateY(0);
+}
+
+.btn-primary {
+  background-color: var(--primary-color);
+  color: white;
+}
+
+.button-icon {
+  margin-right: 8px;
+  font-size: 1.2em;
+}
+
+.btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Модальное окно */
+.ui-modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+  animation: fadeIn 0.3s forwards;
+}
+
+.ui-modal-content {
+  background-color: var(--card-color);
+  border-radius: 10px;
+  width: 90%;
+  max-width: 500px;
+  max-height: 90vh;
+  overflow-y: auto;
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+  animation: slideIn 0.3s forwards;
+}
+
+.ui-modal-title {
+  padding: 15px;
+  font-size: 18px;
+  font-weight: bold;
+  border-bottom: 1px solid var(--border-color);
+  position: relative;
+}
+
+.ui-modal-close {
+  position: absolute;
+  right: 15px;
+  top: 15px;
+  background: none;
+  border: none;
+  font-size: 24px;
+  cursor: pointer;
+  color: var(--text-color);
+  opacity: 0.7;
+  padding: 0;
+  margin: 0;
+  box-shadow: none;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+}
+
+.ui-modal-close:hover {
+  opacity: 1;
+  background-color: rgba(0, 0, 0, 0.1);
+}
+
+.ui-modal-body {
+  padding: 15px;
+  max-height: 60vh;
+  overflow-y: auto;
+}
+
+.ui-modal-footer {
+  padding: 15px;
+  border-top: 1px solid var(--border-color);
+  display: flex;
+  justify-content: flex-end;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes slideIn {
+  from { transform: translateY(-50px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+
+/* Уведомления */
+.ui-notification {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  padding: 15px 20px;
+  border-radius: 8px;
+  background-color: var(--card-color);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  z-index: 1000;
+  animation: slideInRight 0.3s forwards;
+  max-width: 300px;
+}
+
+.ui-notification-info {
+  border-left: 4px solid var(--primary-color);
+}
+
+.ui-notification-success {
+  border-left: 4px solid var(--secondary-color);
+}
+
+.ui-notification-warning {
+  border-left: 4px solid #f5b942;
+}
+
+.ui-notification-error {
+  border-left: 4px solid var(--accent-color);
+}
+
+.ui-notification-hide {
+  animation: slideOutRight 0.3s forwards;
+}
+
+@keyframes slideInRight {
+  from { transform: translateX(100%); opacity: 0; }
+  to { transform: translateX(0); opacity: 1; }
+}
+
+@keyframes slideOutRight {
+  from { transform: translateX(0); opacity: 1; }
+  to { transform: translateX(100%); opacity: 0; }
+}
+
+/* Рейтинг (звездочки) */
+.ui-rating {
+  display: inline-flex;
+  align-items: center;
+}
+
+.ui-rating-star {
+  font-size: 24px;
+  color: #f5b942;
+  cursor: default;
+  transition: transform 0.2s;
+}
+
+.ui-rating:not([readonly]) .ui-rating-star:hover {
+  transform: scale(1.2);
+  cursor: pointer;
+}
+
+/* Переключатель */
+.ui-toggle-container {
+  display: flex;
+  align-items: center;
+}
+
+.ui-toggle {
+  position: relative;
+  display: inline-block;
+  width: 60px;
+  height: 34px;
+  margin-right: 10px;
+}
+
+.ui-toggle input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.ui-toggle-slider {
+  position: absolute;
+  cursor: pointer;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: var(--border-color);
+  transition: .4s;
+  border-radius: 34px;
+}
+
+.ui-toggle-slider:before {
+  position: absolute;
+  content: "";
+  height: 26px;
+  width: 26px;
+  left: 4px;
+  bottom: 4px;
+  background-color: white;
+  transition: .4s;
+  border-radius: 50%;
+}
+
+.ui-toggle input:checked + .ui-toggle-slider {
+  background-color: var(--primary-color);
+}
+
+.ui-toggle input:checked + .ui-toggle-slider:before {
+  transform: translateX(26px);
+}
+
+.ui-toggle-label {
+  font-size: 16px;
+}
+
+/* Прогресс-бар */
+.ui-progress-container {
+  display: flex;
+  align-items: center;
+  margin: 10px 0;
+}
+
+.ui-progress-bar {
+  flex: 1;
+  height: 8px;
+  background-color: var(--border-color);
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.ui-progress {
+  height: 100%;
+  background-color: var(--primary-color);
+  border-radius: 4px;
+  transition: width 0.5s;
+}
+
+.ui-progress-percentage {
+  margin-left: 10px;
+  font-size: 14px;
+  width: 45px;
+  text-align: right;
+}
+
+/* Селектор */
+.ui-select {
+  display: block;
+  width: 100%;
+  padding: 10px 15px;
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  background-color: var(--card-color);
+  color: var(--text-color);
+  font-size: 16px;
+  appearance: none;
+  background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
+  background-repeat: no-repeat;
+  background-position: right 10px center;
+  background-size: 20px;
+}
+
+.ui-select:focus {
+  outline: none;
+  border-color: var(--primary-color);
+}
+
+/* Вкладки */
+.ui-tabs-container {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  border-radius: 8px;
+  overflow: hidden;
+  background-color: var(--card-color);
+  box-shadow: 0 2px 5px var(--shadow-color);
+}
+
+.ui-tabs-list {
+  display: flex;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.ui-tab {
+  padding: 12px 15px;
+  cursor: pointer;
+  transition: background-color 0.3s;
+  flex: 1;
+  text-align: center;
+  border-bottom: 3px solid transparent;
+}
+
+.ui-tab:hover {
+  background-color: rgba(0, 0, 0, 0.05);
+}
+
+.ui-tab-active {
+  border-bottom-color: var(--primary-color);
+  font-weight: bold;
+}
+
+.ui-tabs-content {
+  padding: 15px;
+  min-height: 100px;
+}
+
+/* Анимации для компонентов */
+.ui-fade-in {
+  animation: uiFadeIn 0.3s forwards;
+}
+
+.ui-slide-in {
+  animation: uiSlideIn 0.3s forwards;
+}
+
+.ui-scale-in {
+  animation: uiScaleIn 0.3s forwards;
+}
+
+@keyframes uiFadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes uiSlideIn {
+  from { transform: translateY(20px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+
+@keyframes uiScaleIn {
+  from { transform: scale(0.9); opacity: 0; }
+  to { transform: scale(1); opacity: 1; }
+}
+
+/* Адаптивные стили для компонентов */
+@media (max-width: 768px) {
+  .ui-modal-content {
+    width: 95%;
   }
-};
+  
+  .ui-tabs-list {
+    flex-wrap: wrap;
+  }
+  
+  .ui-tab {
+    flex-basis: 50%;
+    padding: 10px;
+  }
+}
