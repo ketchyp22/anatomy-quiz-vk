@@ -1,313 +1,234 @@
 <!DOCTYPE html>
 <html lang="ru">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Анатомия Человека - Интерактивный Квиз</title>
-    <link rel="stylesheet" href="styles.css">
-    <!-- Добавляем шрифт Google Fonts -->
-    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Анатомический Квиз</title>
+  <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-    <!-- Главное меню -->
-    <div class="app-container">
-        <div id="main-menu" class="screen active">
-            <div class="app-header">
-                <h1>Анатомия Человека</h1>
-                <p class="subtitle">Интерактивный квиз для изучения строения человеческого тела</p>
-            </div>
-
-            <div class="stats-bar">
-                <div class="user-stats">
-                    <div class="stat-item">
-                        <span class="stat-label">Всего вопросов:</span>
-                        <span class="stat-value" id="total-questions">0</span>
-                    </div>
-                    <div class="stat-item">
-                        <span class="stat-label">Правильных ответов:</span>
-                        <span class="stat-value" id="correct-answers">0</span>
-                    </div>
-                    <div class="stat-item">
-                        <span class="stat-label">Пройдено категорий:</span>
-                        <span class="stat-value" id="completed-categories">0</span>
-                    </div>
-                </div>
-                <div class="streak-counter">
-                    <span class="streak-icon">🔥</span>
-                    <span class="streak-value" id="streak-days">0</span>
-                    <span class="streak-label">дней подряд</span>
-                </div>
-            </div>
-
-            <div class="mode-selector">
-                <h2>Выберите режим игры</h2>
-                <div class="mode-buttons">
-                    <button class="mode-button active" data-mode="standard">
-                        <span class="mode-icon">📚</span>
-                        <span class="mode-name">Стандартный</span>
-                    </button>
-                    <button class="mode-button" data-mode="timeAttack">
-                        <span class="mode-icon">⏱️</span>
-                        <span class="mode-name">На время</span>
-                    </button>
-                    <button class="mode-button" data-mode="survival">
-                        <span class="mode-icon">💪</span>
-                        <span class="mode-name">Выживание</span>
-                    </button>
-                    <button class="mode-button" data-mode="daily">
-                        <span class="mode-icon">📅</span>
-                        <span class="mode-name">Ежедневный</span>
-                    </button>
-                </div>
-            </div>
-
-            <div class="difficulty-selector">
-                <h2>Выберите уровень сложности</h2>
-                <div class="difficulty-buttons">
-                    <button class="difficulty-button active" data-difficulty="easy">
-                        <span class="difficulty-icon">🟢</span>
-                        <span class="difficulty-name">Легкий</span>
-                    </button>
-                    <button class="difficulty-button" data-difficulty="medium">
-                        <span class="difficulty-icon">🟡</span>
-                        <span class="difficulty-name">Средний</span>
-                    </button>
-                    <button class="difficulty-button" data-difficulty="hard">
-                        <span class="difficulty-icon">🔴</span>
-                        <span class="difficulty-name">Сложный</span>
-                    </button>
-                </div>
-            </div>
-
-            <div class="categories-grid" id="categories-container">
-                <!-- Категории будут добавлены через JavaScript -->
-            </div>
-
-            <div class="app-footer">
-                <div class="achievements-button">
-                    <span class="achievements-icon">🏆</span>
-                    <span>Достижения</span>
-                </div>
-                <div class="settings-button">
-                    <span class="settings-icon">⚙️</span>
-                    <span>Настройки</span>
-                </div>
-                <div class="learning-button">
-                    <span class="learning-icon">📖</span>
-                    <span>Учебные материалы</span>
-                </div>
-            </div>
-        </div>
-
-        <!-- Экран вопроса -->
-        <div id="question-screen" class="screen">
-            <div class="question-header">
-                <div class="category-info">
-                    <span class="category-icon" id="current-category-icon">🦴</span>
-                    <span class="category-name" id="current-category-name">Опорно-двигательная система</span>
-                </div>
-                <div class="question-counter">
-                    <span id="current-question">1</span>/<span id="total-category-questions">5</span>
-                </div>
-                <div class="timer-container" id="timer-container">
-                    <div class="timer-bar">
-                        <div class="timer-progress" id="timer-progress"></div>
-                    </div>
-                    <div class="timer-value" id="timer-value">30</div>
-                </div>
-            </div>
-
-            <div class="question-content">
-                <div class="question-text" id="question-text">
-                    Вопрос будет здесь
-                </div>
-
-                <div class="answers-container" id="answers-container">
-                    <!-- Варианты ответов будут добавлены через JavaScript -->
-                </div>
-            </div>
-
-            <div class="question-footer">
-                <div class="hints-container">
-                    <button class="hint-button" data-hint="fifty_fifty">
-                        <span class="hint-icon">✂️</span>
-                        <span class="hint-name">50/50</span>
-                    </button>
-                    <button class="hint-button" data-hint="extra_time">
-                        <span class="hint-icon">⌛</span>
-                        <span class="hint-name">+30 сек</span>
-                    </button>
-                    <button class="hint-button" data-hint="hint">
-                        <span class="hint-icon">💡</span>
-                        <span class="hint-name">Подсказка</span>
-                    </button>
-                </div>
-                <button class="back-button" id="back-to-menu">Выход</button>
-            </div>
-        </div>
-
-        <!-- Экран результата -->
-        <div id="result-screen" class="screen">
-            <div class="result-header">
-                <h2>Результаты</h2>
-                <div class="category-info">
-                    <span class="category-icon" id="result-category-icon">🦴</span>
-                    <span class="category-name" id="result-category-name">Опорно-двигательная система</span>
-                </div>
-            </div>
-
-            <div class="result-content">
-                <div class="result-stats">
-                    <div class="result-stat">
-                        <span class="result-label">Правильных ответов:</span>
-                        <span class="result-value" id="result-correct">0</span>/<span id="result-total">5</span>
-                    </div>
-                    <div class="result-stat">
-                        <span class="result-label">Процент успеха:</span>
-                        <span class="result-value" id="result-percentage">0%</span>
-                    </div>
-                    <div class="result-stat">
-                        <span class="result-label">Затраченное время:</span>
-                        <span class="result-value" id="result-time">0:00</span>
-                    </div>
-                </div>
-
-                <div class="result-rewards">
-                    <h3>Награды</h3>
-                    <div class="reward-item">
-                        <span class="reward-icon">🪙</span>
-                        <span class="reward-value" id="reward-coins">+0</span>
-                        <span class="reward-label">монет</span>
-                    </div>
-                    <div class="reward-item">
-                        <span class="reward-icon">💡</span>
-                        <span class="reward-value" id="reward-hints">+0</span>
-                        <span class="reward-label">подсказок</span>
-                    </div>
-                </div>
-
-                <div class="achievement-unlocked" id="achievement-container">
-                    <!-- Достижения будут добавлены через JavaScript, если есть -->
-                </div>
-            </div>
-
-            <div class="result-footer">
-                <button class="result-button" id="retry-button">Пройти еще раз</button>
-                <button class="result-button" id="continue-button">Следующая категория</button>
-                <button class="result-button" id="menu-button">В главное меню</button>
-            </div>
-        </div>
-
-        <!-- Экран достижений -->
-        <div id="achievements-screen" class="screen">
-            <div class="achievements-header">
-                <h2>Достижения</h2>
-                <button class="back-button" id="achievements-back">Назад</button>
-            </div>
-
-            <div class="achievements-grid" id="achievements-container">
-                <!-- Достижения будут добавлены через JavaScript -->
-            </div>
-        </div>
-
-        <!-- Экран настроек -->
-        <div id="settings-screen" class="screen">
-            <div class="settings-header">
-                <h2>Настройки</h2>
-                <button class="back-button" id="settings-back">Назад</button>
-            </div>
-
-            <div class="settings-content">
-                <div class="setting-group">
-                    <h3>Внешний вид</h3>
-                    <div class="setting-item">
-                        <span class="setting-label">Тема:</span>
-                        <div class="setting-control theme-selector">
-                            <button class="theme-button active" data-theme="light">Светлая</button>
-                            <button class="theme-button" data-theme="dark">Темная</button>
-                            <button class="theme-button" data-theme="system">Системная</button>
-                        </div>
-                    </div>
-                    <div class="setting-item">
-                        <span class="setting-label">Размер шрифта:</span>
-                        <div class="setting-control font-selector">
-                            <button class="font-button" data-font="small">Мелкий</button>
-                            <button class="font-button active" data-font="medium">Средний</button>
-                            <button class="font-button" data-font="large">Крупный</button>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="setting-group">
-                    <h3>Звук и анимации</h3>
-                    <div class="setting-item">
-                        <span class="setting-label">Звуковые эффекты:</span>
-                        <div class="setting-control toggle-control">
-                            <input type="checkbox" id="sound-toggle" checked>
-                            <label for="sound-toggle"></label>
-                        </div>
-                    </div>
-                    <div class="setting-item">
-                        <span class="setting-label">Анимации:</span>
-                        <div class="setting-control toggle-control">
-                            <input type="checkbox" id="animations-toggle" checked>
-                            <label for="animations-toggle"></label>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="setting-group">
-                    <h3>Прогресс</h3>
-                    <div class="setting-item">
-                        <button class="danger-button" id="reset-progress">Сбросить прогресс</button>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Экран учебных материалов -->
-        <div id="learning-screen" class="screen">
-            <div class="learning-header">
-                <h2>Учебные материалы</h2>
-                <button class="back-button" id="learning-back">Назад</button>
-            </div>
-
-            <div class="learning-categories">
-                <!-- Категории учебных материалов будут добавлены через JavaScript -->
-            </div>
-
-            <div class="learning-content" id="learning-content">
-                <!-- Содержимое учебных материалов будет добавлено через JavaScript -->
-            </div>
-        </div>
+  <!-- Главное меню -->
+  <div id="main-menu" class="screen active">
+    <header>
+      <h1>Анатомический Квиз</h1>
+      <p>Проверьте свои знания о человеческом теле</p>
+    </header>
+    
+    <div class="stats-panel">
+      <div class="stat-item">
+        <span class="stat-value" id="total-questions">0</span>
+        <span class="stat-label">Вопросов</span>
+      </div>
+      <div class="stat-item">
+        <span class="stat-value" id="correct-answers">0</span>
+        <span class="stat-label">Правильных</span>
+      </div>
+      <div class="stat-item">
+        <span class="stat-value" id="completed-categories">0</span>
+        <span class="stat-label">Категорий</span>
+      </div>
+      <div class="stat-item">
+        <span class="stat-value" id="streak-days">0</span>
+        <span class="stat-label">Дней подряд</span>
+      </div>
     </div>
-
-    <!-- Модальные окна -->
-    <div class="modal" id="confirmation-modal">
-        <div class="modal-content">
-            <h3>Подтверждение</h3>
-            <p id="confirmation-message">Вы уверены, что хотите выполнить это действие?</p>
-            <div class="modal-buttons">
-                <button class="modal-button" id="confirm-no">Отмена</button>
-                <button class="modal-button danger" id="confirm-yes">Подтвердить</button>
-            </div>
-        </div>
+    
+    <div class="mode-select">
+      <h3>Выберите режим</h3>
+      <div class="button-group">
+        <button class="mode-button active" data-mode="standard">Стандартный</button>
+        <button class="mode-button" data-mode="timed">На время</button>
+        <button class="mode-button" data-mode="endless">Бесконечный</button>
+      </div>
     </div>
-
-    <div class="modal" id="explanation-modal">
-        <div class="modal-content">
-            <h3>Объяснение</h3>
-            <div id="explanation-content">
-                <!-- Объяснение будет добавлено через JavaScript -->
-            </div>
-            <div class="modal-buttons">
-                <button class="modal-button" id="explanation-close">Закрыть</button>
-            </div>
-        </div>
+    
+    <div class="difficulty-select">
+      <h3>Выберите сложность</h3>
+      <div class="button-group">
+        <button class="difficulty-button active" data-difficulty="easy">Легкий</button>
+        <button class="difficulty-button" data-difficulty="medium">Средний</button>
+        <button class="difficulty-button" data-difficulty="hard">Сложный</button>
+      </div>
     </div>
-
-    <!-- Скрипты -->
-    <script src="quiz-data.js"></script>
-    <script src="quiz-app.js"></script>
+    
+    <h3>Выберите категорию</h3>
+    <div id="categories-container" class="categories-grid"></div>
+  </div>
+  
+  <!-- Экран вопроса -->
+  <div id="question-screen" class="screen">
+    <div class="question-header">
+      <button id="back-to-menu" class="icon-button">↩</button>
+      <div class="category-info">
+        <span id="current-category-icon">🔍</span>
+        <span id="current-category-name">Категория</span>
+      </div>
+      <div class="question-progress">
+        <span id="current-question">1</span>/<span id="total-category-questions">10</span>
+      </div>
+    </div>
+    
+    <div class="timer">
+      <div class="timer-bar">
+        <div id="timer-progress" class="timer-progress"></div>
+      </div>
+      <div class="timer-value">
+        <span id="timer-value">30</span> сек
+      </div>
+    </div>
+    
+    <div class="question-container">
+      <h2 id="question-text">Здесь будет текст вопроса?</h2>
+      <div id="answers-container" class="answers-container"></div>
+    </div>
+    
+    <div class="hints-panel">
+      <button class="hint-button" data-hint="fifty_fifty">50/50</button>
+      <button class="hint-button" data-hint="extra_time">+30 сек</button>
+      <button class="hint-button" data-hint="hint">Подсказка</button>
+    </div>
+  </div>
+  
+  <!-- Экран результатов -->
+  <div id="result-screen" class="screen">
+    <div class="result-header">
+      <h2>Результаты</h2>
+      <div class="category-info">
+        <span id="result-category-icon">🔍</span>
+        <span id="result-category-name">Категория</span>
+      </div>
+    </div>
+    
+    <div class="result-stats">
+      <div class="stat-item">
+        <span class="stat-value">
+          <span id="result-correct">0</span>/<span id="result-total">10</span>
+        </span>
+        <span class="stat-label">Правильных ответов</span>
+      </div>
+      <div class="stat-item">
+        <span class="stat-value" id="result-percentage">0%</span>
+        <span class="stat-label">Результат</span>
+      </div>
+      <div class="stat-item">
+        <span class="stat-value" id="result-time">0:00</span>
+        <span class="stat-label">Общее время</span>
+      </div>
+    </div>
+    
+    <div class="rewards">
+      <h3>Награды</h3>
+      <div class="reward-item">
+        <span class="reward-icon">💰</span>
+        <span class="reward-value" id="reward-coins">+0</span>
+      </div>
+      <div class="reward-item">
+        <span class="reward-icon">💡</span>
+        <span class="reward-value" id="reward-hints">+0</span>
+      </div>
+    </div>
+    
+    <div id="achievement-container" class="achievements-earned"></div>
+    
+    <div class="result-buttons">
+      <button id="retry-button" class="primary-button">Пройти еще раз</button>
+      <button id="menu-button" class="secondary-button">В главное меню</button>
+    </div>
+  </div>
+  
+  <!-- Экран достижений -->
+  <div id="achievements-screen" class="screen">
+    <div class="screen-header">
+      <button id="achievements-back" class="icon-button">↩</button>
+      <h2>Достижения</h2>
+    </div>
+    
+    <div id="achievements-container" class="achievements-grid"></div>
+  </div>
+  
+  <!-- Экран настроек -->
+  <div id="settings-screen" class="screen">
+    <div class="screen-header">
+      <button id="settings-back" class="icon-button">↩</button>
+      <h2>Настройки</h2>
+    </div>
+    
+    <div class="settings-group">
+      <h3>Тема оформления</h3>
+      <div class="button-group">
+        <button class="theme-button" data-theme="light">Светлая</button>
+        <button class="theme-button" data-theme="dark">Темная</button>
+      </div>
+    </div>
+    
+    <div class="settings-group">
+      <h3>Размер шрифта</h3>
+      <div class="button-group">
+        <button class="font-button" data-font="small">Маленький</button>
+        <button class="font-button" data-font="medium">Средний</button>
+        <button class="font-button" data-font="large">Большой</button>
+      </div>
+    </div>
+    
+    <div class="settings-group">
+      <h3>Звук и анимации</h3>
+      <div class="toggle-container">
+        <label>Звук</label>
+        <input type="checkbox" id="sound-toggle" class="toggle-switch">
+      </div>
+      <div class="toggle-container">
+        <label>Анимации</label>
+        <input type="checkbox" id="animations-toggle" class="toggle-switch">
+      </div>
+    </div>
+    
+    <div class="settings-group danger-zone">
+      <h3>Сброс прогресса</h3>
+      <button id="reset-progress" class="danger-button">Сбросить весь прогресс</button>
+    </div>
+  </div>
+  
+  <!-- Экран учебных материалов -->
+  <div id="learning-screen" class="screen">
+    <div class="screen-header">
+      <button id="learning-back" class="icon-button">↩</button>
+      <h2>Учебные материалы</h2>
+    </div>
+    
+    <div class="learning-categories"></div>
+    <div id="learning-content" class="learning-materials-container"></div>
+  </div>
+  
+  <!-- Модальное окно с объяснением -->
+  <div id="explanation-modal" class="modal">
+    <div class="modal-content">
+      <div id="explanation-content"></div>
+      <button id="explanation-close" class="close-button">✕</button>
+    </div>
+  </div>
+  
+  <!-- Модальное окно подтверждения -->
+  <div id="confirmation-modal" class="modal">
+    <div class="modal-content">
+      <h3>Подтверждение</h3>
+      <p id="confirmation-message"></p>
+      <div class="modal-buttons">
+        <button onclick="closeConfirmModal(true)" class="primary-button">Да</button>
+        <button onclick="closeConfirmModal(false)" class="secondary-button">Нет</button>
+      </div>
+    </div>
+  </div>
+  
+  <!-- Нижнее меню -->
+  <div class="bottom-menu">
+    <button class="menu-button home-button">Главная</button>
+    <button class="menu-button learning-button">Учеба</button>
+    <button class="menu-button achievements-button">Достижения</button>
+    <button class="menu-button settings-button">Настройки</button>
+  </div>
+  
+  <!-- Скрипты -->
+  <script src="anatomy-quiz-data.js"></script>
+  <script src="app.js"></script>
 </body>
 </html>
