@@ -1,8 +1,51 @@
 // Инициализация приложения при загрузке документа
 document.addEventListener('DOMContentLoaded', function() {
+  // Инициализируем VK, если приложение запущено в VK
+  initVK();
+  
   // Инициализация приложения
   initApp();
 });
+
+// Инициализация VK интеграции
+function initVK() {
+  // Проверяем, запущено ли приложение внутри VK
+  const isVKApp = window.location.href.indexOf('vk_') !== -1 || 
+                  (window.parent !== window && document.referrer.indexOf('vk.com') !== -1);
+  
+  if (isVKApp) {
+    VKIntegration.init(
+      // Успешная инициализация
+      () => {
+        console.log('VK интеграция инициализирована');
+        
+        // Пытаемся загрузить прогресс пользователя из VK Storage
+        VKIntegration.loadUserProgress((progress, error) => {
+          if (progress && !error) {
+            if (progress.stats) {
+              anatomyQuiz.userStats = progress.stats;
+            }
+            
+            if (progress.settings) {
+              anatomyQuiz.uiSettings = progress.settings;
+            }
+            
+            // Применяем загруженные настройки
+            applySettings();
+            updateUserStats();
+            renderCategories();
+          }
+        });
+      },
+      // Ошибка инициализации
+      (error) => {
+        console.error('Ошибка инициализации VK интеграции', error);
+        
+        // Показываем уведомление пользователю
+        UIComponents.createNotification('Не удалось подключиться к VK. Прогресс будет сохранен локально.', 'warning');
+      }
+    );
+  }
 
 // Глобальные переменные для хранения состояния приложения
 let currentScreen = 'main-menu'; // Текущий экран
@@ -408,6 +451,28 @@ function updateUserStatsAfterQuiz() {
   
   // Сохраняем прогресс
   anatomyQuiz.utils.saveProgress();
+  
+  // Если активна VK интеграция, сохраняем прогресс в VK Storage
+  if (typeof VKIntegration !== 'undefined' && typeof window.vkBridge !== 'undefined') {
+    VKIntegration.saveUserProgress(
+      anatomyQuiz.userStats,
+      anatomyQuiz.uiSettings,
+      (success) => {
+        if (!success) {
+          console.error('Не удалось сохранить прогресс в VK');
+        }
+      }
+    );
+    
+    // Отправляем событие для аналитики
+    VKIntegration.trackUserEngagement('quiz_completed', {
+      category_id: selectedCategory.id,
+      category_name: selectedCategory.name,
+      correct_answers: correctAnswers,
+      total_questions: selectedCategory.questions.length,
+      score_percent: Math.round((correctAnswers / selectedCategory.questions.length) * 100)
+    });
+  }
 }
 
 // Обновление серии дней
@@ -531,8 +596,65 @@ function showResultScreen() {
     achievementContainer.classList.remove('visible');
   }
   
+  // Проверяем наличие VK интеграции и показываем соответствующие кнопки
+  const vkButtonsContainer = document.querySelector('.vk-integration-buttons');
+  if (typeof VKIntegration !== 'undefined' && typeof window.vkBridge !== 'undefined' && vkButtonsContainer) {
+    vkButtonsContainer.style.display = 'block';
+    
+    // Настраиваем кнопки VK
+    setupVKButtons(percent);
+  }
+  
   // Показываем экран результатов
   showScreen('result-screen');
+}
+
+// Настройка кнопок интеграции с VK
+function setupVKButtons(scorePercent) {
+  const shareButton = document.getElementById('share-result-button');
+  const inviteButton = document.getElementById('invite-friends-button');
+  const favoritesButton = document.getElementById('add-to-favorites-button');
+  
+  // Кнопка Поделиться
+  if (shareButton) {
+    shareButton.addEventListener('click', () => {
+      const shareMessage = `Я прошел квиз по теме "${selectedCategory.name}" в приложении "Анатомический Квиз" с результатом ${scorePercent}%!`;
+      
+      VKIntegration.shareResults(shareMessage, [], (success) => {
+        if (success) {
+          showNotification('Результат успешно опубликован!', 'success');
+        } else {
+          showNotification('Не удалось опубликовать результат', 'error');
+        }
+      });
+    });
+  }
+  
+  // Кнопка Пригласить друзей
+  if (inviteButton) {
+    inviteButton.addEventListener('click', () => {
+      VKIntegration.inviteFriends((success) => {
+        if (success) {
+          showNotification('Приглашения отправлены!', 'success');
+        } else {
+          showNotification('Не удалось отправить приглашения', 'error');
+        }
+      });
+    });
+  }
+  
+  // Кнопка Добавить в избранное
+  if (favoritesButton) {
+    favoritesButton.addEventListener('click', () => {
+      VKIntegration.addToFavorites((success) => {
+        if (success) {
+          showNotification('Приложение добавлено в избранное!', 'success');
+        } else {
+          showNotification('Не удалось добавить в избранное', 'error');
+        }
+      });
+    });
+  }
 }
 
 // Проверка разблокированных достижений
@@ -740,7 +862,20 @@ function resetProgress() {
   renderCategories();
   
   // Показываем уведомление
-  alert('Ваш прогресс был успешно сброшен.');
+  showNotification('Ваш прогресс был успешно сброшен.', 3000);
+  
+  // Если активна VK интеграция, сохраняем сброшенный прогресс
+  if (typeof VKIntegration !== 'undefined' && typeof window.vkBridge !== 'undefined') {
+    VKIntegration.saveUserProgress(
+      anatomyQuiz.userStats,
+      anatomyQuiz.uiSettings,
+      (success) => {
+        if (!success) {
+          console.error('Не удалось сохранить сброшенный прогресс в VK');
+        }
+      }
+    );
+  }
 }
 
 // Отображение экрана учебных материалов
@@ -832,14 +967,19 @@ function loadLearningMaterials(categoryId) {
 
 // Показ модального окна подтверждения
 function showConfirmModal(message, confirmCallback) {
-  const modal = document.getElementById('confirmation-modal');
-  document.getElementById('confirmation-message').textContent = message;
-  
-  // Сохраняем callback для подтверждения
-  window.confirmCallback = confirmCallback;
-  
-  // Показываем модальное окно
-  modal.classList.add('active');
+  UIComponents.createModal('Подтверждение', message, [
+    {
+      text: 'Да',
+      primary: true,
+      callback: () => {
+        if (confirmCallback) confirmCallback();
+      }
+    },
+    {
+      text: 'Отмена',
+      callback: () => {}
+    }
+  ]);
 }
 
 // Закрытие модального окна подтверждения
@@ -860,26 +1000,7 @@ function closeConfirmModal(confirmed) {
 
 // Показ уведомления
 function showNotification(message, duration = 3000) {
-  // Создаем элемент уведомления, если его еще нет
-  let notification = document.getElementById('notification');
-  
-  if (!notification) {
-    notification = document.createElement('div');
-    notification.id = 'notification';
-    notification.className = 'notification';
-    document.body.appendChild(notification);
-  }
-  
-  // Устанавливаем текст
-  notification.textContent = message;
-  
-  // Показываем уведомление
-  notification.classList.add('active');
-  
-  // Скрываем через указанное время
-  setTimeout(() => {
-    notification.classList.remove('active');
-  }, duration);
+  UIComponents.createNotification(message, 'info', duration);
 }
 
 // Настройка обработчиков событий
