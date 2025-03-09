@@ -68,24 +68,9 @@
       </div>
     </div>
     
-    <div class="timer">
-      <div class="timer-bar">
-        <div id="timer-progress" class="timer-progress"></div>
-      </div>
-      <div class="timer-value">
-        <span id="timer-value">30</span> сек
-      </div>
-    </div>
-    
     <div class="question-container">
       <h2 id="question-text">Здесь будет текст вопроса?</h2>
       <div id="answers-container" class="answers-container"></div>
-    </div>
-    
-    <div class="hints-panel">
-      <button class="hint-button" data-hint="fifty_fifty">50/50</button>
-      <button class="hint-button" data-hint="extra_time">+30 сек</button>
-      <button class="hint-button" data-hint="hint">Подсказка</button>
     </div>
   </div>
   
@@ -110,10 +95,6 @@
         <span class="stat-value" id="result-percentage">0%</span>
         <span class="stat-label">Результат</span>
       </div>
-      <div class="stat-item">
-        <span class="stat-value" id="result-time">0:00</span>
-        <span class="stat-label">Общее время</span>
-      </div>
     </div>
     
     <div class="rewards">
@@ -127,8 +108,6 @@
         <span class="reward-value" id="reward-hints">+0</span>
       </div>
     </div>
-    
-    <div id="achievement-container" class="achievements-earned"></div>
     
     <div class="result-buttons">
       <button id="retry-button" class="primary-button">Пройти еще раз</button>
@@ -204,18 +183,6 @@
     <div class="modal-content">
       <div id="explanation-content"></div>
       <button id="explanation-close" class="close-button">✕</button>
-    </div>
-  </div>
-  
-  <!-- Модальное окно подтверждения -->
-  <div id="confirmation-modal" class="modal">
-    <div class="modal-content">
-      <h3>Подтверждение</h3>
-      <p id="confirmation-message"></p>
-      <div class="modal-buttons">
-        <button onclick="closeConfirmModal(true)" class="primary-button">Да</button>
-        <button onclick="closeConfirmModal(false)" class="secondary-button">Нет</button>
-      </div>
     </div>
   </div>
   
