@@ -2,89 +2,312 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <title>Квиз по анатомии</title>
-    
-    <!-- Подключение стилей -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Анатомия Человека - Интерактивный Квиз</title>
     <link rel="stylesheet" href="styles.css">
-    
-    <!-- Подключаем VK Bridge (важно загрузить перед другими скриптами) -->
-    <script src="https://unpkg.com/@vkontakte/vk-bridge/dist/browser.min.js"></script>
-    
-    <!-- Объявление глобальной переменной bridge -->
-    <script>
-        // Создаем глобальную переменную bridge для доступа к VK Bridge
-        var bridge = window.vkBridge;
-        
-        // Проверка доступности VK Bridge
-        if (!bridge) {
-            console.error('VK Bridge не доступен. Используем заглушку.');
-            bridge = {
-                send: function() { 
-                    console.log('VK Bridge недоступен');
-                    return Promise.resolve({});
-                },
-                subscribe: function() {}
-            };
-        }
-    </script>
+    <!-- Добавляем шрифт Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
 </head>
 <body>
-    <div id="app">
-        <!-- Здесь будет отображаться контент приложения -->
-        <div class="loading-container">
-            <div class="loading-spinner"></div>
-            <p>Загрузка...</p>
+    <!-- Главное меню -->
+    <div class="app-container">
+        <div id="main-menu" class="screen active">
+            <div class="app-header">
+                <h1>Анатомия Человека</h1>
+                <p class="subtitle">Интерактивный квиз для изучения строения человеческого тела</p>
+            </div>
+
+            <div class="stats-bar">
+                <div class="user-stats">
+                    <div class="stat-item">
+                        <span class="stat-label">Всего вопросов:</span>
+                        <span class="stat-value" id="total-questions">0</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-label">Правильных ответов:</span>
+                        <span class="stat-value" id="correct-answers">0</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-label">Пройдено категорий:</span>
+                        <span class="stat-value" id="completed-categories">0</span>
+                    </div>
+                </div>
+                <div class="streak-counter">
+                    <span class="streak-icon">🔥</span>
+                    <span class="streak-value" id="streak-days">0</span>
+                    <span class="streak-label">дней подряд</span>
+                </div>
+            </div>
+
+            <div class="mode-selector">
+                <h2>Выберите режим игры</h2>
+                <div class="mode-buttons">
+                    <button class="mode-button active" data-mode="standard">
+                        <span class="mode-icon">📚</span>
+                        <span class="mode-name">Стандартный</span>
+                    </button>
+                    <button class="mode-button" data-mode="timeAttack">
+                        <span class="mode-icon">⏱️</span>
+                        <span class="mode-name">На время</span>
+                    </button>
+                    <button class="mode-button" data-mode="survival">
+                        <span class="mode-icon">💪</span>
+                        <span class="mode-name">Выживание</span>
+                    </button>
+                    <button class="mode-button" data-mode="daily">
+                        <span class="mode-icon">📅</span>
+                        <span class="mode-name">Ежедневный</span>
+                    </button>
+                </div>
+            </div>
+
+            <div class="difficulty-selector">
+                <h2>Выберите уровень сложности</h2>
+                <div class="difficulty-buttons">
+                    <button class="difficulty-button active" data-difficulty="easy">
+                        <span class="difficulty-icon">🟢</span>
+                        <span class="difficulty-name">Легкий</span>
+                    </button>
+                    <button class="difficulty-button" data-difficulty="medium">
+                        <span class="difficulty-icon">🟡</span>
+                        <span class="difficulty-name">Средний</span>
+                    </button>
+                    <button class="difficulty-button" data-difficulty="hard">
+                        <span class="difficulty-icon">🔴</span>
+                        <span class="difficulty-name">Сложный</span>
+                    </button>
+                </div>
+            </div>
+
+            <div class="categories-grid" id="categories-container">
+                <!-- Категории будут добавлены через JavaScript -->
+            </div>
+
+            <div class="app-footer">
+                <div class="achievements-button">
+                    <span class="achievements-icon">🏆</span>
+                    <span>Достижения</span>
+                </div>
+                <div class="settings-button">
+                    <span class="settings-icon">⚙️</span>
+                    <span>Настройки</span>
+                </div>
+                <div class="learning-button">
+                    <span class="learning-icon">📖</span>
+                    <span>Учебные материалы</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Экран вопроса -->
+        <div id="question-screen" class="screen">
+            <div class="question-header">
+                <div class="category-info">
+                    <span class="category-icon" id="current-category-icon">🦴</span>
+                    <span class="category-name" id="current-category-name">Опорно-двигательная система</span>
+                </div>
+                <div class="question-counter">
+                    <span id="current-question">1</span>/<span id="total-category-questions">5</span>
+                </div>
+                <div class="timer-container" id="timer-container">
+                    <div class="timer-bar">
+                        <div class="timer-progress" id="timer-progress"></div>
+                    </div>
+                    <div class="timer-value" id="timer-value">30</div>
+                </div>
+            </div>
+
+            <div class="question-content">
+                <div class="question-text" id="question-text">
+                    Вопрос будет здесь
+                </div>
+
+                <div class="answers-container" id="answers-container">
+                    <!-- Варианты ответов будут добавлены через JavaScript -->
+                </div>
+            </div>
+
+            <div class="question-footer">
+                <div class="hints-container">
+                    <button class="hint-button" data-hint="fifty_fifty">
+                        <span class="hint-icon">✂️</span>
+                        <span class="hint-name">50/50</span>
+                    </button>
+                    <button class="hint-button" data-hint="extra_time">
+                        <span class="hint-icon">⌛</span>
+                        <span class="hint-name">+30 сек</span>
+                    </button>
+                    <button class="hint-button" data-hint="hint">
+                        <span class="hint-icon">💡</span>
+                        <span class="hint-name">Подсказка</span>
+                    </button>
+                </div>
+                <button class="back-button" id="back-to-menu">Выход</button>
+            </div>
+        </div>
+
+        <!-- Экран результата -->
+        <div id="result-screen" class="screen">
+            <div class="result-header">
+                <h2>Результаты</h2>
+                <div class="category-info">
+                    <span class="category-icon" id="result-category-icon">🦴</span>
+                    <span class="category-name" id="result-category-name">Опорно-двигательная система</span>
+                </div>
+            </div>
+
+            <div class="result-content">
+                <div class="result-stats">
+                    <div class="result-stat">
+                        <span class="result-label">Правильных ответов:</span>
+                        <span class="result-value" id="result-correct">0</span>/<span id="result-total">5</span>
+                    </div>
+                    <div class="result-stat">
+                        <span class="result-label">Процент успеха:</span>
+                        <span class="result-value" id="result-percentage">0%</span>
+                    </div>
+                    <div class="result-stat">
+                        <span class="result-label">Затраченное время:</span>
+                        <span class="result-value" id="result-time">0:00</span>
+                    </div>
+                </div>
+
+                <div class="result-rewards">
+                    <h3>Награды</h3>
+                    <div class="reward-item">
+                        <span class="reward-icon">🪙</span>
+                        <span class="reward-value" id="reward-coins">+0</span>
+                        <span class="reward-label">монет</span>
+                    </div>
+                    <div class="reward-item">
+                        <span class="reward-icon">💡</span>
+                        <span class="reward-value" id="reward-hints">+0</span>
+                        <span class="reward-label">подсказок</span>
+                    </div>
+                </div>
+
+                <div class="achievement-unlocked" id="achievement-container">
+                    <!-- Достижения будут добавлены через JavaScript, если есть -->
+                </div>
+            </div>
+
+            <div class="result-footer">
+                <button class="result-button" id="retry-button">Пройти еще раз</button>
+                <button class="result-button" id="continue-button">Следующая категория</button>
+                <button class="result-button" id="menu-button">В главное меню</button>
+            </div>
+        </div>
+
+        <!-- Экран достижений -->
+        <div id="achievements-screen" class="screen">
+            <div class="achievements-header">
+                <h2>Достижения</h2>
+                <button class="back-button" id="achievements-back">Назад</button>
+            </div>
+
+            <div class="achievements-grid" id="achievements-container">
+                <!-- Достижения будут добавлены через JavaScript -->
+            </div>
+        </div>
+
+        <!-- Экран настроек -->
+        <div id="settings-screen" class="screen">
+            <div class="settings-header">
+                <h2>Настройки</h2>
+                <button class="back-button" id="settings-back">Назад</button>
+            </div>
+
+            <div class="settings-content">
+                <div class="setting-group">
+                    <h3>Внешний вид</h3>
+                    <div class="setting-item">
+                        <span class="setting-label">Тема:</span>
+                        <div class="setting-control theme-selector">
+                            <button class="theme-button active" data-theme="light">Светлая</button>
+                            <button class="theme-button" data-theme="dark">Темная</button>
+                            <button class="theme-button" data-theme="system">Системная</button>
+                        </div>
+                    </div>
+                    <div class="setting-item">
+                        <span class="setting-label">Размер шрифта:</span>
+                        <div class="setting-control font-selector">
+                            <button class="font-button" data-font="small">Мелкий</button>
+                            <button class="font-button active" data-font="medium">Средний</button>
+                            <button class="font-button" data-font="large">Крупный</button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="setting-group">
+                    <h3>Звук и анимации</h3>
+                    <div class="setting-item">
+                        <span class="setting-label">Звуковые эффекты:</span>
+                        <div class="setting-control toggle-control">
+                            <input type="checkbox" id="sound-toggle" checked>
+                            <label for="sound-toggle"></label>
+                        </div>
+                    </div>
+                    <div class="setting-item">
+                        <span class="setting-label">Анимации:</span>
+                        <div class="setting-control toggle-control">
+                            <input type="checkbox" id="animations-toggle" checked>
+                            <label for="animations-toggle"></label>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="setting-group">
+                    <h3>Прогресс</h3>
+                    <div class="setting-item">
+                        <button class="danger-button" id="reset-progress">Сбросить прогресс</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Экран учебных материалов -->
+        <div id="learning-screen" class="screen">
+            <div class="learning-header">
+                <h2>Учебные материалы</h2>
+                <button class="back-button" id="learning-back">Назад</button>
+            </div>
+
+            <div class="learning-categories">
+                <!-- Категории учебных материалов будут добавлены через JavaScript -->
+            </div>
+
+            <div class="learning-content" id="learning-content">
+                <!-- Содержимое учебных материалов будет добавлено через JavaScript -->
+            </div>
         </div>
     </div>
 
-    <!-- Подключаем скрипты приложения в правильном порядке -->
+    <!-- Модальные окна -->
+    <div class="modal" id="confirmation-modal">
+        <div class="modal-content">
+            <h3>Подтверждение</h3>
+            <p id="confirmation-message">Вы уверены, что хотите выполнить это действие?</p>
+            <div class="modal-buttons">
+                <button class="modal-button" id="confirm-no">Отмена</button>
+                <button class="modal-button danger" id="confirm-yes">Подтвердить</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal" id="explanation-modal">
+        <div class="modal-content">
+            <h3>Объяснение</h3>
+            <div id="explanation-content">
+                <!-- Объяснение будет добавлено через JavaScript -->
+            </div>
+            <div class="modal-buttons">
+                <button class="modal-button" id="explanation-close">Закрыть</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Скрипты -->
     <script src="quiz-data.js"></script>
-    <script src="ui-components.js"></script>
-    <script src="vk-integration.js"></script>
-    <script>
-        // Инициализация приложения
-        document.addEventListener('DOMContentLoaded', function() {
-            // Добавляем дополнительные стили (если нужно)
-            const additionalStyles = `
-                .notification {
-                    position: fixed;
-                    bottom: 20px;
-                    left: 50%;
-                    transform: translateX(-50%);
-                    background-color: rgba(73, 134, 204, 0.9);
-                    color: white;
-                    padding: 12px 20px;
-                    border-radius: 8px;
-                    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
-                    z-index: 1000;
-                    font-size: 16px;
-                    max-width: 90%;
-                }
-            `;
-            
-            const styleElement = document.createElement('style');
-            styleElement.textContent = additionalStyles;
-            document.head.appendChild(styleElement);
-            
-            // Загружаем статистику пользователя
-            if (UI && UI.loadUserStats) {
-                UI.loadUserStats();
-            }
-            
-            // Инициализируем интеграцию с ВКонтакте
-            if (VKIntegration && VKIntegration.init) {
-                VKIntegration.init();
-            }
-            
-            // Отображаем главное меню
-            if (UI && UI.renderMainMenu) {
-                UI.renderMainMenu();
-            } else {
-                document.getElementById('app').innerHTML = '<div class="error-message">Ошибка: Компоненты UI не загружены.</div>';
-            }
-        });
-    </script>
+    <script src="quiz-app.js"></script>
 </body>
 </html>
