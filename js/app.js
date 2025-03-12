@@ -84,11 +84,9 @@ function loadQuestion() {
     });
 }
 
-// Выбор варианта ответа
+// Выбор варианта ответа - позволяет менять выбор до нажатия кнопки "Далее"
 function selectOption(e) {
-    if (selectedOption !== null) {
-        return; // Уже выбран вариант
-    }
+    // Удалена проверка, которая запрещала изменение выбора
     
     const selectedIndex = parseInt(e.target.dataset.index);
     selectedOption = selectedIndex;
@@ -121,6 +119,15 @@ nextButton.addEventListener('click', () => {
         options[selectedOption].classList.add('wrong');
     }
     
+    // Блокировка выбора после проверки
+    options.forEach(option => {
+        option.removeEventListener('click', selectOption);
+        option.style.pointerEvents = 'none';
+    });
+    
+    // Блокировка кнопки после ответа
+    nextButton.disabled = true;
+    
     // Задержка перед следующим вопросом
     setTimeout(() => {
         currentQuestion++;
@@ -130,7 +137,7 @@ nextButton.addEventListener('click', () => {
         } else {
             showResults();
         }
-    }, 1000);
+    }, 1500);  // Увеличено время паузы для лучшего восприятия
 });
 
 // Отображение результатов
@@ -172,4 +179,20 @@ shareResultsButton.addEventListener('click', () => {
 });
 
 // Перезапуск квиза
-restartQuizButton.addEventListener('click', startQuiz);
+restartQuizButton.addEventListener('click', () => {
+    resultsContainer.style.display = 'none';
+    currentQuestion = 0;
+    score = 0;
+    startQuiz();
+});
+
+// Случайный порядок вопросов при запуске
+function shuffleQuestions() {
+    for (let i = questions.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [questions[i], questions[j]] = [questions[j], questions[i]];
+    }
+}
+
+// Перемешиваем вопросы при загрузке
+shuffleQuestions();
