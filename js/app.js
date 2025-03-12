@@ -1,5 +1,7 @@
 // Инициализация VK Mini Apps
 document.addEventListener('DOMContentLoaded', function() {
+    console.log(`Загружено ${questions.length} вопросов`); // Проверка количества вопросов
+    
     // Запуск VK Bridge
     vkBridge.send('VKWebAppInit');
 
@@ -18,6 +20,8 @@ document.addEventListener('DOMContentLoaded', function() {
 let currentQuestion = 0;
 let score = 0;
 let selectedOption = null;
+let questionsForQuiz = []; // Массив для хранения выбранных вопросов
+const totalQuestionsToShow = 20; // Количество вопросов для показа в одном тесте
 
 // DOM элементы
 const startScreen = document.getElementById('start-screen');
@@ -47,11 +51,30 @@ function showUserInfo(userData) {
 // Начало квиза
 startQuizButton.addEventListener('click', startQuiz);
 
+// Функция для перемешивания массива (алгоритм Фишера-Йейтса)
+function shuffleArray(array) {
+    for (let i = array.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [array[i], array[j]] = [array[j], array[i]];
+    }
+    return array;
+}
+
+// Выбор случайных вопросов из общего пула
+function selectRandomQuestions() {
+    const shuffledQuestions = shuffleArray([...questions]); // Создаем копию и перемешиваем
+    return shuffledQuestions.slice(0, totalQuestionsToShow); // Берем первые N вопросов
+}
+
 function startQuiz() {
     startScreen.style.display = 'none';
     quizContainer.style.display = 'block';
     currentQuestion = 0;
     score = 0;
+    
+    // Выбираем случайные вопросы для текущего теста
+    questionsForQuiz = selectRandomQuestions();
+    
     loadQuestion();
 }
 
@@ -60,14 +83,14 @@ function loadQuestion() {
     selectedOption = null;
     nextButton.disabled = true;
     
-    const question = questions[currentQuestion];
+    const question = questionsForQuiz[currentQuestion];
     questionElement.textContent = question.question;
     
     // Обновление счетчика вопросов
-    questionCounter.textContent = `Вопрос ${currentQuestion + 1} из ${questions.length}`;
+    questionCounter.textContent = `Вопрос ${currentQuestion + 1} из ${questionsForQuiz.length}`;
     
     // Обновление прогресс-бара
-    const progress = ((currentQuestion) / questions.length) * 100;
+    const progress = ((currentQuestion) / questionsForQuiz.length) * 100;
     progressBar.style.width = `${progress}%`;
     
     // Очистка предыдущих вариантов
@@ -86,8 +109,6 @@ function loadQuestion() {
 
 // Выбор варианта ответа - позволяет менять выбор до нажатия кнопки "Далее"
 function selectOption(e) {
-    // Удалена проверка, которая запрещала изменение выбора
-    
     const selectedIndex = parseInt(e.target.dataset.index);
     selectedOption = selectedIndex;
     
@@ -106,8 +127,11 @@ nextButton.addEventListener('click', () => {
         return;
     }
     
+    // Блокировка кнопки после клика
+    nextButton.disabled = true;
+    
     // Проверка ответа
-    const correct = questions[currentQuestion].correct;
+    const correct = questionsForQuiz[currentQuestion].correct;
     if (selectedOption === correct) {
         score++;
     }
@@ -125,19 +149,16 @@ nextButton.addEventListener('click', () => {
         option.style.pointerEvents = 'none';
     });
     
-    // Блокировка кнопки после ответа
-    nextButton.disabled = true;
-    
     // Задержка перед следующим вопросом
     setTimeout(() => {
         currentQuestion++;
         
-        if (currentQuestion < questions.length) {
+        if (currentQuestion < questionsForQuiz.length) {
             loadQuestion();
         } else {
             showResults();
         }
-    }, 1500);  // Увеличено время паузы для лучшего восприятия
+    }, 1500);  // 1.5 секунды, чтобы увидеть правильный ответ
 });
 
 // Отображение результатов
@@ -145,7 +166,7 @@ function showResults() {
     quizContainer.style.display = 'none';
     resultsContainer.style.display = 'block';
     
-    const percentage = Math.round((score / questions.length) * 100);
+    const percentage = Math.round((score / questionsForQuiz.length) * 100);
     
     let resultText;
     if (percentage >= 90) {
@@ -159,7 +180,7 @@ function showResults() {
     }
     
     scoreElement.innerHTML = `
-        <p>Вы ответили правильно на ${score} из ${questions.length} вопросов</p>
+        <p>Вы ответили правильно на ${score} из ${questionsForQuiz.length} вопросов</p>
         <p>${percentage}%</p>
         <p>${resultText}</p>
     `;
@@ -167,11 +188,14 @@ function showResults() {
 
 // Поделиться результатами
 shareResultsButton.addEventListener('click', () => {
-    const percentage = Math.round((score / questions.length) * 100);
+    const percentage = Math.round((score / questionsForQuiz.length) * 100);
     const message = `Я прошел Анатомический квиз и набрал ${percentage}%! Попробуй и ты!`;
     
     vkBridge.send('VKWebAppShare', {
         message: message
+    })
+    .then(data => {
+        console.log('Поделились результатом:', data);
     })
     .catch(error => {
         console.error('Error sharing results:', error);
@@ -181,18 +205,5 @@ shareResultsButton.addEventListener('click', () => {
 // Перезапуск квиза
 restartQuizButton.addEventListener('click', () => {
     resultsContainer.style.display = 'none';
-    currentQuestion = 0;
-    score = 0;
     startQuiz();
 });
-
-// Случайный порядок вопросов при запуске
-function shuffleQuestions() {
-    for (let i = questions.length - 1; i > 0; i--) {
-        const j = Math.floor(Math.random() * (i + 1));
-        [questions[i], questions[j]] = [questions[j], questions[i]];
-    }
-}
-
-// Перемешиваем вопросы при загрузке
-shuffleQuestions();
