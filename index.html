@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Анатомический квиз</title>
+    <link rel="stylesheet" href="css/style.css">
+    <!-- VK Mini Apps SDK -->
+    <script src="https://unpkg.com/@vkontakte/vk-bridge/dist/browser.min.js"></script>
+</head>
+<body>
+    <div id="app">
+        <div class="container">
+            <header class="header">
+                <h1>Анатомический квиз</h1>
+                <div class="user-info" id="user-info"></div>
+            </header>
+            
+            <main class="main" id="main">
+                <div class="start-screen" id="start-screen">
+                    <h2>Проверь свои знания анатомии!</h2>
+                    <p>Ответь на вопросы и проверь, насколько хорошо ты знаешь строение человеческого тела.</p>
+                    <button class="btn btn-primary" id="start-quiz">Начать квиз</button>
+                </div>
+                
+                <div class="quiz-container" id="quiz-container" style="display: none;">
+                    <div class="progress-bar-container">
+                        <div class="progress-bar" id="progress-bar"></div>
+                    </div>
+                    <div class="question-counter" id="question-counter">Вопрос 1 из 10</div>
+                    <div class="question" id="question"></div>
+                    <div class="options" id="options"></div>
+                    <button class="btn btn-secondary" id="next-question" disabled>Далее</button>
+                </div>
+                
+                <div class="results-container" id="results-container" style="display: none;">
+                    <h2>Результаты</h2>
+                    <div class="score" id="score"></div>
+                    <div class="share-container">
+                        <button class="btn btn-primary" id="share-results">Поделиться результатами</button>
+                        <button class="btn btn-secondary" id="restart-quiz">Пройти ещё раз</button>
+                    </div>
+                </div>
+            </main>
+            
+            <footer class="footer">
+                <p>© 2023 Анатомический квиз</p>
+            </footer>
+        </div>
+    </div>
+    
+    <script src="js/questions.js"></script>
+    <script src="js/app.js"></script>
+</body>
+</html>
