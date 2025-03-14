@@ -934,3 +934,10 @@ const questions = [
         correct: 3
     }
 ];
+
+// Определяем темы для статистики
+const quizTopics = {
+    "КОСТНАЯ СИСТЕМА": questions
+};
+
+export { questions, quizTopics, QuizQuestion };
