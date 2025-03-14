@@ -18,46 +18,19 @@ let userStats = {
 
 let leaderboard = [];
 
-// ==== ИНИЦИАЛИЗАЦИЯ ====
-// Задержка инициализации для улучшения совместимости
-function initEnhancements() {
-  console.log('Инициализация дополнительных функций...');
-  
-  // Создаем элементы интерфейса
-  createStatsPanel();
-  createLeaderboardPanel();
-  
-  // Добавляем слушатели событий для отслеживания действий в основном приложении
-  setupEventListeners();
-  
-  // Запрашиваем данные текущего пользователя
-  getUserData();
-  
-  // Загружаем таблицу лидеров
-  loadLeaderboard();
-  
-  // Добавляем улучшенные анимации
-  enhanceAnimations();
-  
-  console.log('Дополнительные функции инициализированы');
-}
-
-// Используем как обработчик DOMContentLoaded, так и window.onload
-// для большей совместимости с разными сценариями загрузки
-document.addEventListener('DOMContentLoaded', function() {
-  // Задержка инициализации для уверенности, что приложение ВК полностью загружено
-  setTimeout(initEnhancements, 500);
-});
-
-// Резервный вариант, если DOMContentLoaded уже произошел
-window.addEventListener('load', function() {
-  if (!document.querySelector('.stats-panel')) {
-    setTimeout(initEnhancements, 500);
-  }
-});
+// Флаг, указывающий, что инициализация уже выполнена
+let isInitialized = false;
 
 // ==== СТАТИСТИКА ПОЛЬЗОВАТЕЛЯ ====
 function createStatsPanel() {
+  // Проверяем, существует ли уже панель статистики
+  if (document.querySelector('.stats-panel')) {
+    console.log('Панель статистики уже существует, пропускаем создание');
+    return;
+  }
+
+  console.log('Создаю панель статистики');
+  
   // Создаем панель статистики
   const statsPanel = document.createElement('div');
   statsPanel.className = 'stats-panel';
@@ -102,19 +75,36 @@ function createStatsPanel() {
 
 function updateStatsPanel() {
   // Обновляем отображаемую статистику
-  document.getElementById('total-questions').textContent = userStats.totalQuestions;
-  document.getElementById('correct-answers').textContent = userStats.correctAnswers;
+  const totalElement = document.getElementById('total-questions');
+  const correctElement = document.getElementById('correct-answers');
+  const rateElement = document.getElementById('success-rate');
+  const bestElement = document.getElementById('best-score');
   
-  const successRate = userStats.totalQuestions > 0 
-    ? Math.round((userStats.correctAnswers / userStats.totalQuestions) * 100) 
-    : 0;
-  
-  document.getElementById('success-rate').textContent = `${successRate}%`;
-  document.getElementById('best-score').textContent = userStats.bestScore;
+  if (totalElement && correctElement && rateElement && bestElement) {
+    totalElement.textContent = userStats.totalQuestions;
+    correctElement.textContent = userStats.correctAnswers;
+    
+    const successRate = userStats.totalQuestions > 0 
+      ? Math.round((userStats.correctAnswers / userStats.totalQuestions) * 100) 
+      : 0;
+    
+    rateElement.textContent = `${successRate}%`;
+    bestElement.textContent = userStats.bestScore;
+  } else {
+    console.warn('Не все элементы статистики найдены в DOM');
+  }
 }
 
 // ==== ТАБЛИЦА ЛИДЕРОВ ====
 function createLeaderboardPanel() {
+  // Проверяем, существует ли уже таблица лидеров
+  if (document.querySelector('.leaderboard-panel')) {
+    console.log('Таблица лидеров уже существует, пропускаем создание');
+    return;
+  }
+
+  console.log('Создаю таблицу лидеров');
+  
   // Создаем панель таблицы лидеров
   const leaderboardPanel = document.createElement('div');
   leaderboardPanel.className = 'leaderboard-panel';
@@ -151,6 +141,11 @@ function createLeaderboardPanel() {
 
 function updateLeaderboardPanel() {
   const leaderboardList = document.querySelector('.leaderboard-list');
+  
+  if (!leaderboardList) {
+    console.warn('Контейнер таблицы лидеров не найден');
+    return;
+  }
   
   // Очищаем текущий список
   leaderboardList.innerHTML = '';
@@ -195,6 +190,8 @@ function getUserData() {
       })
       .catch(error => {
         console.log('Ошибка при получении данных пользователя:', error);
+        // Продолжаем без данных пользователя
+        loadUserStats(null);
       });
   } else {
     // Для тестирования без VK API
@@ -270,8 +267,13 @@ function loadLeaderboard() {
   // В реальном приложении здесь был бы запрос к серверу
   // Для демонстрации генерируем случайные данные
   
-  document.querySelector('.leaderboard-list').innerHTML = 
-    '<div class="leaderboard-loading">Загрузка...</div>';
+  const leaderboardList = document.querySelector('.leaderboard-list');
+  if (!leaderboardList) {
+    console.warn('Контейнер таблицы лидеров не найден');
+    return;
+  }
+  
+  leaderboardList.innerHTML = '<div class="leaderboard-loading">Загрузка...</div>';
   
   // Эмулируем задержку загрузки
   setTimeout(() => {
@@ -428,8 +430,17 @@ function setupEventListeners() {
 
 // ==== УЛУЧШЕННЫЕ АНИМАЦИИ ====
 function enhanceAnimations() {
+  // Проверяем, добавлены ли уже стили анимаций
+  if (document.querySelector('style[data-enhanced-animations]')) {
+    console.log('Стили анимаций уже добавлены, пропускаем');
+    return;
+  }
+
+  console.log('Добавляю улучшенные анимации');
+  
   // Добавляем CSS-классы для анимаций
   const styleElement = document.createElement('style');
+  styleElement.setAttribute('data-enhanced-animations', 'true');
   styleElement.textContent = `
     /* Анимация появления вопроса */
     .question-container {
@@ -539,4 +550,59 @@ function enhanceAnimations() {
       }
     });
   });
+}
+
+// Задержка инициализации для улучшения совместимости
+function initEnhancements() {
+  // Проверяем, была ли уже выполнена инициализация
+  if (isInitialized) {
+    console.log('Дополнительные функции уже инициализированы, пропускаем');
+    return;
+  }
+  
+  console.log('Инициализация дополнительных функций...');
+  
+  // Устанавливаем флаг инициализации
+  isInitialized = true;
+  
+  // Создаем элементы интерфейса
+  createStatsPanel();
+  createLeaderboardPanel();
+  
+  // Добавляем слушатели событий для отслеживания действий в основном приложении
+  setupEventListeners();
+  
+  // Запрашиваем данные текущего пользователя
+  getUserData();
+  
+  // Загружаем таблицу лидеров
+  loadLeaderboard();
+  
+  // Добавляем улучшенные анимации
+  enhanceAnimations();
+  
+  console.log('Дополнительные функции инициализированы');
+}
+
+// Используем как обработчик DOMContentLoaded, так и window.onload
+// для большей совместимости с разными сценариями загрузки
+document.addEventListener('DOMContentLoaded', function() {
+  // Задержка инициализации для уверенности, что приложение ВК полностью загружено
+  setTimeout(initEnhancements, 500);
+});
+
+// Резервный вариант, если DOMContentLoaded уже произошел
+window.addEventListener('load', function() {
+  setTimeout(function() {
+    if (!isInitialized) {
+      initEnhancements();
+    }
+  }, 500);
+});
+
+// Предотвращаем повторную инициализацию при повторном подключении скрипта
+if (window.enhancementsLoaded) {
+  console.log('Скрипт уже загружен, предотвращаю повторную инициализацию');
+} else {
+  window.enhancementsLoaded = true;
 }
