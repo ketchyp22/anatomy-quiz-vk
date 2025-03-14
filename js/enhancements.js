@@ -4,7 +4,7 @@
 // Создан: 15 Марта 2025
 
 // Инициализация VK Mini Apps API
-const bridge = window.bridge || {};
+const bridge = window.bridge || window.vkBridge || {};
 
 // Глобальные переменные
 let userStats = {
@@ -19,7 +19,10 @@ let userStats = {
 let leaderboard = [];
 
 // ==== ИНИЦИАЛИЗАЦИЯ ====
-document.addEventListener('DOMContentLoaded', function() {
+// Задержка инициализации для улучшения совместимости
+function initEnhancements() {
+  console.log('Инициализация дополнительных функций...');
+  
   // Создаем элементы интерфейса
   createStatsPanel();
   createLeaderboardPanel();
@@ -35,6 +38,22 @@ document.addEventListener('DOMContentLoaded', function() {
   
   // Добавляем улучшенные анимации
   enhanceAnimations();
+  
+  console.log('Дополнительные функции инициализированы');
+}
+
+// Используем как обработчик DOMContentLoaded, так и window.onload
+// для большей совместимости с разными сценариями загрузки
+document.addEventListener('DOMContentLoaded', function() {
+  // Задержка инициализации для уверенности, что приложение ВК полностью загружено
+  setTimeout(initEnhancements, 500);
+});
+
+// Резервный вариант, если DOMContentLoaded уже произошел
+window.addEventListener('load', function() {
+  if (!document.querySelector('.stats-panel')) {
+    setTimeout(initEnhancements, 500);
+  }
 });
 
 // ==== СТАТИСТИКА ПОЛЬЗОВАТЕЛЯ ====
@@ -186,37 +205,64 @@ function getUserData() {
 }
 
 function loadUserStats(userId) {
-  // В реальном приложении здесь был бы запрос к серверу
-  // Для демонстрации используем localStorage
-  const savedStats = localStorage.getItem(`anatomy-quiz-stats-${userId}`);
-  
-  if (savedStats) {
-    try {
-      const parsedStats = JSON.parse(savedStats);
-      userStats = { ...userStats, ...parsedStats };
-      updateStatsPanel();
-    } catch (e) {
-      console.error('Ошибка при загрузке статистики:', e);
+  try {
+    // Сначала пытаемся загрузить статистику по ID пользователя
+    let savedStats = userId ? localStorage.getItem(`anatomy-quiz-stats-${userId}`) : null;
+    
+    // Если не нашли, пробуем загрузить общую статистику
+    if (!savedStats) {
+      savedStats = localStorage.getItem('anatomy-quiz-stats-general');
     }
+    
+    if (savedStats) {
+      try {
+        const parsedStats = JSON.parse(savedStats);
+        userStats = { ...userStats, ...parsedStats };
+        console.log('Загружена статистика:', userStats);
+        updateStatsPanel();
+      } catch (e) {
+        console.error('Ошибка при парсинге JSON статистики:', e);
+      }
+    } else {
+      console.log('Сохраненная статистика не найдена');
+    }
+  } catch (e) {
+    console.error('Ошибка при загрузке статистики:', e);
   }
 }
 
 function saveUserStats() {
-  // Сохраняем статистику пользователя
-  if (userStats.userId) {
+  try {
+    // Сохраняем статистику независимо от наличия userId
+    // Это обеспечит работу даже без авторизации ВК
+    const statsToSave = {
+      totalQuestions: userStats.totalQuestions,
+      correctAnswers: userStats.correctAnswers,
+      incorrectAnswers: userStats.incorrectAnswers,
+      bestScore: userStats.bestScore,
+      history: userStats.history
+    };
+    
+    // Сохраняем как с идентификатором пользователя, так и без него
+    if (userStats.userId) {
+      localStorage.setItem(
+        `anatomy-quiz-stats-${userStats.userId}`,
+        JSON.stringify(statsToSave)
+      );
+    }
+    
+    // Дублируем сохранение в общем хранилище без привязки к ID
     localStorage.setItem(
-      `anatomy-quiz-stats-${userStats.userId}`, 
-      JSON.stringify({
-        totalQuestions: userStats.totalQuestions,
-        correctAnswers: userStats.correctAnswers,
-        incorrectAnswers: userStats.incorrectAnswers,
-        bestScore: userStats.bestScore,
-        history: userStats.history
-      })
+      'anatomy-quiz-stats-general',
+      JSON.stringify(statsToSave)
     );
+    
+    console.log('Статистика сохранена:', statsToSave);
     
     // В реальном приложении здесь был бы запрос к серверу для обновления общей статистики
     updateLeaderboard();
+  } catch (error) {
+    console.error('Ошибка при сохранении статистики:', error);
   }
 }
 
@@ -297,12 +343,28 @@ function setupEventListeners() {
   // Отслеживаем нажатия на варианты ответов
   document.addEventListener('click', function(event) {
     // Проверяем, является ли элемент вариантом ответа
-    if (event.target.closest('.answer')) {
-      const answerElement = event.target.closest('.answer');
+    // Адаптируем селектор к структуре вашего приложения
+    if (event.target.closest('.answer') || 
+        event.target.closest('.variant') || 
+        event.target.closest('li')) {
+      
+      // Запоминаем выбранный элемент
+      const answerElement = event.target.closest('.answer') || 
+                            event.target.closest('.variant') || 
+                            event.target.closest('li');
+      
+      console.log('Зарегистрирован клик по варианту ответа');
       
       // Определяем, правильный ли ответ был выбран
+      // Используем более длительную задержку, чтобы дождаться отображения результата
       setTimeout(() => {
-        const isCorrect = answerElement.classList.contains('correct');
+        // Проверяем разные возможные классы для определения правильности ответа
+        const isCorrect = answerElement.classList.contains('correct') || 
+                         answerElement.classList.contains('right') || 
+                         answerElement.classList.contains('success') ||
+                         answerElement.style.backgroundColor === 'green';
+        
+        console.log('Правильный ответ?', isCorrect);
         
         // Обновляем статистику
         userStats.totalQuestions++;
@@ -322,17 +384,43 @@ function setupEventListeners() {
         // Сохраняем статистику
         updateStatsPanel();
         saveUserStats();
-      }, 500); // Небольшая задержка, чтобы дождаться отображения результата
+        
+        console.log('Статистика обновлена:', userStats);
+      }, 800); // Увеличенная задержка
     }
   });
   
   // Отслеживаем начало новой игры
   // Это требует знания структуры основного приложения
   document.addEventListener('click', function(event) {
-    // Пример: кнопка "Начать заново" или аналогичная
-    if (event.target.closest('.restart-button') || 
-        (event.target.closest('button') && 
-         event.target.textContent.includes('Начать'))) {
+    // Расширенный список возможных селекторов для кнопки рестарта
+    const restartButtonSelectors = [
+      '.restart-button',
+      '.start-button',
+      '.reset-button',
+      '.new-game',
+      '#restart',
+      '#start',
+      '#new-game'
+    ];
+    
+    const clickedElement = event.target;
+    
+    // Проверяем по селекторам
+    const isRestartButton = restartButtonSelectors.some(
+      selector => clickedElement.matches(selector) || clickedElement.closest(selector)
+    );
+    
+    // Проверяем по тексту кнопки
+    const isRestartByText = clickedElement.tagName === 'BUTTON' && 
+                          (clickedElement.textContent.includes('Начать') || 
+                           clickedElement.textContent.includes('Заново') ||
+                           clickedElement.textContent.includes('Сначала') ||
+                           clickedElement.textContent.includes('Restart') ||
+                           clickedElement.textContent.includes('New game'));
+    
+    if (isRestartButton || isRestartByText) {
+      console.log('Зарегистрирован перезапуск игры');
       userStats.lastScore = 0;
     }
   });
