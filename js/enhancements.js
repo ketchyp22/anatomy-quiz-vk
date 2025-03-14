@@ -1,654 +1,349 @@
-// ==== АНАТОМИЯ ВИКТОРИНА - ДОПОЛНИТЕЛЬНЫЕ ФУНКЦИИ ====
-// Файл содержит новые функции для приложения Анатомия-Викторина ВК
-// Автор: Claude, по заказу пользователя
-// Создан: 15 Марта 2025
-
-// Переключатель для включения детального логирования
-const DEBUG = false;
-
-// Функция для логирования с поддержкой отключения
-function logDebug(...args) {
-  if (DEBUG) {
-    console.log(...args);
-  }
-}
-
-// Инициализация VK Mini Apps API
-const bridge = window.bridge || window.vkBridge || {};
+// Упрощенная версия enhancements.js
+// Фокусируется только на работающей статистике
 
 // Глобальные переменные
 let userStats = {
   totalQuestions: 0,
   correctAnswers: 0,
   incorrectAnswers: 0,
-  lastScore: 0,
-  bestScore: 0,
-  history: []
+  bestScore: 0
 };
 
-let leaderboard = [];
+// Переменная для отслеживания текущей серии правильных ответов
+let currentStreak = 0;
 
-// ==== ФУНКЦИИ ОЧИСТКИ ====
-// Удаляем все существующие элементы с указанным классом
-function removeExistingElements(selector) {
-  const elements = document.querySelectorAll(selector);
-  if (elements.length > 0) {
-    logDebug(`Удаляю ${elements.length} существующих элементов: ${selector}`);
-    elements.forEach(el => el.remove());
-    return true;
-  }
-  return false;
-}
+// Удаляем существующие панели перед созданием
+document.querySelectorAll('.stats-panel, .leaderboard-panel').forEach(el => el.remove());
 
-// ==== СТАТИСТИКА ПОЛЬЗОВАТЕЛЯ ====
-function createStatsPanel() {
-  // Удаляем все существующие панели статистики перед созданием новой
-  removeExistingElements('.stats-panel');
-  
-  logDebug('Создаю панель статистики');
-  
+// Создаем интерфейс статистики
+function createStatsUI() {
   // Создаем панель статистики
   const statsPanel = document.createElement('div');
   statsPanel.className = 'stats-panel';
-  statsPanel.dataset.version = '1.0'; // Для отслеживания версии
+  statsPanel.style.cssText = `
+    width: 100%;
+    max-width: 500px;
+    margin: 10px auto;
+    border-radius: 8px;
+    border: 1px solid #e0e0e0;
+    background-color: #f5f5f5;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    overflow: hidden;
+    font-family: -apple-system, BlinkMacSystemFont, 'Roboto', sans-serif;
+  `;
+  
+  // Добавляем содержимое
   statsPanel.innerHTML = `
-    <div class="stats-header">
-      <h3>Ваша статистика</h3>
-      <button class="stats-toggle">▼</button>
+    <div style="display: flex; justify-content: space-between; align-items: center; padding: 10px 15px; background-color: #4a76a8; color: white;">
+      <h3 style="margin: 0; font-weight: 500; font-size: 16px;">Ваша статистика</h3>
+      <button id="stats-toggle" style="background: none; border: none; color: white; font-size: 18px; cursor: pointer; padding: 0 5px;">▼</button>
     </div>
-    <div class="stats-content">
-      <div class="stats-item">
+    <div id="stats-content" style="padding: 15px;">
+      <div style="display: flex; justify-content: space-between; margin-bottom: 10px; padding-bottom: 10px; border-bottom: 1px solid #e0e0e0;">
         <span>Всего вопросов:</span>
         <span id="total-questions">0</span>
       </div>
-      <div class="stats-item">
+      <div style="display: flex; justify-content: space-between; margin-bottom: 10px; padding-bottom: 10px; border-bottom: 1px solid #e0e0e0;">
         <span>Правильных ответов:</span>
         <span id="correct-answers">0</span>
       </div>
-      <div class="stats-item">
+      <div style="display: flex; justify-content: space-between; margin-bottom: 10px; padding-bottom: 10px; border-bottom: 1px solid #e0e0e0;">
         <span>Процент успеха:</span>
         <span id="success-rate">0%</span>
       </div>
-      <div class="stats-item">
-        <span>Лучший результат:</span>
+      <div style="display: flex; justify-content: space-between;">
+        <span>Лучшая серия:</span>
         <span id="best-score">0</span>
       </div>
     </div>
   `;
   
-  // Добавляем панель в DOM
+  // Добавляем на страницу
   const app = document.querySelector('.app') || document.body;
   app.appendChild(statsPanel);
   
-  // Добавляем функциональность сворачивания/разворачивания
-  const toggleBtn = statsPanel.querySelector('.stats-toggle');
-  const content = statsPanel.querySelector('.stats-content');
+  // Функциональность сворачивания/разворачивания
+  const toggleBtn = document.getElementById('stats-toggle');
+  const content = document.getElementById('stats-content');
   
   toggleBtn.addEventListener('click', function() {
-    content.classList.toggle('hidden');
-    toggleBtn.textContent = content.classList.contains('hidden') ? '▲' : '▼';
+    if (content.style.display === 'none') {
+      content.style.display = 'block';
+      toggleBtn.textContent = '▼';
+    } else {
+      content.style.display = 'none';
+      toggleBtn.textContent = '▲';
+    }
   });
+  
+  // Обновляем статистику при создании
+  updateStats();
 }
 
-function updateStatsPanel() {
-  // Обновляем отображаемую статистику
-  const totalElement = document.getElementById('total-questions');
-  const correctElement = document.getElementById('correct-answers');
-  const rateElement = document.getElementById('success-rate');
-  const bestElement = document.getElementById('best-score');
-  
-  if (totalElement && correctElement && rateElement && bestElement) {
-    totalElement.textContent = userStats.totalQuestions;
-    correctElement.textContent = userStats.correctAnswers;
-    
-    const successRate = userStats.totalQuestions > 0 
-      ? Math.round((userStats.correctAnswers / userStats.totalQuestions) * 100) 
-      : 0;
-    
-    rateElement.textContent = `${successRate}%`;
-    bestElement.textContent = userStats.bestScore;
-  } else {
-    console.warn('Не все элементы статистики найдены в DOM');
-  }
-}
-
-// ==== ТАБЛИЦА ЛИДЕРОВ ====
-function createLeaderboardPanel() {
-  // Удаляем все существующие таблицы лидеров перед созданием новой
-  removeExistingElements('.leaderboard-panel');
-  
-  logDebug('Создаю таблицу лидеров');
-  
-  // Создаем панель таблицы лидеров
+// Создаем таблицу лидеров
+function createLeaderboardUI() {
+  // Создаем панель лидеров
   const leaderboardPanel = document.createElement('div');
   leaderboardPanel.className = 'leaderboard-panel';
-  leaderboardPanel.dataset.version = '1.0'; // Для отслеживания версии
+  leaderboardPanel.style.cssText = `
+    width: 100%;
+    max-width: 500px;
+    margin: 15px auto;
+    border-radius: 8px;
+    border: 1px solid #e0e0e0;
+    background-color: #f5f5f5;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    overflow: hidden;
+    font-family: -apple-system, BlinkMacSystemFont, 'Roboto', sans-serif;
+  `;
+  
+  // Добавляем содержимое
   leaderboardPanel.innerHTML = `
-    <div class="leaderboard-header">
-      <h3>Топ игроков</h3>
-      <button class="leaderboard-toggle">▼</button>
+    <div style="display: flex; justify-content: space-between; align-items: center; padding: 10px 15px; background-color: #4a76a8; color: white;">
+      <h3 style="margin: 0; font-weight: 500; font-size: 16px;">Топ игроков</h3>
+      <button id="leaderboard-toggle" style="background: none; border: none; color: white; font-size: 18px; cursor: pointer; padding: 0 5px;">▼</button>
     </div>
-    <div class="leaderboard-content">
-      <div class="leaderboard-list">
-        <div class="leaderboard-loading">Загрузка...</div>
+    <div id="leaderboard-content" style="padding: 15px;">
+      <div id="leaderboard-list">
+        <div style="text-align: center; color: #818c99; padding: 20px 0;">Загрузка...</div>
       </div>
-      <button class="leaderboard-refresh">Обновить</button>
+      <button id="leaderboard-refresh" style="width: 100%; padding: 10px; background-color: #5181b8; color: white; border: none; border-radius: 4px; font-size: 14px; cursor: pointer; margin-top: 10px;">Обновить</button>
     </div>
   `;
   
-  // Добавляем панель в DOM
+  // Добавляем на страницу
   const app = document.querySelector('.app') || document.body;
   app.appendChild(leaderboardPanel);
   
-  // Добавляем функциональность сворачивания/разворачивания
-  const toggleBtn = leaderboardPanel.querySelector('.leaderboard-toggle');
-  const content = leaderboardPanel.querySelector('.leaderboard-content');
+  // Функциональность сворачивания/разворачивания
+  const toggleBtn = document.getElementById('leaderboard-toggle');
+  const content = document.getElementById('leaderboard-content');
   
   toggleBtn.addEventListener('click', function() {
-    content.classList.toggle('hidden');
-    toggleBtn.textContent = content.classList.contains('hidden') ? '▲' : '▼';
-  });
-  
-  // Добавляем обработчик для кнопки обновления
-  const refreshBtn = leaderboardPanel.querySelector('.leaderboard-refresh');
-  refreshBtn.addEventListener('click', loadLeaderboard);
-}
-
-function updateLeaderboardPanel() {
-  const leaderboardList = document.querySelector('.leaderboard-list');
-  
-  if (!leaderboardList) {
-    console.warn('Контейнер таблицы лидеров не найден');
-    return;
-  }
-  
-  // Очищаем текущий список
-  leaderboardList.innerHTML = '';
-  
-  if (leaderboard.length === 0) {
-    leaderboardList.innerHTML = '<div class="leaderboard-empty">Пока нет данных</div>';
-    return;
-  }
-  
-  // Создаем элементы для каждого игрока в топе
-  leaderboard.forEach((player, index) => {
-    const playerItem = document.createElement('div');
-    playerItem.className = 'leaderboard-item';
-    
-    // Выделяем текущего пользователя
-    if (player.isCurrentUser) {
-      playerItem.classList.add('current-user');
-    }
-    
-    playerItem.innerHTML = `
-      <div class="leaderboard-rank">${index + 1}</div>
-      <div class="leaderboard-name">${player.name}</div>
-      <div class="leaderboard-score">${player.score}</div>
-    `;
-    
-    leaderboardList.appendChild(playerItem);
-  });
-}
-
-// ==== ИНТЕГРАЦИЯ С VK ====
-function getUserData() {
-  // Получаем данные о пользователе через VK Mini Apps API
-  if (bridge.send) {
-    bridge.send('VKWebAppGetUserInfo')
-      .then(data => {
-        // Сохраняем ID пользователя для таблицы лидеров
-        userStats.userId = data.id;
-        userStats.userName = `${data.first_name} ${data.last_name}`;
-        
-        // Загружаем сохраненную статистику пользователя
-        loadUserStats(data.id);
-      })
-      .catch(error => {
-        logDebug('Ошибка при получении данных пользователя:', error);
-        // Продолжаем без данных пользователя
-        loadUserStats(null);
-      });
-  } else {
-    // Для тестирования без VK API
-    userStats.userId = 'test-user';
-    userStats.userName = 'Тестовый Пользователь';
-    loadUserStats('test-user');
-  }
-}
-
-function loadUserStats(userId) {
-  try {
-    // Сначала пытаемся загрузить статистику по ID пользователя
-    let savedStats = userId ? localStorage.getItem(`anatomy-quiz-stats-${userId}`) : null;
-    
-    // Если не нашли, пробуем загрузить общую статистику
-    if (!savedStats) {
-      savedStats = localStorage.getItem('anatomy-quiz-stats-general');
-    }
-    
-    if (savedStats) {
-      try {
-        const parsedStats = JSON.parse(savedStats);
-        userStats = { ...userStats, ...parsedStats };
-        logDebug('Загружена статистика:', userStats);
-        updateStatsPanel();
-      } catch (e) {
-        console.error('Ошибка при парсинге JSON статистики:', e);
-      }
+    if (content.style.display === 'none') {
+      content.style.display = 'block';
+      toggleBtn.textContent = '▼';
     } else {
-      logDebug('Сохраненная статистика не найдена');
+      content.style.display = 'none';
+      toggleBtn.textContent = '▲';
+    }
+  });
+  
+  // Обновить таблицу лидеров при создании
+  updateLeaderboard();
+  
+  // Обработчик для кнопки обновления
+  document.getElementById('leaderboard-refresh').addEventListener('click', updateLeaderboard);
+}
+
+// Обновляем отображение статистики
+function updateStats() {
+  document.getElementById('total-questions').textContent = userStats.totalQuestions;
+  document.getElementById('correct-answers').textContent = userStats.correctAnswers;
+  
+  const rate = userStats.totalQuestions > 0 
+    ? Math.round((userStats.correctAnswers / userStats.totalQuestions) * 100) 
+    : 0;
+  
+  document.getElementById('success-rate').textContent = `${rate}%`;
+  document.getElementById('best-score').textContent = userStats.bestScore;
+}
+
+// Обновляем таблицу лидеров
+function updateLeaderboard() {
+  const leaderboardList = document.getElementById('leaderboard-list');
+  
+  // Генерируем случайные данные для демо
+  const names = ['Иван П.', 'Мария И.', 'Алексей С.', 'Елена К.', 'Дмитрий С.', 'Ольга Р.', 'Сергей В.'];
+  const scores = [95, 92, 88, 85, 82, 78, 75];
+  
+  // Добавляем текущего пользователя
+  const userData = {
+    name: 'Вы',
+    score: userStats.bestScore
+  };
+  
+  // Создаем список лидеров
+  let leaderboardHTML = '';
+  let userAdded = false;
+  
+  // Генерируем таблицу лидеров
+  for (let i = 0; i < 7; i++) {
+    // Если счет пользователя больше текущего в списке и пользователь еще не добавлен
+    if (userData.score > scores[i] && !userAdded && userData.score > 0) {
+      leaderboardHTML += `
+        <div style="display: flex; padding: 10px; border-bottom: 1px solid #e0e0e0; background-color: rgba(81, 129, 184, 0.1); font-weight: 500;">
+          <div style="width: 30px; text-align: center; font-weight: 700;">${i+1}</div>
+          <div style="flex-grow: 1; padding: 0 10px;">${userData.name}</div>
+          <div style="width: 60px; text-align: right; font-weight: 500;">${userData.score}</div>
+        </div>
+      `;
+      userAdded = true;
+      i--; // Чтобы не пропустить текущий элемент демо-данных
+    } else {
+      leaderboardHTML += `
+        <div style="display: flex; padding: 10px; border-bottom: 1px solid #e0e0e0;">
+          <div style="width: 30px; text-align: center; font-weight: 700;">${i+1}</div>
+          <div style="flex-grow: 1; padding: 0 10px;">${names[i]}</div>
+          <div style="width: 60px; text-align: right; font-weight: 500;">${scores[i]}</div>
+        </div>
+      `;
+    }
+  }
+  
+  // Если пользователь не попал в топ, добавляем его в конец
+  if (!userAdded && userData.score > 0) {
+    leaderboardHTML += `
+      <div style="display: flex; padding: 10px; border-bottom: 1px solid #e0e0e0; background-color: rgba(81, 129, 184, 0.1); font-weight: 500; margin-top: 10px;">
+        <div style="width: 30px; text-align: center; font-weight: 700;">-</div>
+        <div style="flex-grow: 1; padding: 0 10px;">${userData.name}</div>
+        <div style="width: 60px; text-align: right; font-weight: 500;">${userData.score}</div>
+      </div>
+    `;
+  }
+  
+  // Обновляем содержимое
+  leaderboardList.innerHTML = leaderboardHTML;
+}
+
+// Загрузка сохраненной статистики
+function loadStats() {
+  try {
+    const savedStats = localStorage.getItem('anatomy-quiz-stats-simple');
+    if (savedStats) {
+      userStats = JSON.parse(savedStats);
+      console.log('Загружена статистика:', userStats);
     }
   } catch (e) {
     console.error('Ошибка при загрузке статистики:', e);
   }
 }
 
-function saveUserStats() {
+// Сохранение статистики
+function saveStats() {
   try {
-    // Сохраняем статистику независимо от наличия userId
-    // Это обеспечит работу даже без авторизации ВК
-    const statsToSave = {
-      totalQuestions: userStats.totalQuestions,
-      correctAnswers: userStats.correctAnswers,
-      incorrectAnswers: userStats.incorrectAnswers,
-      bestScore: userStats.bestScore,
-      history: userStats.history
-    };
-    
-    // Сохраняем как с идентификатором пользователя, так и без него
-    if (userStats.userId) {
-      localStorage.setItem(
-        `anatomy-quiz-stats-${userStats.userId}`,
-        JSON.stringify(statsToSave)
-      );
-    }
-    
-    // Дублируем сохранение в общем хранилище без привязки к ID
-    localStorage.setItem(
-      'anatomy-quiz-stats-general',
-      JSON.stringify(statsToSave)
-    );
-    
-    logDebug('Статистика сохранена:', statsToSave);
-    
-    // В реальном приложении здесь был бы запрос к серверу для обновления общей статистики
-    updateLeaderboard();
-  } catch (error) {
-    console.error('Ошибка при сохранении статистики:', error);
+    localStorage.setItem('anatomy-quiz-stats-simple', JSON.stringify(userStats));
+    console.log('Статистика сохранена:', userStats);
+  } catch (e) {
+    console.error('Ошибка при сохранении статистики:', e);
   }
 }
 
-function loadLeaderboard() {
-  // В реальном приложении здесь был бы запрос к серверу
-  // Для демонстрации генерируем случайные данные
+// Обработчик кликов по вариантам ответов
+function handleAnswerClick(event) {
+  // Проверяем, был ли клик по варианту ответа
+  // Перебираем все возможные селекторы, которые могут быть в вашем приложении
+  const answerElements = ['li', '.answer', '.variant', '.option', '.quiz-option'];
   
-  const leaderboardList = document.querySelector('.leaderboard-list');
-  if (!leaderboardList) {
-    console.warn('Контейнер таблицы лидеров не найден');
-    return;
+  let answerElement = null;
+  for (const selector of answerElements) {
+    if (event.target.closest(selector)) {
+      answerElement = event.target.closest(selector);
+      break;
+    }
   }
   
-  leaderboardList.innerHTML = '<div class="leaderboard-loading">Загрузка...</div>';
+  if (!answerElement) return; // Не вариант ответа
   
-  // Эмулируем задержку загрузки
+  console.log('Клик по варианту ответа');
+  
+  // Проверяем, правильный ли ответ (с задержкой)
   setTimeout(() => {
-    // Генерируем тестовые данные для таблицы лидеров
-    const demoLeaderboard = [
-      { userId: 1, name: 'Иван Петров', score: 95 },
-      { userId: 2, name: 'Мария Иванова', score: 92 },
-      { userId: 3, name: 'Алексей Смирнов', score: 88 },
-      { userId: 4, name: 'Елена Кузнецова', score: 85 },
-      { userId: 5, name: 'Дмитрий Соколов', score: 82 }
-    ];
+    // Проверяем возможные индикаторы правильного ответа
+    // 1. Проверка по классам
+    const correctClasses = ['correct', 'right', 'success', 'true'];
+    let isCorrect = correctClasses.some(cls => answerElement.classList.contains(cls));
     
-    // Добавляем текущего пользователя, если есть статистика
-    if (userStats.userId && userStats.bestScore > 0) {
-      const userEntry = {
-        userId: userStats.userId,
-        name: userStats.userName || 'Вы',
-        score: userStats.bestScore,
-        isCurrentUser: true
-      };
-      
-      // Добавляем пользователя и сортируем по убыванию score
-      leaderboard = [...demoLeaderboard, userEntry]
-        .sort((a, b) => b.score - a.score)
-        .slice(0, 10); // Ограничиваем до топ-10
-    } else {
-      leaderboard = demoLeaderboard;
+    // 2. Проверка по цвету фона
+    if (!isCorrect) {
+      const bgColor = getComputedStyle(answerElement).backgroundColor;
+      isCorrect = bgColor.includes('0, 128, 0') || // rgb(0, 128, 0) - зеленый
+                  bgColor.includes('0, 255, 0') || // rgb(0, 255, 0) - светло-зеленый
+                  bgColor.includes('75, 179, 75') || // rgb(75, 179, 75) - зеленый
+                  bgColor.includes('green');
     }
     
-    updateLeaderboardPanel();
-  }, 1000);
-}
-
-function updateLeaderboard() {
-  // В реальном приложении здесь был бы запрос к серверу
-  // Для демонстрации обновляем локальную версию
-  
-  if (userStats.userId && userStats.bestScore > 0) {
-    // Проверяем, есть ли пользователь уже в списке
-    const userIndex = leaderboard.findIndex(player => player.userId === userStats.userId);
-    
-    if (userIndex !== -1) {
-      // Обновляем существующую запись
-      leaderboard[userIndex].score = userStats.bestScore;
-      leaderboard[userIndex].isCurrentUser = true;
-    } else {
-      // Добавляем нового пользователя
-      leaderboard.push({
-        userId: userStats.userId,
-        name: userStats.userName || 'Вы',
-        score: userStats.bestScore,
-        isCurrentUser: true
-      });
+    // 3. Проверка по тексту (если есть слово "правильно" рядом)
+    if (!isCorrect) {
+      const containerText = answerElement.textContent.toLowerCase();
+      isCorrect = containerText.includes('правильно') || 
+                  containerText.includes('верно') ||
+                  containerText.includes('correct');
     }
     
-    // Сортируем и ограничиваем список
-    leaderboard = leaderboard
-      .sort((a, b) => b.score - a.score)
-      .slice(0, 10);
+    console.log('Правильный ответ?', isCorrect);
     
-    updateLeaderboardPanel();
-  }
+    // Обновляем статистику
+    userStats.totalQuestions++;
+    
+    if (isCorrect) {
+      userStats.correctAnswers++;
+      currentStreak++;
+    } else {
+      userStats.incorrectAnswers++;
+      currentStreak = 0;
+    }
+    
+    // Обновляем лучший результат
+    if (currentStreak > userStats.bestScore) {
+      userStats.bestScore = currentStreak;
+    }
+    
+    // Обновляем интерфейс и сохраняем
+    updateStats();
+    saveStats();
+    updateLeaderboard();
+    
+    console.log('Статистика обновлена:', userStats);
+  }, 1000); // Увеличенная задержка для надежности
 }
 
-// ==== ИНТЕГРАЦИЯ С ОСНОВНЫМ ПРИЛОЖЕНИЕМ ====
-function setupEventListeners() {
-  // Удаляем все существующие обработчики (нет прямого способа, но можно использовать новый подход)
-  
-  // Отслеживаем нажатия на варианты ответов
-  document.addEventListener('click', answerClickHandler);
-  
-  // Отслеживаем начало новой игры
-  document.addEventListener('click', restartClickHandler);
-}
-
-// Выносим обработчики в отдельные функции, чтобы их можно было удалить при необходимости
-function answerClickHandler(event) {
-  // Проверяем, является ли элемент вариантом ответа
-  // Адаптируем селектор к структуре вашего приложения
-  if (event.target.closest('.answer') || 
-      event.target.closest('.variant') || 
-      event.target.closest('li')) {
-    
-    // Запоминаем выбранный элемент
-    const answerElement = event.target.closest('.answer') || 
-                          event.target.closest('.variant') || 
-                          event.target.closest('li');
-    
-    logDebug('Зарегистрирован клик по варианту ответа');
-    
-    // Определяем, правильный ли ответ был выбран
-    // Используем более длительную задержку, чтобы дождаться отображения результата
-    setTimeout(() => {
-      // Проверяем разные возможные классы для определения правильности ответа
-      const isCorrect = answerElement.classList.contains('correct') || 
-                       answerElement.classList.contains('right') || 
-                       answerElement.classList.contains('success') ||
-                       answerElement.style.backgroundColor === 'green';
-      
-      logDebug('Правильный ответ?', isCorrect);
-      
-      // Обновляем статистику
-      userStats.totalQuestions++;
-      
-      if (isCorrect) {
-        userStats.correctAnswers++;
-        userStats.lastScore++;
-      } else {
-        userStats.incorrectAnswers++;
-      }
-      
-      // Обновляем лучший результат
-      if (userStats.lastScore > userStats.bestScore) {
-        userStats.bestScore = userStats.lastScore;
-      }
-      
-      // Сохраняем статистику
-      updateStatsPanel();
-      saveUserStats();
-      
-      logDebug('Статистика обновлена:', userStats);
-    }, 800); // Увеличенная задержка
-  }
-}
-
-function restartClickHandler(event) {
-  // Расширенный список возможных селекторов для кнопки рестарта
-  const restartButtonSelectors = [
-    '.restart-button',
-    '.start-button',
-    '.reset-button',
-    '.new-game',
-    '#restart',
-    '#start',
-    '#new-game'
+// Обработчик для кнопки перезапуска
+function handleRestart(event) {
+  // Проверяем возможные кнопки перезапуска
+  const restartSelectors = [
+    '.restart', '.start', '.reset', '.new-game',
+    '#restart', '#start', '#new-game'
   ];
   
-  const clickedElement = event.target;
-  
-  // Проверяем по селекторам
-  const isRestartButton = restartButtonSelectors.some(
-    selector => clickedElement.matches(selector) || clickedElement.closest(selector)
+  let isRestartButton = restartSelectors.some(
+    selector => event.target.matches(selector) || event.target.closest(selector)
   );
   
   // Проверяем по тексту кнопки
-  const isRestartByText = clickedElement.tagName === 'BUTTON' && 
-                        (clickedElement.textContent.includes('Начать') || 
-                         clickedElement.textContent.includes('Заново') ||
-                         clickedElement.textContent.includes('Сначала') ||
-                         clickedElement.textContent.includes('Restart') ||
-                         clickedElement.textContent.includes('New game'));
+  if (!isRestartButton && event.target.tagName === 'BUTTON') {
+    const buttonText = event.target.textContent.toLowerCase();
+    isRestartButton = buttonText.includes('начать') || 
+                      buttonText.includes('заново') ||
+                      buttonText.includes('сначала') ||
+                      buttonText.includes('restart') ||
+                      buttonText.includes('start') ||
+                      buttonText.includes('new game');
+  }
   
-  if (isRestartButton || isRestartByText) {
-    logDebug('Зарегистрирован перезапуск игры');
-    userStats.lastScore = 0;
+  if (isRestartButton) {
+    console.log('Перезапуск игры');
+    currentStreak = 0;
   }
 }
 
-// ==== УЛУЧШЕННЫЕ АНИМАЦИИ ====
-function enhanceAnimations() {
-  // Удаляем все существующие стили анимаций
-  removeExistingElements('style[data-enhanced-animations]');
+// Инициализация
+function init() {
+  console.log('Инициализация улучшений...');
   
-  logDebug('Добавляю улучшенные анимации');
+  // Загружаем сохраненную статистику
+  loadStats();
   
-  // Добавляем CSS-классы для анимаций
-  const styleElement = document.createElement('style');
-  styleElement.setAttribute('data-enhanced-animations', 'true');
-  styleElement.textContent = `
-    /* Анимация появления вопроса */
-    .question-container {
-      animation: fadeInQuestion 0.5s ease-out;
-    }
-    
-    /* Анимация при выборе правильного ответа */
-    .answer.correct, .variant.correct, li.correct {
-      animation: correctAnswer 0.8s ease-out !important;
-    }
-    
-    /* Анимация при выборе неправильного ответа */
-    .answer.incorrect, .variant.incorrect, li.incorrect {
-      animation: incorrectAnswer 0.8s ease-out !important;
-    }
-    
-    /* Анимация перехода к следующему вопросу */
-    .question-container.exit {
-      animation: exitQuestion 0.5s ease-in forwards;
-    }
-    
-    /* Анимация подсчета результатов */
-    .results-container {
-      animation: showResults 1s ease-out;
-    }
-    
-    /* Определения анимаций */
-    @keyframes fadeInQuestion {
-      from { opacity: 0; transform: translateY(20px); }
-      to { opacity: 1; transform: translateY(0); }
-    }
-    
-    @keyframes correctAnswer {
-      0% { transform: scale(1); }
-      50% { transform: scale(1.05); background-color: #4CAF50; }
-      100% { transform: scale(1); }
-    }
-    
-    @keyframes incorrectAnswer {
-      0% { transform: scale(1); }
-      25% { transform: translateX(-5px); }
-      50% { transform: translateX(5px); }
-      75% { transform: translateX(-5px); }
-      100% { transform: scale(1); }
-    }
-    
-    @keyframes exitQuestion {
-      from { opacity: 1; transform: translateX(0); }
-      to { opacity: 0; transform: translateX(-30px); }
-    }
-    
-    @keyframes showResults {
-      from { opacity: 0; transform: scale(0.9); }
-      to { opacity: 1; transform: scale(1); }
-    }
-  `;
+  // Создаем пользовательский интерфейс
+  createStatsUI();
+  createLeaderboardUI();
   
-  document.head.appendChild(styleElement);
+  // Добавляем обработчики событий
+  document.addEventListener('click', handleAnswerClick);
+  document.addEventListener('click', handleRestart);
   
-  // Отслеживаем изменения в DOM для применения анимаций
-  setupDOMObserver();
+  console.log('Улучшения инициализированы');
 }
 
-// Глобальная переменная для наблюдателя DOM
-let domObserver = null;
-
-function setupDOMObserver() {
-  // Удаляем существующий наблюдатель, если есть
-  if (domObserver) {
-    domObserver.disconnect();
-    domObserver = null;
-  }
-  
-  const observeDOM = (function(){
-    const MutationObserver = window.MutationObserver || window.WebKitMutationObserver;
-    
-    return function(obj, callback){
-      if (!obj || obj.nodeType !== 1) return null; 
-      
-      if (MutationObserver) {
-        const mutationObserver = new MutationObserver(callback);
-        mutationObserver.observe(obj, { childList: true, subtree: true });
-        return mutationObserver;
-      } else {
-        // Резервный вариант для старых браузеров
-        obj.addEventListener('DOMNodeInserted', callback, false);
-        obj.addEventListener('DOMNodeRemoved', callback, false);
-        return true;
-      }
-    };
-  })();
-  
-  // Отслеживаем изменения в DOM для применения анимаций
-  const appContainer = document.querySelector('.app') || document.body;
-  domObserver = observeDOM(appContainer, function(mutations) {
-    mutations.forEach(function(mutation) {
-      // Новый вопрос добавлен
-      const newQuestions = Array.from(mutation.addedNodes)
-        .filter(node => node.nodeType === 1 && 
-                (node.classList?.contains('question-container') || 
-                 node.querySelector?.('.question-container')));
-      
-      if (newQuestions.length > 0) {
-        // Добавляем выходную анимацию к старым вопросам перед удалением
-        const oldQuestions = appContainer.querySelectorAll('.question-container:not(:last-child)');
-        oldQuestions.forEach(q => q.classList.add('exit'));
-      }
-      
-      // Результаты игры отображены
-      const resultsAdded = Array.from(mutation.addedNodes)
-        .filter(node => node.nodeType === 1 && 
-                (node.classList?.contains('results-container') || 
-                 node.querySelector?.('.results-container')));
-      
-      if (resultsAdded.length > 0) {
-        // Выполняем дополнительные действия при показе результатов
-        updateStatsPanel();
-        saveUserStats();
-        loadLeaderboard(); // Обновляем таблицу лидеров
-      }
-    });
-  });
-}
-
-// ==== ИНИЦИАЛИЗАЦИЯ ====
-// Используем самовызывающуюся функцию для изоляции переменных
-(function(){
-  // Проверяем, не был ли скрипт уже загружен
-  if (window.enhancementsLoaded) {
-    logDebug('Скрипт уже был загружен ранее, очищаю и переинициализирую');
-    
-    // Удаляем все существующие элементы перед повторной инициализацией
-    removeExistingElements('.stats-panel');
-    removeExistingElements('.leaderboard-panel');
-    removeExistingElements('style[data-enhanced-animations]');
-    
-    // Если есть старый обработчик событий, отключаем его
-    if (typeof answerClickHandler === 'function') {
-      document.removeEventListener('click', answerClickHandler);
-    }
-    if (typeof restartClickHandler === 'function') {
-      document.removeEventListener('click', restartClickHandler);
-    }
-    
-    // Отключаем старый наблюдатель DOM
-    if (domObserver) {
-      domObserver.disconnect();
-      domObserver = null;
-    }
-  }
-  
-  // Устанавливаем флаг загрузки
-  window.enhancementsLoaded = true;
-  
-  // Инициализируем функции
-  function initEnhancements() {
-    logDebug('Запуск инициализации дополнительных функций...');
-    
-    // Создаем элементы интерфейса
-    createStatsPanel();
-    createLeaderboardPanel();
-    
-    // Добавляем слушатели событий для отслеживания действий в основном приложении
-    setupEventListeners();
-    
-    // Запрашиваем данные текущего пользователя
-    getUserData();
-    
-    // Загружаем таблицу лидеров
-    loadLeaderboard();
-    
-    // Добавляем улучшенные анимации
-    enhanceAnimations();
-    
-    logDebug('Дополнительные функции инициализированы успешно');
-  }
-  
-  // Функция для попытки инициализации с задержкой
-  function attemptInitWithDelay(delay) {
-    setTimeout(function() {
-      // Проверяем, существуют ли уже элементы
-      const statsExists = document.querySelector('.stats-panel');
-      const leaderboardExists = document.querySelector('.leaderboard-panel');
-      
-      if (!statsExists && !leaderboardExists) {
-        initEnhancements();
-      } else {
-        logDebug('Элементы уже существуют, пропускаю инициализацию');
-      }
-    }, delay);
-  }
-  
-  // Пробуем загрузиться только один раз с задержкой
-  attemptInitWithDelay(500);
-})();
+// Запуск инициализации с задержкой
+setTimeout(init, 500);
