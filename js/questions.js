@@ -1,3 +1,19 @@
+import useUserStatistics from '../hooks/useUserStatistics';
+
+const QuizQuestion = ({ question, topic, onAnswer }) => {
+  // Добавьте эту строку, чтобы получить доступ к методам статистики
+  const { recordAnswer } = useUserStatistics();
+  
+  const handleAnswer = (selectedOption) => {
+    const isCorrect = selectedOption === question.correctAnswer;
+    
+    // Добавьте эту строку для записи ответа в статистику
+    recordAnswer(isCorrect, topic);
+    
+    // Ваш существующий код обработки ответа
+    onAnswer(isCorrect);
+  };
+  
 // Массив с вопросами для квиза
 const questions = [
     // РАЗДЕЛ: КОСТНАЯ СИСТЕМА
