@@ -3,6 +3,16 @@
 // Автор: Claude, по заказу пользователя
 // Создан: 15 Марта 2025
 
+// Переключатель для включения детального логирования
+const DEBUG = false;
+
+// Функция для логирования с поддержкой отключения
+function logDebug(...args) {
+  if (DEBUG) {
+    console.log(...args);
+  }
+}
+
 // Инициализация VK Mini Apps API
 const bridge = window.bridge || window.vkBridge || {};
 
@@ -18,22 +28,29 @@ let userStats = {
 
 let leaderboard = [];
 
-// Флаг, указывающий, что инициализация уже выполнена
-let isInitialized = false;
+// ==== ФУНКЦИИ ОЧИСТКИ ====
+// Удаляем все существующие элементы с указанным классом
+function removeExistingElements(selector) {
+  const elements = document.querySelectorAll(selector);
+  if (elements.length > 0) {
+    logDebug(`Удаляю ${elements.length} существующих элементов: ${selector}`);
+    elements.forEach(el => el.remove());
+    return true;
+  }
+  return false;
+}
 
 // ==== СТАТИСТИКА ПОЛЬЗОВАТЕЛЯ ====
 function createStatsPanel() {
-  // Проверяем, существует ли уже панель статистики
-  if (document.querySelector('.stats-panel')) {
-    console.log('Панель статистики уже существует, пропускаем создание');
-    return;
-  }
-
-  console.log('Создаю панель статистики');
+  // Удаляем все существующие панели статистики перед созданием новой
+  removeExistingElements('.stats-panel');
+  
+  logDebug('Создаю панель статистики');
   
   // Создаем панель статистики
   const statsPanel = document.createElement('div');
   statsPanel.className = 'stats-panel';
+  statsPanel.dataset.version = '1.0'; // Для отслеживания версии
   statsPanel.innerHTML = `
     <div class="stats-header">
       <h3>Ваша статистика</h3>
@@ -97,17 +114,15 @@ function updateStatsPanel() {
 
 // ==== ТАБЛИЦА ЛИДЕРОВ ====
 function createLeaderboardPanel() {
-  // Проверяем, существует ли уже таблица лидеров
-  if (document.querySelector('.leaderboard-panel')) {
-    console.log('Таблица лидеров уже существует, пропускаем создание');
-    return;
-  }
-
-  console.log('Создаю таблицу лидеров');
+  // Удаляем все существующие таблицы лидеров перед созданием новой
+  removeExistingElements('.leaderboard-panel');
+  
+  logDebug('Создаю таблицу лидеров');
   
   // Создаем панель таблицы лидеров
   const leaderboardPanel = document.createElement('div');
   leaderboardPanel.className = 'leaderboard-panel';
+  leaderboardPanel.dataset.version = '1.0'; // Для отслеживания версии
   leaderboardPanel.innerHTML = `
     <div class="leaderboard-header">
       <h3>Топ игроков</h3>
@@ -189,7 +204,7 @@ function getUserData() {
         loadUserStats(data.id);
       })
       .catch(error => {
-        console.log('Ошибка при получении данных пользователя:', error);
+        logDebug('Ошибка при получении данных пользователя:', error);
         // Продолжаем без данных пользователя
         loadUserStats(null);
       });
@@ -215,13 +230,13 @@ function loadUserStats(userId) {
       try {
         const parsedStats = JSON.parse(savedStats);
         userStats = { ...userStats, ...parsedStats };
-        console.log('Загружена статистика:', userStats);
+        logDebug('Загружена статистика:', userStats);
         updateStatsPanel();
       } catch (e) {
         console.error('Ошибка при парсинге JSON статистики:', e);
       }
     } else {
-      console.log('Сохраненная статистика не найдена');
+      logDebug('Сохраненная статистика не найдена');
     }
   } catch (e) {
     console.error('Ошибка при загрузке статистики:', e);
@@ -254,7 +269,7 @@ function saveUserStats() {
       JSON.stringify(statsToSave)
     );
     
-    console.log('Статистика сохранена:', statsToSave);
+    logDebug('Статистика сохранена:', statsToSave);
     
     // В реальном приложении здесь был бы запрос к серверу для обновления общей статистики
     updateLeaderboard();
@@ -340,103 +355,104 @@ function updateLeaderboard() {
 
 // ==== ИНТЕГРАЦИЯ С ОСНОВНЫМ ПРИЛОЖЕНИЕМ ====
 function setupEventListeners() {
-  // Отслеживаем события в основном приложении
+  // Удаляем все существующие обработчики (нет прямого способа, но можно использовать новый подход)
   
   // Отслеживаем нажатия на варианты ответов
-  document.addEventListener('click', function(event) {
-    // Проверяем, является ли элемент вариантом ответа
-    // Адаптируем селектор к структуре вашего приложения
-    if (event.target.closest('.answer') || 
-        event.target.closest('.variant') || 
-        event.target.closest('li')) {
-      
-      // Запоминаем выбранный элемент
-      const answerElement = event.target.closest('.answer') || 
-                            event.target.closest('.variant') || 
-                            event.target.closest('li');
-      
-      console.log('Зарегистрирован клик по варианту ответа');
-      
-      // Определяем, правильный ли ответ был выбран
-      // Используем более длительную задержку, чтобы дождаться отображения результата
-      setTimeout(() => {
-        // Проверяем разные возможные классы для определения правильности ответа
-        const isCorrect = answerElement.classList.contains('correct') || 
-                         answerElement.classList.contains('right') || 
-                         answerElement.classList.contains('success') ||
-                         answerElement.style.backgroundColor === 'green';
-        
-        console.log('Правильный ответ?', isCorrect);
-        
-        // Обновляем статистику
-        userStats.totalQuestions++;
-        
-        if (isCorrect) {
-          userStats.correctAnswers++;
-          userStats.lastScore++;
-        } else {
-          userStats.incorrectAnswers++;
-        }
-        
-        // Обновляем лучший результат
-        if (userStats.lastScore > userStats.bestScore) {
-          userStats.bestScore = userStats.lastScore;
-        }
-        
-        // Сохраняем статистику
-        updateStatsPanel();
-        saveUserStats();
-        
-        console.log('Статистика обновлена:', userStats);
-      }, 800); // Увеличенная задержка
-    }
-  });
+  document.addEventListener('click', answerClickHandler);
   
   // Отслеживаем начало новой игры
-  // Это требует знания структуры основного приложения
-  document.addEventListener('click', function(event) {
-    // Расширенный список возможных селекторов для кнопки рестарта
-    const restartButtonSelectors = [
-      '.restart-button',
-      '.start-button',
-      '.reset-button',
-      '.new-game',
-      '#restart',
-      '#start',
-      '#new-game'
-    ];
+  document.addEventListener('click', restartClickHandler);
+}
+
+// Выносим обработчики в отдельные функции, чтобы их можно было удалить при необходимости
+function answerClickHandler(event) {
+  // Проверяем, является ли элемент вариантом ответа
+  // Адаптируем селектор к структуре вашего приложения
+  if (event.target.closest('.answer') || 
+      event.target.closest('.variant') || 
+      event.target.closest('li')) {
     
-    const clickedElement = event.target;
+    // Запоминаем выбранный элемент
+    const answerElement = event.target.closest('.answer') || 
+                          event.target.closest('.variant') || 
+                          event.target.closest('li');
     
-    // Проверяем по селекторам
-    const isRestartButton = restartButtonSelectors.some(
-      selector => clickedElement.matches(selector) || clickedElement.closest(selector)
-    );
+    logDebug('Зарегистрирован клик по варианту ответа');
     
-    // Проверяем по тексту кнопки
-    const isRestartByText = clickedElement.tagName === 'BUTTON' && 
-                          (clickedElement.textContent.includes('Начать') || 
-                           clickedElement.textContent.includes('Заново') ||
-                           clickedElement.textContent.includes('Сначала') ||
-                           clickedElement.textContent.includes('Restart') ||
-                           clickedElement.textContent.includes('New game'));
-    
-    if (isRestartButton || isRestartByText) {
-      console.log('Зарегистрирован перезапуск игры');
-      userStats.lastScore = 0;
-    }
-  });
+    // Определяем, правильный ли ответ был выбран
+    // Используем более длительную задержку, чтобы дождаться отображения результата
+    setTimeout(() => {
+      // Проверяем разные возможные классы для определения правильности ответа
+      const isCorrect = answerElement.classList.contains('correct') || 
+                       answerElement.classList.contains('right') || 
+                       answerElement.classList.contains('success') ||
+                       answerElement.style.backgroundColor === 'green';
+      
+      logDebug('Правильный ответ?', isCorrect);
+      
+      // Обновляем статистику
+      userStats.totalQuestions++;
+      
+      if (isCorrect) {
+        userStats.correctAnswers++;
+        userStats.lastScore++;
+      } else {
+        userStats.incorrectAnswers++;
+      }
+      
+      // Обновляем лучший результат
+      if (userStats.lastScore > userStats.bestScore) {
+        userStats.bestScore = userStats.lastScore;
+      }
+      
+      // Сохраняем статистику
+      updateStatsPanel();
+      saveUserStats();
+      
+      logDebug('Статистика обновлена:', userStats);
+    }, 800); // Увеличенная задержка
+  }
+}
+
+function restartClickHandler(event) {
+  // Расширенный список возможных селекторов для кнопки рестарта
+  const restartButtonSelectors = [
+    '.restart-button',
+    '.start-button',
+    '.reset-button',
+    '.new-game',
+    '#restart',
+    '#start',
+    '#new-game'
+  ];
+  
+  const clickedElement = event.target;
+  
+  // Проверяем по селекторам
+  const isRestartButton = restartButtonSelectors.some(
+    selector => clickedElement.matches(selector) || clickedElement.closest(selector)
+  );
+  
+  // Проверяем по тексту кнопки
+  const isRestartByText = clickedElement.tagName === 'BUTTON' && 
+                        (clickedElement.textContent.includes('Начать') || 
+                         clickedElement.textContent.includes('Заново') ||
+                         clickedElement.textContent.includes('Сначала') ||
+                         clickedElement.textContent.includes('Restart') ||
+                         clickedElement.textContent.includes('New game'));
+  
+  if (isRestartButton || isRestartByText) {
+    logDebug('Зарегистрирован перезапуск игры');
+    userStats.lastScore = 0;
+  }
 }
 
 // ==== УЛУЧШЕННЫЕ АНИМАЦИИ ====
 function enhanceAnimations() {
-  // Проверяем, добавлены ли уже стили анимаций
-  if (document.querySelector('style[data-enhanced-animations]')) {
-    console.log('Стили анимаций уже добавлены, пропускаем');
-    return;
-  }
-
-  console.log('Добавляю улучшенные анимации');
+  // Удаляем все существующие стили анимаций
+  removeExistingElements('style[data-enhanced-animations]');
+  
+  logDebug('Добавляю улучшенные анимации');
   
   // Добавляем CSS-классы для анимаций
   const styleElement = document.createElement('style');
@@ -448,12 +464,12 @@ function enhanceAnimations() {
     }
     
     /* Анимация при выборе правильного ответа */
-    .answer.correct {
+    .answer.correct, .variant.correct, li.correct {
       animation: correctAnswer 0.8s ease-out !important;
     }
     
     /* Анимация при выборе неправильного ответа */
-    .answer.incorrect {
+    .answer.incorrect, .variant.incorrect, li.incorrect {
       animation: incorrectAnswer 0.8s ease-out !important;
     }
     
@@ -500,13 +516,25 @@ function enhanceAnimations() {
   
   document.head.appendChild(styleElement);
   
-  // Добавляем классы к элементам при переходе между вопросами
-  // Это требует знания структуры основного приложения
+  // Отслеживаем изменения в DOM для применения анимаций
+  setupDOMObserver();
+}
+
+// Глобальная переменная для наблюдателя DOM
+let domObserver = null;
+
+function setupDOMObserver() {
+  // Удаляем существующий наблюдатель, если есть
+  if (domObserver) {
+    domObserver.disconnect();
+    domObserver = null;
+  }
+  
   const observeDOM = (function(){
     const MutationObserver = window.MutationObserver || window.WebKitMutationObserver;
     
     return function(obj, callback){
-      if (!obj || obj.nodeType !== 1) return; 
+      if (!obj || obj.nodeType !== 1) return null; 
       
       if (MutationObserver) {
         const mutationObserver = new MutationObserver(callback);
@@ -516,13 +544,14 @@ function enhanceAnimations() {
         // Резервный вариант для старых браузеров
         obj.addEventListener('DOMNodeInserted', callback, false);
         obj.addEventListener('DOMNodeRemoved', callback, false);
+        return true;
       }
     };
   })();
   
   // Отслеживаем изменения в DOM для применения анимаций
   const appContainer = document.querySelector('.app') || document.body;
-  observeDOM(appContainer, function(mutations) {
+  domObserver = observeDOM(appContainer, function(mutations) {
     mutations.forEach(function(mutation) {
       // Новый вопрос добавлен
       const newQuestions = Array.from(mutation.addedNodes)
@@ -552,57 +581,74 @@ function enhanceAnimations() {
   });
 }
 
-// Задержка инициализации для улучшения совместимости
-function initEnhancements() {
-  // Проверяем, была ли уже выполнена инициализация
-  if (isInitialized) {
-    console.log('Дополнительные функции уже инициализированы, пропускаем');
-    return;
+// ==== ИНИЦИАЛИЗАЦИЯ ====
+// Используем самовызывающуюся функцию для изоляции переменных
+(function(){
+  // Проверяем, не был ли скрипт уже загружен
+  if (window.enhancementsLoaded) {
+    logDebug('Скрипт уже был загружен ранее, очищаю и переинициализирую');
+    
+    // Удаляем все существующие элементы перед повторной инициализацией
+    removeExistingElements('.stats-panel');
+    removeExistingElements('.leaderboard-panel');
+    removeExistingElements('style[data-enhanced-animations]');
+    
+    // Если есть старый обработчик событий, отключаем его
+    if (typeof answerClickHandler === 'function') {
+      document.removeEventListener('click', answerClickHandler);
+    }
+    if (typeof restartClickHandler === 'function') {
+      document.removeEventListener('click', restartClickHandler);
+    }
+    
+    // Отключаем старый наблюдатель DOM
+    if (domObserver) {
+      domObserver.disconnect();
+      domObserver = null;
+    }
   }
   
-  console.log('Инициализация дополнительных функций...');
-  
-  // Устанавливаем флаг инициализации
-  isInitialized = true;
-  
-  // Создаем элементы интерфейса
-  createStatsPanel();
-  createLeaderboardPanel();
-  
-  // Добавляем слушатели событий для отслеживания действий в основном приложении
-  setupEventListeners();
-  
-  // Запрашиваем данные текущего пользователя
-  getUserData();
-  
-  // Загружаем таблицу лидеров
-  loadLeaderboard();
-  
-  // Добавляем улучшенные анимации
-  enhanceAnimations();
-  
-  console.log('Дополнительные функции инициализированы');
-}
-
-// Используем как обработчик DOMContentLoaded, так и window.onload
-// для большей совместимости с разными сценариями загрузки
-document.addEventListener('DOMContentLoaded', function() {
-  // Задержка инициализации для уверенности, что приложение ВК полностью загружено
-  setTimeout(initEnhancements, 500);
-});
-
-// Резервный вариант, если DOMContentLoaded уже произошел
-window.addEventListener('load', function() {
-  setTimeout(function() {
-    if (!isInitialized) {
-      initEnhancements();
-    }
-  }, 500);
-});
-
-// Предотвращаем повторную инициализацию при повторном подключении скрипта
-if (window.enhancementsLoaded) {
-  console.log('Скрипт уже загружен, предотвращаю повторную инициализацию');
-} else {
+  // Устанавливаем флаг загрузки
   window.enhancementsLoaded = true;
-}
+  
+  // Инициализируем функции
+  function initEnhancements() {
+    logDebug('Запуск инициализации дополнительных функций...');
+    
+    // Создаем элементы интерфейса
+    createStatsPanel();
+    createLeaderboardPanel();
+    
+    // Добавляем слушатели событий для отслеживания действий в основном приложении
+    setupEventListeners();
+    
+    // Запрашиваем данные текущего пользователя
+    getUserData();
+    
+    // Загружаем таблицу лидеров
+    loadLeaderboard();
+    
+    // Добавляем улучшенные анимации
+    enhanceAnimations();
+    
+    logDebug('Дополнительные функции инициализированы успешно');
+  }
+  
+  // Функция для попытки инициализации с задержкой
+  function attemptInitWithDelay(delay) {
+    setTimeout(function() {
+      // Проверяем, существуют ли уже элементы
+      const statsExists = document.querySelector('.stats-panel');
+      const leaderboardExists = document.querySelector('.leaderboard-panel');
+      
+      if (!statsExists && !leaderboardExists) {
+        initEnhancements();
+      } else {
+        logDebug('Элементы уже существуют, пропускаю инициализацию');
+      }
+    }, delay);
+  }
+  
+  // Пробуем загрузиться только один раз с задержкой
+  attemptInitWithDelay(500);
+})();
