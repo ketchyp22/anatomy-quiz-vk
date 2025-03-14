@@ -1,109 +1,39 @@
-/* ==== АНАТОМИЯ ВИКТОРИНА - ДОПОЛНИТЕЛЬНЫЕ СТИЛИ ====
- * Файл содержит стили для новых функций приложения Анатомия-Викторина ВК
- * Автор: Claude, по заказу пользователя
- * Создан: 15 Марта 2025
- */
+/* Совместимая версия enhancements.css */
+/* Стили для панелей статистики и рейтинга */
 
-/* ==== ОБЩИЕ СТИЛИ ==== */
-:root {
-  --panel-bg: #f5f5f5;
-  --panel-border: #e0e0e0;
-  --panel-header: #4a76a8;
-  --text-primary: #2c2d2e;
-  --text-secondary: #818c99;
-  --highlight: #5181b8;
-  --success: #4bb34b;
-  --error: #e64646;
-}
-
-/* Скрывающийся контент */
-.hidden {
-  display: none !important;
-}
-
-/* ==== ПАНЕЛЬ СТАТИСТИКИ ==== */
-.stats-panel {
-  width: 100%;
-  max-width: 500px;
-  margin: 10px auto;
-  border-radius: 8px;
-  border: 1px solid var(--panel-border);
-  background-color: var(--panel-bg);
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-  overflow: hidden;
-  font-family: -apple-system, BlinkMacSystemFont, 'Roboto', sans-serif;
-}
-
-.stats-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 10px 15px;
-  background-color: var(--panel-header);
-  color: white;
-}
-
-.stats-header h3 {
-  margin: 0;
-  font-weight: 500;
-  font-size: 16px;
-}
-
-.stats-toggle {
-  background: none;
-  border: none;
-  color: white;
-  font-size: 18px;
-  cursor: pointer;
-  padding: 0 5px;
-}
-
-.stats-content {
-  padding: 15px;
-}
-
-.stats-item {
-  display: flex;
-  justify-content: space-between;
-  margin-bottom: 10px;
-  padding-bottom: 10px;
-  border-bottom: 1px solid var(--panel-border);
-}
-
-.stats-item:last-child {
-  margin-bottom: 0;
-  padding-bottom: 0;
-  border-bottom: none;
-}
-
-/* ==== ТАБЛИЦА ЛИДЕРОВ ==== */
+/* Общие стили для панелей */
+.stats-panel,
 .leaderboard-panel {
   width: 100%;
-  max-width: 500px;
-  margin: 15px auto;
+  max-width: 100%;
+  margin: 15px 0;
   border-radius: 8px;
-  border: 1px solid var(--panel-border);
-  background-color: var(--panel-bg);
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  background-color: #fff;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
   overflow: hidden;
-  font-family: -apple-system, BlinkMacSystemFont, 'Roboto', sans-serif;
+  font-family: inherit;
 }
 
+/* Заголовки панелей */
+.stats-header,
 .leaderboard-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 10px 15px;
-  background-color: var(--panel-header);
+  padding: 12px 15px;
+  background-color: #4a76a8;
   color: white;
 }
 
+.stats-header h3,
 .leaderboard-header h3 {
   margin: 0;
   font-weight: 500;
   font-size: 16px;
 }
 
+/* Кнопки сворачивания/разворачивания */
+.stats-toggle,
 .leaderboard-toggle {
   background: none;
   border: none;
@@ -113,10 +43,33 @@
   padding: 0 5px;
 }
 
+/* Содержимое панелей */
+.stats-content,
 .leaderboard-content {
   padding: 15px;
 }
 
+/* Скрытые элементы */
+.hidden {
+  display: none !important;
+}
+
+/* Элементы статистики */
+.stats-item {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 10px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid #e7e8ec;
+}
+
+.stats-item:last-child {
+  margin-bottom: 0;
+  padding-bottom: 0;
+  border-bottom: none;
+}
+
+/* Таблица лидеров */
 .leaderboard-list {
   margin-bottom: 15px;
 }
@@ -124,7 +77,7 @@
 .leaderboard-item {
   display: flex;
   padding: 10px;
-  border-bottom: 1px solid var(--panel-border);
+  border-bottom: 1px solid #e7e8ec;
 }
 
 .leaderboard-item:last-child {
@@ -153,17 +106,19 @@
   font-weight: 500;
 }
 
-.leaderboard-empty,
-.leaderboard-loading {
+/* Сообщения загрузки и пустого состояния */
+.leaderboard-loading,
+.leaderboard-empty {
   text-align: center;
-  color: var(--text-secondary);
+  color: #818c99;
   padding: 20px 0;
 }
 
+/* Кнопка обновления */
 .leaderboard-refresh {
   width: 100%;
   padding: 10px;
-  background-color: var(--highlight);
+  background-color: #5181b8;
   color: white;
   border: none;
   border-radius: 4px;
@@ -173,7 +128,7 @@
 }
 
 .leaderboard-refresh:hover {
-  background-color: #4270a2;
+  background-color: #4a76a8;
 }
 
 /* Адаптация для мобильных устройств */
@@ -181,23 +136,6 @@
   .stats-panel,
   .leaderboard-panel {
     border-radius: 0;
-    margin: 5px 0;
-    width: 100%;
+    margin: 10px 0;
   }
-  
-  .stats-item,
-  .leaderboard-item {
-    font-size: 14px;
-  }
-}
-
-/* ==== АДАПТАЦИЯ СТИЛЕЙ ОСНОВНОГО ПРИЛОЖЕНИЯ ==== */
-/* Стили для корректного отображения с основным приложением */
-.app {
-  padding-bottom: 15px;
-}
-
-/* Чтобы панели не перекрывали контент основного приложения */
-.app > :first-child:not(.stats-panel):not(.leaderboard-panel) {
-  margin-top: 5px;
 }
