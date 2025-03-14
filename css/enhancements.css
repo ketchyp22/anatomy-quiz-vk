@@ -1,0 +1,203 @@
+/* ==== АНАТОМИЯ ВИКТОРИНА - ДОПОЛНИТЕЛЬНЫЕ СТИЛИ ====
+ * Файл содержит стили для новых функций приложения Анатомия-Викторина ВК
+ * Автор: Claude, по заказу пользователя
+ * Создан: 15 Марта 2025
+ */
+
+/* ==== ОБЩИЕ СТИЛИ ==== */
+:root {
+  --panel-bg: #f5f5f5;
+  --panel-border: #e0e0e0;
+  --panel-header: #4a76a8;
+  --text-primary: #2c2d2e;
+  --text-secondary: #818c99;
+  --highlight: #5181b8;
+  --success: #4bb34b;
+  --error: #e64646;
+}
+
+/* Скрывающийся контент */
+.hidden {
+  display: none !important;
+}
+
+/* ==== ПАНЕЛЬ СТАТИСТИКИ ==== */
+.stats-panel {
+  width: 100%;
+  max-width: 500px;
+  margin: 10px auto;
+  border-radius: 8px;
+  border: 1px solid var(--panel-border);
+  background-color: var(--panel-bg);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  overflow: hidden;
+  font-family: -apple-system, BlinkMacSystemFont, 'Roboto', sans-serif;
+}
+
+.stats-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 15px;
+  background-color: var(--panel-header);
+  color: white;
+}
+
+.stats-header h3 {
+  margin: 0;
+  font-weight: 500;
+  font-size: 16px;
+}
+
+.stats-toggle {
+  background: none;
+  border: none;
+  color: white;
+  font-size: 18px;
+  cursor: pointer;
+  padding: 0 5px;
+}
+
+.stats-content {
+  padding: 15px;
+}
+
+.stats-item {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 10px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid var(--panel-border);
+}
+
+.stats-item:last-child {
+  margin-bottom: 0;
+  padding-bottom: 0;
+  border-bottom: none;
+}
+
+/* ==== ТАБЛИЦА ЛИДЕРОВ ==== */
+.leaderboard-panel {
+  width: 100%;
+  max-width: 500px;
+  margin: 15px auto;
+  border-radius: 8px;
+  border: 1px solid var(--panel-border);
+  background-color: var(--panel-bg);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  overflow: hidden;
+  font-family: -apple-system, BlinkMacSystemFont, 'Roboto', sans-serif;
+}
+
+.leaderboard-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 15px;
+  background-color: var(--panel-header);
+  color: white;
+}
+
+.leaderboard-header h3 {
+  margin: 0;
+  font-weight: 500;
+  font-size: 16px;
+}
+
+.leaderboard-toggle {
+  background: none;
+  border: none;
+  color: white;
+  font-size: 18px;
+  cursor: pointer;
+  padding: 0 5px;
+}
+
+.leaderboard-content {
+  padding: 15px;
+}
+
+.leaderboard-list {
+  margin-bottom: 15px;
+}
+
+.leaderboard-item {
+  display: flex;
+  padding: 10px;
+  border-bottom: 1px solid var(--panel-border);
+}
+
+.leaderboard-item:last-child {
+  border-bottom: none;
+}
+
+.leaderboard-item.current-user {
+  background-color: rgba(81, 129, 184, 0.1);
+  font-weight: 500;
+}
+
+.leaderboard-rank {
+  width: 30px;
+  text-align: center;
+  font-weight: 700;
+}
+
+.leaderboard-name {
+  flex-grow: 1;
+  padding: 0 10px;
+}
+
+.leaderboard-score {
+  width: 60px;
+  text-align: right;
+  font-weight: 500;
+}
+
+.leaderboard-empty,
+.leaderboard-loading {
+  text-align: center;
+  color: var(--text-secondary);
+  padding: 20px 0;
+}
+
+.leaderboard-refresh {
+  width: 100%;
+  padding: 10px;
+  background-color: var(--highlight);
+  color: white;
+  border: none;
+  border-radius: 4px;
+  font-size: 14px;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.leaderboard-refresh:hover {
+  background-color: #4270a2;
+}
+
+/* Адаптация для мобильных устройств */
+@media (max-width: 480px) {
+  .stats-panel,
+  .leaderboard-panel {
+    border-radius: 0;
+    margin: 5px 0;
+    width: 100%;
+  }
+  
+  .stats-item,
+  .leaderboard-item {
+    font-size: 14px;
+  }
+}
+
+/* ==== АДАПТАЦИЯ СТИЛЕЙ ОСНОВНОГО ПРИЛОЖЕНИЯ ==== */
+/* Стили для корректного отображения с основным приложением */
+.app {
+  padding-bottom: 15px;
+}
+
+/* Чтобы панели не перекрывали контент основного приложения */
+.app > :first-child:not(.stats-panel):not(.leaderboard-panel) {
+  margin-top: 5px;
+}
