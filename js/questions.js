@@ -207,15 +207,4 @@ const questions = [
         ], 
         correct: 1 
     } 
-]; 
-
-// Определяем темы для статистики 
-const quizTopics = { 
-    "КОСТНАЯ СИСТЕМА": questions.slice(0, 4), 
-    "МЫШЕЧНАЯ СИСТЕМА": questions.slice(4, 7), 
-    "НЕРВНАЯ СИСТЕМА": questions.slice(7, 10), 
-    "СЕРДЕЧНО-СОСУДИСТАЯ СИСТЕМА": questions.slice(10, 13), 
-    "ПИЩЕВАРИТЕЛЬНАЯ СИСТЕМА": questions.slice(13, 16), 
-    "ДЫХАТЕЛЬНАЯ СИСТЕМА": questions.slice(16, 19), 
-    "ВЫДЕЛИТЕЛЬНАЯ СИСТЕМА": questions.slice(19) 
-};
+];
