@@ -12,14 +12,15 @@
     <!-- Стили -->
     <link rel="stylesheet" href="style.css">
     
-    <!-- VK Bridge первым -->
+    <!-- VK Bridge должен загружаться первым -->
     <script src="https://unpkg.com/@vkontakte/vk-bridge@2.10.0/dist/browser.min.js"></script>
     
-    <!-- Анимационные файлы и звуки как отдельные модули -->
+    <!-- Анимационные файлы и звуки -->
     <script src="animations.js"></script>
     <script src="animated-background.js"></script>
     <script src="animated-pulse-line.js"></script>
     <script src="sound-effects.js"></script>
+    <script src="enhanced-results.js"></script>
     
     <!-- Основные скрипты -->
     <script src="questions.js"></script>
@@ -35,8 +36,10 @@
         <h1>Анатомический квиз</h1>
         <p>Проверьте свои знания анатомии человека!</p>
         
+        <!-- Информация о пользователе -->
         <div id="user-info"></div>
         
+        <!-- Селектор сложности -->
         <div class="difficulty-selector">
             <h3>Выберите уровень сложности:</h3>
             <div class="difficulty-buttons">
@@ -45,9 +48,10 @@
             </div>
         </div>
         
+        <!-- Кнопка старта -->
         <button id="start-quiz" class="btn-start">Начать тест</button>
         
-        <!-- Анимированная линия пульса -->
+        <!-- Контейнер для анимированной линии пульса -->
         <div class="pulse-line-container"></div>
     </div>
     
@@ -77,7 +81,7 @@
             <button id="restart-quiz">Пройти еще раз</button>
         </div>
         
-        <!-- Скелет-танцор для экрана результатов -->
+        <!-- Контейнер для танцующего скелета -->
         <div id="dancing-skeleton" style="display: none;"></div>
     </div>
     
