@@ -1,29 +1,95 @@
 // Инициализация VK Mini Apps
 document.addEventListener('DOMContentLoaded', function() {
+    console.log('DOM полностью загружен');
+    
+    // Обработка темы VK
+    function applyVKTheme(scheme) {
+        const isDarkTheme = ['space_gray', 'vkcom_dark'].includes(scheme);
+        document.documentElement.classList.toggle('vk-dark-theme', isDarkTheme);
+    }
+    
     // Проверяем, что questions определены
     if (typeof questions !== 'undefined') {
-        console.log(`Загружено ${questions.length} вопросов`); // Проверка количества вопросов
+        console.log(`Загружено ${questions.length} вопросов`);
     } else {
         console.error('Ошибка: Массив questions не определен. Проверьте подключение файла questions.js');
     }
     
-    // Запуск VK Bridge, если доступен
+    // Запуск VK Bridge
     if (typeof vkBridge !== 'undefined') {
-        vkBridge.send('VKWebAppInit');
-
+        console.log('VK Bridge найден, инициализация...');
+        
+        // Инициализация VK Bridge
+        vkBridge.send('VKWebAppInit')
+            .then(data => {
+                console.log('VK Bridge успешно инициализирован:', data);
+            })
+            .catch(error => {
+                console.error('Ошибка инициализации VK Bridge:', error);
+            });
+        
+        // Подписка на события VK Bridge для отслеживания темы
+        vkBridge.subscribe(event => {
+            if (event.detail.type === 'VKWebAppUpdateConfig') {
+                applyVKTheme(event.detail.data.scheme);
+            }
+        });
+        
         // Получение данных пользователя
         vkBridge.send('VKWebAppGetUserInfo')
             .then(data => {
-                console.log('User data:', data);
+                console.log('Данные пользователя получены:', data);
                 showUserInfo(data);
             })
             .catch(error => {
-                console.error('Error getting user data:', error);
+                console.error('Ошибка получения данных пользователя:', error);
+                // Показываем гостевой режим
+                showGuestMode();
             });
     } else {
         console.warn('VK Bridge не определен. Проверьте подключение VK Bridge SDK.');
+        // Показываем гостевой режим для тестирования
+        showGuestMode();
     }
 });
+
+// Дополнительная проверка загрузки страницы
+window.addEventListener('load', function() {
+    console.log('Страница полностью загружена');
+    
+    // Повторная проверка VK Bridge
+    if (typeof vkBridge !== 'undefined' && typeof vkBridge.send === 'function') {
+        console.log('Повторная попытка инициализации VK Bridge...');
+        try {
+            vkBridge.send('VKWebAppGetConfig')
+                .then(data => {
+                    console.log('Получена конфигурация приложения:', data);
+                    // Применяем тему, если есть
+                    if (data.scheme) {
+                        const isDarkTheme = ['space_gray', 'vkcom_dark'].includes(data.scheme);
+                        document.documentElement.classList.toggle('vk-dark-theme', isDarkTheme);
+                    }
+                })
+                .catch(error => {
+                    console.error('Ошибка получения конфигурации:', error);
+                });
+        } catch (e) {
+            console.error('Исключение при повторной инициализации:', e);
+        }
+    }
+});
+
+// Глобальный обработчик ошибок для отладки
+window.onerror = function(message, source, lineno, colno, error) {
+    console.error('Глобальная ошибка:', {
+        message: message,
+        source: source,
+        lineno: lineno,
+        colno: colno,
+        error: error
+    });
+    return false;
+};
 
 // Глобальные переменные
 let currentQuestion = 0;
@@ -61,6 +127,25 @@ const topUsersList = document.getElementById('top-users-list');
 if (!startScreen || !quizContainer || !resultsContainer || 
     !questionElement || !optionsElement || !progressBar) {
     console.error('Ошибка: Некоторые необходимые элементы не найдены в DOM. Проверьте HTML-структуру.');
+}
+
+// Гостевой режим для тестирования (если VK API недоступен)
+function showGuestMode() {
+    if (!userInfoElement) return;
+    
+    currentUserData = {
+        id: 'guest' + Math.floor(Math.random() * 10000),
+        first_name: 'Гость',
+        last_name: '',
+        photo_100: 'https://vk.com/images/camera_100.png'
+    };
+    
+    userInfoElement.innerHTML = `
+        <img src="${currentUserData.photo_100}" alt="${currentUserData.first_name}">
+        <span>${currentUserData.first_name}</span>
+    `;
+    
+    console.log('Запущен гостевой режим с ID:', currentUserData.id);
 }
 
 // Отображение информации о пользователе
