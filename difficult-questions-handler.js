@@ -4,6 +4,13 @@
     window.originalQuestions = [];
     window.difficultQuestions = [];
     
+    // Проверка, работаем ли мы внутри VK или по прямой ссылке
+    const isVKEnvironment = (window.location.hostname.indexOf('vk.com') !== -1) || 
+                           (typeof vkBridge !== 'undefined') || 
+                           (typeof window.vkBridge !== 'undefined');
+    
+    console.log("Работаем в среде VK:", isVKEnvironment);
+    
     // Функция инициализации обработчика
     function init() {
         console.log("Инициализация обработчика сложных вопросов");
@@ -102,10 +109,59 @@
                     detail: { count: window.difficultQuestions.length } 
                 });
                 document.dispatchEvent(event);
+                
+                // Проверяем на наличие двух окон и исправляем, если это нужно
+                setTimeout(fixDuplicateUI, 500);
             })
             .catch(error => {
                 console.error('Ошибка при загрузке сложных вопросов:', error);
             });
+    }
+    
+    // Функция для исправления дублирования пользовательского интерфейса
+    function fixDuplicateUI() {
+        // Проверяем, не находимся ли мы во ВКонтакте
+        if (isVKEnvironment) {
+            console.log("Работаем в среде VK, пропускаем проверку дублирования UI");
+            return;
+        }
+        
+        console.log("Проверяем на наличие дублирующихся элементов интерфейса");
+        
+        // Проверяем, есть ли несколько контейнеров с вопросами
+        const quizContainers = document.querySelectorAll('#quiz-container');
+        if (quizContainers.length > 1) {
+            console.log("Обнаружено дублирование контейнера вопросов:", quizContainers.length);
+            
+            // Оставляем только первый контейнер
+            for (let i = 1; i < quizContainers.length; i++) {
+                quizContainers[i].remove();
+            }
+        }
+        
+        // Проверяем, есть ли несколько стартовых экранов
+        const startScreens = document.querySelectorAll('#start-screen');
+        if (startScreens.length > 1) {
+            console.log("Обнаружено дублирование стартового экрана:", startScreens.length);
+            
+            // Оставляем только первый экран
+            for (let i = 1; i < startScreens.length; i++) {
+                startScreens[i].remove();
+            }
+        }
+        
+        // Проверяем, есть ли несколько контейнеров с результатами
+        const resultsContainers = document.querySelectorAll('#results-container');
+        if (resultsContainers.length > 1) {
+            console.log("Обнаружено дублирование контейнера результатов:", resultsContainers.length);
+            
+            // Оставляем только первый контейнер
+            for (let i = 1; i < resultsContainers.length; i++) {
+                resultsContainers[i].remove();
+            }
+        }
+        
+        console.log("Проверка дублирования UI завершена");
     }
     
     // Патчим функцию проверки ответов для работы с обоими форматами
@@ -166,9 +222,15 @@
     // Инициализация при загрузке DOM
     document.addEventListener('DOMContentLoaded', init);
     
+    // Дополнительная проверка после полной загрузки страницы
+    window.addEventListener('load', function() {
+        setTimeout(fixDuplicateUI, 1000);
+    });
+    
     // Экспортируем функции для возможного использования извне
     window.DifficultQuestionsHandler = {
         loadQuestions: loadDifficultQuestions,
-        setupButtons: setupDifficultyButtons
+        setupButtons: setupDifficultyButtons,
+        fixUI: fixDuplicateUI
     };
 })();
