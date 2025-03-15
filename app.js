@@ -231,7 +231,12 @@ function initializeApp() {
             `;
         }
     }
-
+    
+    // Инициализируем анимации
+if (window.QuizAnimations && window.QuizAnimations.enhancer) {
+    window.QuizAnimations.enhancer.init();
+    console.log('Анимации инициализированы');
+}
     // Начало квиза - проверяем наличие кнопки перед добавлением обработчика
     if (startQuizButton) {
         startQuizButton.addEventListener('click', startQuiz);
