@@ -2,7 +2,7 @@
 document.addEventListener('DOMContentLoaded', function() {
     console.log('DOM полностью загружен');
     
-    // Проверяем, что questions определены
+    // Проверяем, что questions определены и выводим информацию о количестве
     if (typeof questions !== 'undefined') {
         console.log(`Загружено ${questions.length} вопросов`);
     } else {
@@ -157,7 +157,10 @@ if (startQuizButton) {
 
 // Функция для перемешивания массива (алгоритм Фишера-Йейтса)
 function shuffleArray(array) {
-    if (!Array.isArray(array)) return [];
+    if (!Array.isArray(array)) {
+        console.error('Ошибка: параметр не является массивом');
+        return [];
+    }
     
     const newArray = [...array]; // Создаем копию массива
     for (let i = newArray.length - 1; i > 0; i--) {
@@ -169,69 +172,98 @@ function shuffleArray(array) {
 
 // Выбор случайных вопросов из общего пула
 function selectRandomQuestions() {
-    if (typeof questions === 'undefined' || !Array.isArray(questions)) {
-        console.error('Ошибка: массив вопросов не определен или не является массивом');
+    try {
+        if (typeof questions === 'undefined') {
+            console.error('Ошибка: массив вопросов не определен');
+            return [];
+        }
+        
+        if (!Array.isArray(questions)) {
+            console.error('Ошибка: questions не является массивом');
+            return [];
+        }
+        
+        console.log(`Выбираем ${totalQuestionsToShow} вопросов из ${questions.length} доступных`);
+        
+        const shuffledQuestions = shuffleArray(questions); // Перемешиваем
+        return shuffledQuestions.slice(0, Math.min(totalQuestionsToShow, shuffledQuestions.length)); // Берем первые N вопросов
+    } catch (e) {
+        console.error('Ошибка при выборе случайных вопросов:', e);
         return [];
     }
-    
-    const shuffledQuestions = shuffleArray([...questions]); // Создаем копию и перемешиваем
-    return shuffledQuestions.slice(0, Math.min(totalQuestionsToShow, shuffledQuestions.length)); // Берем первые N вопросов
 }
 
 function startQuiz() {
-    if (!startScreen || !quizContainer) {
-        console.error('Ошибка: не найдены необходимые элементы DOM');
-        return;
+    try {
+        if (!startScreen || !quizContainer) {
+            console.error('Ошибка: не найдены необходимые элементы DOM');
+            return;
+        }
+        
+        startScreen.style.display = 'none';
+        quizContainer.style.display = 'block';
+        currentQuestion = 0;
+        score = 0;
+        
+        // Выбираем случайные вопросы для текущего теста
+        questionsForQuiz = selectRandomQuestions();
+        
+        console.log(`Выбрано ${questionsForQuiz.length} вопросов для квиза`);
+        
+        if (questionsForQuiz.length === 0) {
+            console.error('Ошибка: не удалось загрузить вопросы для квиза');
+            alert('Не удалось загрузить вопросы. Пожалуйста, обновите страницу.');
+            return;
+        }
+        
+        loadQuestion();
+    } catch (e) {
+        console.error('Ошибка при запуске квиза:', e);
+        alert('Произошла ошибка при запуске квиза. Пожалуйста, обновите страницу.');
     }
-    
-    startScreen.style.display = 'none';
-    quizContainer.style.display = 'block';
-    currentQuestion = 0;
-    score = 0;
-    
-    // Выбираем случайные вопросы для текущего теста
-    questionsForQuiz = selectRandomQuestions();
-    
-    if (questionsForQuiz.length === 0) {
-        console.error('Ошибка: не удалось загрузить вопросы для квиза');
-        alert('Не удалось загрузить вопросы. Пожалуйста, обновите страницу.');
-        return;
-    }
-    
-    loadQuestion();
 }
 
 // Загрузка вопроса
 function loadQuestion() {
-    if (!questionElement || !optionsElement || !questionCounter || !progressBar || 
-        !Array.isArray(questionsForQuiz) || questionsForQuiz.length === 0) {
-        console.error('Ошибка при загрузке вопроса: элементы не найдены или массив вопросов пуст');
-        return;
-    }
-    
-    selectedOption = null;
-    if (nextButton) nextButton.disabled = true;
-    
-    if (currentQuestion >= questionsForQuiz.length) {
-        console.error('Ошибка: индекс текущего вопроса выходит за пределы массива');
-        return;
-    }
-    
-    const question = questionsForQuiz[currentQuestion];
-    questionElement.textContent = question.question;
-    
-    // Обновление счетчика вопросов
-    questionCounter.textContent = `Вопрос ${currentQuestion + 1} из ${questionsForQuiz.length}`;
-    
-    // Обновление прогресс-бара
-    const progress = ((currentQuestion) / questionsForQuiz.length) * 100;
-    progressBar.style.width = `${progress}%`;
-    
-    // Очистка предыдущих вариантов
-    optionsElement.innerHTML = '';
-    
-    // Добавление новых вариантов
-    if (Array.isArray(question.options)) {
+    try {
+        if (!questionElement || !optionsElement || !questionCounter || !progressBar) {
+            console.error('Ошибка при загрузке вопроса: элементы не найдены');
+            return;
+        }
+        
+        if (!Array.isArray(questionsForQuiz) || questionsForQuiz.length === 0) {
+            console.error('Ошибка при загрузке вопроса: массив вопросов пуст');
+            return;
+        }
+        
+        selectedOption = null;
+        if (nextButton) nextButton.disabled = true;
+        
+        if (currentQuestion >= questionsForQuiz.length) {
+            console.error('Ошибка: индекс текущего вопроса выходит за пределы массива');
+            return;
+        }
+        
+        const question = questionsForQuiz[currentQuestion];
+        
+        if (!question || !question.question || !Array.isArray(question.options)) {
+            console.error('Ошибка: некорректный формат вопроса', question);
+            return;
+        }
+        
+        questionElement.textContent = question.question;
+        
+        // Обновление счетчика вопросов
+        questionCounter.textContent = `Вопрос ${currentQuestion + 1} из ${questionsForQuiz.length}`;
+        
+        // Обновление прогресс-бара
+        const progress = ((currentQuestion) / questionsForQuiz.length) * 100;
+        progressBar.style.width = `${progress}%`;
+        
+        // Очистка предыдущих вариантов
+        optionsElement.innerHTML = '';
+        
+        // Добавление новых вариантов
         question.options.forEach((option, index) => {
             const optionElement = document.createElement('div');
             optionElement.classList.add('option');
@@ -240,126 +272,147 @@ function loadQuestion() {
             optionElement.addEventListener('click', selectOption);
             optionsElement.appendChild(optionElement);
         });
-    } else {
-        console.error('Ошибка: варианты ответов не являются массивом');
+    } catch (e) {
+        console.error('Ошибка при загрузке вопроса:', e);
     }
 }
 
 // Выбор варианта ответа
 function selectOption(e) {
-    if (!nextButton) return;
-    
-    const selectedIndex = parseInt(e.target.dataset.index);
-    selectedOption = selectedIndex;
-    
-    // Подсветка выбранного варианта
-    const options = document.querySelectorAll('.option');
-    options.forEach(option => option.classList.remove('selected'));
-    e.target.classList.add('selected');
-    
-    // Активация кнопки "Далее"
-    nextButton.disabled = false;
+    try {
+        if (!nextButton) return;
+        
+        const selectedIndex = parseInt(e.target.dataset.index);
+        selectedOption = selectedIndex;
+        
+        // Подсветка выбранного варианта
+        const options = document.querySelectorAll('.option');
+        options.forEach(option => option.classList.remove('selected'));
+        e.target.classList.add('selected');
+        
+        // Активация кнопки "Далее"
+        nextButton.disabled = false;
+    } catch (e) {
+        console.error('Ошибка при выборе варианта ответа:', e);
+    }
 }
 
 // Переход к следующему вопросу - проверяем наличие кнопки перед добавлением обработчика
 if (nextButton) {
     nextButton.addEventListener('click', () => {
-        if (selectedOption === null || !Array.isArray(questionsForQuiz) || 
-            currentQuestion >= questionsForQuiz.length) {
-            return;
-        }
-        
-        // Блокировка кнопки после клика
-        nextButton.disabled = true;
-        
-        // Проверка ответа
-        const correct = questionsForQuiz[currentQuestion].correct;
-        if (selectedOption === correct) {
-            score++;
-        }
-        
-        // Подсветка правильного/неправильного ответа
-        const options = document.querySelectorAll('.option');
-        if (options[correct]) options[correct].classList.add('correct');
-        if (selectedOption !== correct && options[selectedOption]) {
-            options[selectedOption].classList.add('wrong');
-        }
-        
-        // Блокировка выбора после проверки
-        options.forEach(option => {
-            option.removeEventListener('click', selectOption);
-            option.style.pointerEvents = 'none';
-        });
-        
-        // Задержка перед следующим вопросом
-        setTimeout(() => {
-            currentQuestion++;
-            
-            if (currentQuestion < questionsForQuiz.length) {
-                loadQuestion();
-            } else {
-                showResults();
+        try {
+            if (selectedOption === null || !Array.isArray(questionsForQuiz) || 
+                currentQuestion >= questionsForQuiz.length) {
+                return;
             }
-        }, 1500);  // 1.5 секунды, чтобы увидеть правильный ответ
+            
+            // Блокировка кнопки после клика
+            nextButton.disabled = true;
+            
+            // Проверка ответа
+            const correct = questionsForQuiz[currentQuestion].correct;
+            if (selectedOption === correct) {
+                score++;
+            }
+            
+            // Подсветка правильного/неправильного ответа
+            const options = document.querySelectorAll('.option');
+            if (options[correct]) options[correct].classList.add('correct');
+            if (selectedOption !== correct && options[selectedOption]) {
+                options[selectedOption].classList.add('wrong');
+            }
+            
+            // Блокировка выбора после проверки
+            options.forEach(option => {
+                option.removeEventListener('click', selectOption);
+                option.style.pointerEvents = 'none';
+            });
+            
+            // Задержка перед следующим вопросом
+            setTimeout(() => {
+                currentQuestion++;
+                
+                if (currentQuestion < questionsForQuiz.length) {
+                    loadQuestion();
+                } else {
+                    showResults();
+                }
+            }, 1500);  // 1.5 секунды, чтобы увидеть правильный ответ
+        } catch (e) {
+            console.error('Ошибка при переходе к следующему вопросу:', e);
+        }
     });
 }
 
 // Отображение результатов
 function showResults() {
-    if (!quizContainer || !resultsContainer || !scoreElement) return;
-    
-    quizContainer.style.display = 'none';
-    resultsContainer.style.display = 'block';
-    
-    const percentage = Math.round((score / questionsForQuiz.length) * 100);
-    
-    let resultText;
-    if (percentage >= 90) {
-        resultText = 'Отлично! Вы эксперт в анатомии!';
-    } else if (percentage >= 70) {
-        resultText = 'Хороший результат! Вы хорошо знаете анатомию!';
-    } else if (percentage >= 50) {
-        resultText = 'Неплохо! Но есть над чем поработать.';
-    } else {
-        resultText = 'Стоит подучить анатомию, но вы уже на пути к знаниям!';
+    try {
+        if (!quizContainer || !resultsContainer || !scoreElement) {
+            console.error('Ошибка: не найдены необходимые элементы для отображения результатов');
+            return;
+        }
+        
+        quizContainer.style.display = 'none';
+        resultsContainer.style.display = 'block';
+        
+        const percentage = Math.round((score / questionsForQuiz.length) * 100);
+        
+        let resultText;
+        if (percentage >= 90) {
+            resultText = 'Отлично! Вы эксперт в анатомии!';
+        } else if (percentage >= 70) {
+            resultText = 'Хороший результат! Вы хорошо знаете анатомию!';
+        } else if (percentage >= 50) {
+            resultText = 'Неплохо! Но есть над чем поработать.';
+        } else {
+            resultText = 'Стоит подучить анатомию, но вы уже на пути к знаниям!';
+        }
+        
+        scoreElement.innerHTML = `
+            <p>Вы ответили правильно на ${score} из ${questionsForQuiz.length} вопросов</p>
+            <p>${percentage}%</p>
+            <p>${resultText}</p>
+        `;
+        
+        console.log(`Квиз завершён. Результат: ${score}/${questionsForQuiz.length} (${percentage}%)`);
+    } catch (e) {
+        console.error('Ошибка при отображении результатов:', e);
     }
-    
-    scoreElement.innerHTML = `
-        <p>Вы ответили правильно на ${score} из ${questionsForQuiz.length} вопросов</p>
-        <p>${percentage}%</p>
-        <p>${resultText}</p>
-    `;
 }
 
 // Поделиться результатами - проверяем наличие кнопки перед добавлением обработчика
 if (shareResultsButton) {
     shareResultsButton.addEventListener('click', () => {
-        const percentage = Math.round((score / questionsForQuiz.length) * 100);
-        const message = `Я прошел Анатомический квиз и набрал ${percentage}%! Попробуй и ты!`;
-        
-        let bridge = null;
-        if (window.vkBridgeInstance) {
-            bridge = window.vkBridgeInstance;
-        } else if (window.vkBridge) {
-            bridge = window.vkBridge;
-        } else if (typeof vkBridge !== 'undefined') {
-            bridge = vkBridge;
-        }
-        
-        if (bridge) {
-            bridge.send('VKWebAppShare', {
-                message: message
-            })
-            .then(data => {
-                console.log('Поделились результатом:', data);
-            })
-            .catch(error => {
-                console.error('Ошибка при шеринге:', error);
+        try {
+            const percentage = Math.round((score / questionsForQuiz.length) * 100);
+            const message = `Я прошел Анатомический квиз и набрал ${percentage}%! Попробуй и ты!`;
+            
+            let bridge = null;
+            if (window.vkBridgeInstance) {
+                bridge = window.vkBridgeInstance;
+            } else if (window.vkBridge) {
+                bridge = window.vkBridge;
+            } else if (typeof vkBridge !== 'undefined') {
+                bridge = vkBridge;
+            }
+            
+            if (bridge) {
+                bridge.send('VKWebAppShare', {
+                    message: message
+                })
+                .then(data => {
+                    console.log('Поделились результатом:', data);
+                })
+                .catch(error => {
+                    console.error('Ошибка при шеринге:', error);
+                    alert(message);
+                });
+            } else {
                 alert(message);
-            });
-        } else {
-            alert(message);
-            console.warn('VK Bridge не определен. Используется альтернативное действие для "Поделиться".');
+                console.warn('VK Bridge не определен. Используется альтернативное действие для "Поделиться".');
+            }
+        } catch (e) {
+            console.error('Ошибка при попытке поделиться результатами:', e);
         }
     });
 }
@@ -367,7 +420,41 @@ if (shareResultsButton) {
 // Перезапуск квиза - проверяем наличие кнопки перед добавлением обработчика
 if (restartQuizButton) {
     restartQuizButton.addEventListener('click', () => {
-        if (resultsContainer) resultsContainer.style.display = 'none';
-        startQuiz();
+        try {
+            if (resultsContainer) resultsContainer.style.display = 'none';
+            startQuiz();
+        } catch (e) {
+            console.error('Ошибка при перезапуске квиза:', e);
+        }
     });
 }
+
+// Защитный код на случай, если массив questions не определен
+window.addEventListener('load', function() {
+    setTimeout(() => {
+        if (typeof questions === 'undefined' || !Array.isArray(questions)) {
+            console.error('Массив вопросов не загружен после таймаута. Создаю временный массив.');
+            
+            // Создаем небольшой тестовый массив
+            window.questions = [
+                { 
+                    question: "Какая кость является самой длинной в человеческом теле?", 
+                    options: ["Плечевая кость", "Бедренная кость", "Большеберцовая кость", "Малоберцовая кость"], 
+                    correct: 1 
+                },
+                { 
+                    question: "Сколько камер в сердце человека?", 
+                    options: ["2 камеры", "3 камеры", "4 камеры", "5 камер"], 
+                    correct: 2 
+                },
+                { 
+                    question: "Какой орган производит желчь?", 
+                    options: ["Печень", "Поджелудочная железа", "Желчный пузырь", "Желудок"], 
+                    correct: 0 
+                }
+            ];
+            
+            console.log('Создан временный массив вопросов для тестирования:', window.questions.length);
+        }
+    }, 1000); // Даем секунду на загрузку скриптов
+});
