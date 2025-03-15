@@ -22,6 +22,8 @@
                     <h2>Проверь свои знания анатомии!</h2>
                     <p>Ответь на вопросы и проверь, насколько хорошо ты знаешь строение человеческого тела.</p>
                     <button class="btn btn-primary" id="start-quiz">Начать квиз</button>
+                    <!-- Новая кнопка для просмотра статистики -->
+                    <button class="btn btn-secondary" id="show-stats">Статистика</button>
                 </div>
                 
                 <div class="quiz-container" id="quiz-container" style="display: none;">
@@ -40,7 +42,47 @@
                     <div class="share-container">
                         <button class="btn btn-primary" id="share-results">Поделиться результатами</button>
                         <button class="btn btn-secondary" id="restart-quiz">Пройти ещё раз</button>
+                        <!-- Новая кнопка для просмотра статистики на экране результатов -->
+                        <button class="btn btn-secondary" id="view-stats">Статистика</button>
                     </div>
+                </div>
+                
+                <!-- Новый контейнер для страницы статистики -->
+                <div class="statistics-container" id="statistics-container" style="display: none;">
+                    <h2>Статистика</h2>
+                    
+                    <!-- Статистика пользователя -->
+                    <div class="user-stats-container">
+                        <h3>Ваша статистика</h3>
+                        <div class="stats-card">
+                            <div class="stats-row">
+                                <span>Общее количество тестов:</span>
+                                <span id="total-quizzes">0</span>
+                            </div>
+                            <div class="stats-row">
+                                <span>Лучший результат:</span>
+                                <span id="best-score">0%</span>
+                            </div>
+                            <div class="stats-row">
+                                <span>Последний результат:</span>
+                                <span id="last-score">0%</span>
+                            </div>
+                            <div class="stats-row">
+                                <span>Средний результат:</span>
+                                <span id="average-score">0%</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Топ пользователей -->
+                    <div class="top-users-container">
+                        <h3>Топ пользователей</h3>
+                        <div id="top-users-list" class="top-users-list">
+                            <!-- Сюда будут добавляться элементы списка через JS -->
+                        </div>
+                    </div>
+                    
+                    <button class="btn btn-primary" id="back-to-home">На главную</button>
                 </div>
             </main>
             
