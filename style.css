@@ -26,7 +26,7 @@
     margin: 0;
     padding: 0;
     box-sizing: border-box;
-    font-family: -apple-system, BlinkMacSystemFont, Roboto, 'Helvetica Neue', sans-serif;
+    font-family: 'Roboto', sans-serif;
 }
 
 body {
@@ -37,35 +37,96 @@ body {
     padding: 0;
 }
 
-/* Основной контейнер приложения */
-.app-container {
+.container {
     max-width: 800px;
     margin: 0 auto;
     padding: 20px;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    min-height: 90vh;
 }
 
-/* Экраны приложения */
-.screen {
-    width: 100%;
-    max-width: 500px;
-    margin: 0 auto;
+/* Стили заголовка */
+.header {
     display: flex;
-    flex-direction: column;
+    justify-content: space-between;
     align-items: center;
+    margin-bottom: 30px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid var(--header-border);
+}
+
+.header h1 {
+    color: var(--btn-primary-bg);
+    font-size: 24px;
+}
+
+.user-info {
+    display: flex;
+    align-items: center;
+}
+
+.user-info img {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    margin-right: 10px;
+}
+
+/* Основной контейнер */
+.main {
     background-color: var(--main-bg);
-    border-radius: 12px;
-    padding: 30px 20px;
+    border-radius: 8px;
+    padding: 20px;
     box-shadow: var(--card-shadow);
+    margin-bottom: 30px;
+}
+
+/* Стили кнопок */
+.btn {
+    padding: 12px 24px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 16px;
+    font-weight: 500;
+    transition: all 0.3s ease;
+}
+
+.btn-primary {
+    background-color: var(--btn-primary-bg);
+    color: #fff;
+}
+
+.btn-primary:hover {
+    background-color: var(--btn-primary-bg-hover);
+}
+
+.btn-secondary {
+    background-color: var(--btn-secondary-bg);
+    color: var(--text-color);
+}
+
+.btn-secondary:hover {
+    background-color: var(--btn-secondary-bg-hover);
+}
+
+.btn:disabled {
+    background-color: #ccc;
+    cursor: not-allowed;
+}
+
+/* Улучшенные стили для начального экрана */
+.start-screen, #start-screen {
+    text-align: center;
+    padding: 40px 20px;
+    background: linear-gradient(rgba(255, 255, 255, 0.9), rgba(255, 255, 255, 0.9)), 
+                url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxMDAlIiBoZWlnaHQ9IjEwMCUiPjxkZWZzPjxwYXR0ZXJuIGlkPSJwYXR0ZXJuIiB3aWR0aD0iNDAiIGhlaWdodD0iNDAiIHBhdHRlcm5Vbml0cz0idXNlclNwYWNlT25Vc2UiIHBhdHRlcm5UcmFuc2Zvcm09InJvdGF0ZSg0NSkiPjxjaXJjbGUgY3g9IjIwIiBjeT0iMjAiIHI9IjEuNSIgZmlsbD0icmdiYSg3NCwgMTE4LCAxNjgsIDAuMSkiLz48L3BhdHRlcm4+PC9kZWZzPjxyZWN0IHdpZHRoPSIxMDAlIiBoZWlnaHQ9IjEwMCUiIGZpbGw9InVybCgjcGF0dGVybikiLz48L3N2Zz4=') center/cover;
+    border-radius: 12px;
     position: relative;
     overflow: hidden;
+    margin: 0 auto;
+    max-width: 800px;
 }
 
-.screen::before {
+.start-screen::before, #start-screen::before {
     content: '';
     position: absolute;
     top: 0;
@@ -76,22 +137,16 @@ body {
     border-radius: 12px 12px 0 0;
 }
 
-/* Стили заголовков */
-h1, h2, h3 {
-    text-align: center;
-    margin-bottom: 20px;
+.start-screen h2, .start-screen h1, #start-screen h1 {
+    margin-bottom: 25px;
     color: var(--btn-primary-bg);
-}
-
-h1 {
     font-size: 28px;
     font-weight: 700;
-    margin-top: 10px;
     position: relative;
     display: inline-block;
 }
 
-h1::after {
+.start-screen h2::after, .start-screen h1::after, #start-screen h1::after {
     content: '';
     position: absolute;
     bottom: -8px;
@@ -103,339 +158,237 @@ h1::after {
     border-radius: 3px;
 }
 
-p {
-    text-align: center;
-    margin-bottom: 20px;
+.start-screen p, #start-screen p {
+    margin-bottom: 30px;
+    line-height: 1.8;
     color: var(--secondary-text);
-    line-height: 1.5;
+    max-width: 80%;
+    margin-left: auto;
+    margin-right: auto;
+    font-size: 17px;
 }
 
-/* Информация о пользователе */
-.user-info {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    margin-bottom: 20px;
-    padding: 10px 15px;
-    background-color: rgba(74, 118, 168, 0.1);
-    border-radius: 30px;
-    transition: all 0.3s ease;
+.start-screen .quiz-icon {
+    width: 80px;
+    height: 80px;
+    margin: 0 auto 20px;
+    display: block;
 }
 
-.user-info:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-}
-
-.user-info img {
-    width: 40px;
-    height: 40px;
-    border-radius: 50%;
-    margin-right: 10px;
-    border: 2px solid white;
-    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-}
-
-.user-info span {
-    font-weight: 500;
-    color: var(--btn-primary-bg);
-}
-
-/* Селектор сложности */
-.difficulty-selector {
-    margin: 20px 0;
-    text-align: center;
-    width: 100%;
-    animation: fadeIn 0.5s ease;
-}
-
-.difficulty-selector h3 {
-    margin-bottom: 15px;
-    font-size: 18px;
-    color: var(--secondary-text);
-}
-
-.difficulty-buttons {
-    display: flex;
-    justify-content: center;
-    gap: 15px;
-    margin-bottom: 25px;
-}
-
-.difficulty-btn {
-    padding: 12px 25px;
-    border-radius: 30px;
-    border: 2px solid var(--btn-primary-bg);
-    background-color: transparent;
-    color: var(--btn-primary-bg);
-    font-weight: 600;
-    cursor: pointer;
-    transition: all 0.3s ease;
-    min-width: 120px;
-}
-
-.difficulty-btn:hover {
-    background-color: rgba(74, 118, 168, 0.1);
-    transform: translateY(-2px);
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-}
-
-.difficulty-btn.active {
-    background-color: var(--btn-primary-bg);
-    color: white;
-    box-shadow: 0 4px 10px rgba(74, 118, 168, 0.3);
-}
-
-.difficulty-btn:disabled {
-    opacity: 0.7;
-    cursor: not-allowed;
-    transform: none;
-    box-shadow: none;
-}
-
-/* Кнопки */
-.primary-button {
-    padding: 14px 30px;
-    border-radius: 30px;
-    border: none;
+.btn-start, #start-quiz {
     background: linear-gradient(to right, var(--btn-primary-bg), #5b88bd);
     color: white;
-    font-weight: 600;
-    font-size: 16px;
-    cursor: pointer;
-    transition: all 0.3s ease;
-    min-width: 180px;
-    text-align: center;
-    box-shadow: 0 4px 10px rgba(74, 118, 168, 0.2);
-    position: relative;
-    overflow: hidden;
-}
-
-.primary-button::after {
-    content: '';
-    position: absolute;
-    top: -50%;
-    left: -50%;
-    width: 200%;
-    height: 200%;
-    background: linear-gradient(to right, rgba(255, 255, 255, 0) 0%, rgba(255, 255, 255, 0.3) 50%, rgba(255, 255, 255, 0) 100%);
-    transform: rotate(30deg);
-    opacity: 0;
-    transition: opacity 0.5s ease;
-}
-
-.primary-button:hover {
-    transform: translateY(-3px);
-    box-shadow: 0 6px 15px rgba(74, 118, 168, 0.3);
-}
-
-.primary-button:hover::after {
-    opacity: 1;
-    animation: shine 1.5s ease;
-}
-
-.primary-button:active {
-    transform: translateY(-1px);
-    box-shadow: 0 3px 8px rgba(74, 118, 168, 0.2);
-}
-
-.primary-button:disabled {
-    background: #bbbbbb;
-    cursor: not-allowed;
-    transform: none;
-    box-shadow: none;
-}
-
-.secondary-button {
-    padding: 12px 25px;
+    padding: 14px 32px;
     border-radius: 30px;
-    border: 2px solid var(--btn-primary-bg);
-    background-color: transparent;
-    color: var(--btn-primary-bg);
+    font-size: 18px;
     font-weight: 600;
-    font-size: 16px;
-    cursor: pointer;
+    letter-spacing: 0.5px;
+    box-shadow: 0 4px 15px rgba(74, 118, 168, 0.2);
     transition: all 0.3s ease;
-    min-width: 160px;
-    text-align: center;
-}
-
-.secondary-button:hover {
-    background-color: rgba(74, 118, 168, 0.1);
-    transform: translateY(-2px);
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-}
-
-/* Контейнер с вопросами */
-#quiz-container {
     position: relative;
-    animation: slideInRight 0.5s ease;
-}
-
-.progress-container {
-    width: 100%;
-    height: 8px;
-    background-color: var(--progress-bg);
-    border-radius: 4px;
     overflow: hidden;
-    margin-bottom: 20px;
-}
-
-.progress-bar {
-    height: 100%;
-    background: linear-gradient(to right, var(--btn-primary-bg), #56aaff);
-    border-radius: 4px;
-    transition: width 0.3s ease;
-    width: 0%;
-}
-
-.question-counter {
-    text-align: center;
-    margin-bottom: 20px;
-    font-size: 16px;
-    color: var(--secondary-text);
-    background-color: rgba(74, 118, 168, 0.1);
-    padding: 6px 15px;
-    border-radius: 20px;
+    border: none;
+    cursor: pointer;
     display: inline-block;
 }
 
-.question {
-    font-size: 20px;
-    font-weight: 600;
-    text-align: center;
-    margin-bottom: 30px;
-    line-height: 1.5;
-    color: var(--text-color);
-    padding: 0 10px;
+.btn-start:hover, #start-quiz:hover {
+    box-shadow: 0 6px 20px rgba(74, 118, 168, 0.4);
+    transform: translateY(-2px);
 }
 
-.options {
+.btn-start:active, #start-quiz:active {
+    transform: translateY(0);
+    box-shadow: 0 2px 10px rgba(74, 118, 168, 0.3);
+}
+
+.start-screen .features {
+    display: flex;
+    justify-content: center;
+    margin-top: 30px;
+    margin-bottom: 20px;
+}
+
+.feature-item {
     display: flex;
     flex-direction: column;
-    gap: 12px;
-    width: 100%;
+    align-items: center;
+    margin: 0 15px;
+    width: 90px;
+}
+
+.feature-icon {
+    width: 40px;
+    height: 40px;
+    background-color: rgba(74, 118, 168, 0.1);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 10px;
+}
+
+.feature-icon svg {
+    width: 20px;
+    height: 20px;
+    fill: var(--btn-primary-bg);
+}
+
+.feature-text {
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--secondary-text);
+}
+
+/* Стили контейнера викторины */
+.quiz-container, #quiz-container {
+    padding: 20px;
+    position: relative;
+    margin: 0 auto;
+    max-width: 800px;
+    background-color: var(--main-bg);
+    border-radius: 12px;
+    box-shadow: var(--card-shadow);
+}
+
+.progress-bar-container, .progress-container {
+    height: 8px;
+    background-color: var(--progress-bg);
+    border-radius: 4px;
+    margin-bottom: 20px;
+    overflow: hidden;
+}
+
+.progress-bar, #progress-bar {
+    height: 100%;
+    background-color: var(--btn-primary-bg);
+    border-radius: 4px;
+    width: 0%;
+    transition: width 0.3s ease;
+}
+
+.question-counter, #question-counter {
+    text-align: center;
+    margin-bottom: 20px;
+    font-size: 14px;
+    color: var(--secondary-text);
+}
+
+.question, #question {
+    margin-bottom: 20px;
+    font-size: 18px;
+    font-weight: 500;
+    text-align: center;
+}
+
+.options, #options {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
     margin-bottom: 30px;
 }
 
 .option {
-    padding: 15px 20px;
-    border-radius: 10px;
-    border: 1px solid var(--border-color);
     background-color: var(--option-bg);
+    padding: 15px;
+    border-radius: 8px;
     cursor: pointer;
     transition: all 0.3s ease;
-    font-size: 16px;
-    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
-    position: relative;
-    overflow: hidden;
 }
 
 .option:hover {
     background-color: var(--option-bg-hover);
+}
+
+.option.selected {
+    background-color: var(--option-selected-bg);
+    border: 1px solid var(--btn-primary-bg);
+}
+
+.option.correct {
+    background-color: var(--option-correct-bg);
+}
+
+.option.wrong {
+    background-color: var(--option-wrong-bg);
+}
+
+/* Стили контейнера результатов */
+.results-container, #results-container {
+    text-align: center;
+    padding: 40px 20px;
+    margin: 0 auto;
+    max-width: 800px;
+    background-color: var(--main-bg);
+    border-radius: 12px;
+    box-shadow: var(--card-shadow);
+}
+
+.score, #score {
+    font-size: 24px;
+    margin: 20px 0 30px;
+}
+
+.share-container, .result-buttons {
+    display: flex;
+    justify-content: center;
+    gap: 20px;
+    flex-wrap: wrap;
+}
+
+.footer {
+    text-align: center;
+    color: var(--secondary-text);
+    font-size: 14px;
+}
+
+/* Кнопки для результатов */
+#share-results, #restart-quiz {
+    padding: 12px 24px;
+    border-radius: 8px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: inline-block;
+}
+
+#share-results {
+    background-color: transparent;
+    border: 2px solid var(--btn-primary-bg);
+    color: var(--btn-primary-bg);
+}
+
+#restart-quiz {
+    background-color: var(--btn-primary-bg);
+    border: none;
+    color: white;
+}
+
+#share-results:hover, #restart-quiz:hover {
     transform: translateY(-2px);
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
 }
 
-.option.selected {
-    border-color: var(--btn-primary-bg);
-    background-color: var(--option-selected-bg);
-    box-shadow: 0 2px 8px rgba(74, 118, 168, 0.2);
-}
-
-.option.correct {
-    border-color: #4caf50;
-    background-color: var(--option-correct-bg);
-    animation: pulseGreen 1s;
-}
-
-.option.wrong {
-    border-color: #f44336;
-    background-color: var(--option-wrong-bg);
-    animation: pulseRed 1s;
-}
-
-/* Результаты */
-#results-container {
-    text-align: center;
-    animation: slideInRight 0.5s ease;
-}
-
-.score {
-    margin-bottom: 30px;
-}
-
-.score p {
-    margin: 15px 0;
-    font-size: 18px;
-}
-
-.score p:nth-child(2) {
-    font-size: 40px;
-    font-weight: 700;
-    color: var(--btn-primary-bg);
-    margin: 20px 0;
-    animation: scaleIn 0.5s ease;
-}
-
-.result-buttons {
-    display: flex;
-    gap: 15px;
-    justify-content: center;
-    margin-top: 20px;
-}
-
-/* Индикаторы сложности */
-.difficulty-indicator {
-    display: inline-block;
-    padding: 6px 12px;
+/* Кнопка Далее */
+#next-question {
     background-color: var(--btn-primary-bg);
     color: white;
-    border-radius: 20px;
-    font-size: 12px;
+    padding: 12px 24px;
+    border-radius: 8px;
+    border: none;
     font-weight: 600;
-    position: absolute;
-    top: 15px;
-    right: 15px;
-    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-    z-index: 10;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: block;
+    margin: 0 auto;
 }
 
-.difficulty-indicator.hard {
-    background-color: #e53935;
-    animation: pulse 2s infinite;
+#next-question:disabled {
+    background-color: #cccccc;
+    cursor: not-allowed;
 }
 
-.difficulty-badge {
-    display: inline-block;
-    padding: 8px 15px;
-    background-color: var(--btn-primary-bg);
-    color: white;
-    border-radius: 20px;
-    font-size: 14px;
-    font-weight: 600;
-    margin-bottom: 15px;
-    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-}
-
-.difficulty-badge.hard {
-    background-color: #e53935;
-}
-
-/* Спиннер загрузки */
-.loading-spinner {
-    display: inline-block;
-    animation: spin 1.5s linear infinite;
-    margin-left: 5px;
-}
-
-/* Кнопка с ошибкой */
-.difficulty-btn.error {
-    border-color: #e53935;
-    color: #e53935;
-}
-
-/* Темная тема VK */
+/* Темная тема для VK Mini Apps */
 .vk-dark-theme {
     --bg-color: #19191a;
     --bg-gradient: linear-gradient(135deg, #1a1a1a 0%, #2d2d2e 100%);
@@ -458,32 +411,117 @@ p {
     --progress-bg: #404040;
 }
 
-/* Анимации */
-@keyframes fadeIn {
-    from { opacity: 0; }
-    to { opacity: 1; }
+/* Адаптация для темной темы */
+.vk-dark-theme .start-screen, .vk-dark-theme #start-screen {
+    background: linear-gradient(rgba(45, 45, 46, 0.9), rgba(45, 45, 46, 0.9)), 
+                url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxMDAlIiBoZWlnaHQ9IjEwMCUiPjxkZWZzPjxwYXR0ZXJuIGlkPSJwYXR0ZXJuIiB3aWR0aD0iNDAiIGhlaWdodD0iNDAiIHBhdHRlcm5Vbml0cz0idXNlclNwYWNlT25Vc2UiIHBhdHRlcm5UcmFuc2Zvcm09InJvdGF0ZSg0NSkiPjxjaXJjbGUgY3g9IjIwIiBjeT0iMjAiIHI9IjEuNSIgZmlsbD0icmdiYSg4MSwgMTI5LCAxODQsIDAuMikiLz48L3BhdHRlcm4+PC9kZWZzPjxyZWN0IHdpZHRoPSIxMDAlIiBoZWlnaHQ9IjEwMCUiIGZpbGw9InVybCgjcGF0dGVybikiLz48L3N2Zz4=') center/cover;
 }
 
-@keyframes slideInRight {
-    from { transform: translateX(50px); opacity: 0; }
-    to { transform: translateX(0); opacity: 1; }
+.vk-dark-theme .feature-icon {
+    background-color: rgba(81, 129, 184, 0.2);
 }
 
-@keyframes scaleIn {
-    from { transform: scale(0.8); opacity: 0; }
-    to { transform: scale(1); opacity: 1; }
+/* Стили для селектора сложности */
+.difficulty-selector {
+    margin: 20px 0;
+    text-align: center;
 }
 
-@keyframes pulseGreen {
-    0% { box-shadow: 0 0 0 0 rgba(76, 175, 80, 0.4); }
-    70% { box-shadow: 0 0 0 10px rgba(76, 175, 80, 0); }
-    100% { box-shadow: 0 0 0 0 rgba(76, 175, 80, 0); }
+.difficulty-selector h3 {
+    margin-bottom: 15px;
+    font-size: 18px;
+    color: var(--secondary-text);
 }
 
-@keyframes pulseRed {
-    0% { box-shadow: 0 0 0 0 rgba(244, 67, 54, 0.4); }
-    70% { box-shadow: 0 0 0 10px rgba(244, 67, 54, 0); }
-    100% { box-shadow: 0 0 0 0 rgba(244, 67, 54, 0); }
+.difficulty-buttons {
+    display: flex;
+    justify-content: center;
+    gap: 15px;
+    margin-bottom: 25px;
+}
+
+.difficulty-btn {
+    padding: 10px 20px;
+    border-radius: 30px;
+    border: 2px solid var(--btn-primary-bg);
+    background-color: transparent;
+    color: var(--btn-primary-bg);
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    min-width: 120px;
+}
+
+.difficulty-btn:hover {
+    background-color: rgba(74, 118, 168, 0.1);
+    transform: translateY(-2px);
+}
+
+.difficulty-btn.active {
+    background-color: var(--btn-primary-bg);
+    color: white;
+}
+
+.difficulty-btn:disabled {
+    opacity: 0.7;
+    cursor: not-allowed;
+}
+
+/* Стили для индикатора сложности */
+.difficulty-indicator {
+    display: inline-block;
+    padding: 4px 10px;
+    background-color: var(--btn-primary-bg);
+    color: white;
+    border-radius: 12px;
+    font-size: 12px;
+    font-weight: 600;
+    position: absolute;
+    top: 15px;
+    right: 15px;
+}
+
+.difficulty-indicator.hard {
+    background-color: #e53935;
+}
+
+/* Значок сложности на странице результатов */
+.difficulty-badge {
+    display: inline-block;
+    padding: 5px 12px;
+    background-color: var(--btn-primary-bg);
+    color: white;
+    border-radius: 15px;
+    font-size: 14px;
+    font-weight: 600;
+    margin-bottom: 15px;
+}
+
+.difficulty-badge.hard {
+    background-color: #e53935;
+}
+
+/* Стили для спиннера загрузки */
+.loading-spinner {
+    display: inline-block;
+    animation: spin 1.5s linear infinite;
+    margin-left: 5px;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+/* Стили для кнопки с ошибкой */
+.difficulty-btn.error {
+    border-color: #e53935;
+    color: #e53935;
+}
+
+/* Эффект пульсации для индикатора сложного режима */
+.difficulty-indicator.hard {
+    animation: pulse 2s infinite;
 }
 
 @keyframes pulse {
@@ -492,76 +530,36 @@ p {
     100% { transform: scale(1); }
 }
 
-@keyframes spin {
-    0% { transform: rotate(0deg); }
-    100% { transform: rotate(360deg); }
-}
-
-@keyframes shine {
-    from { left: -50%; opacity: 0; }
-    50% { opacity: 1; }
-    to { left: 150%; opacity: 0; }
-}
-
 /* Адаптивность для мобильных устройств */
 @media (max-width: 480px) {
-    .app-container {
-        padding: 15px;
-    }
-    
-    .screen {
-        padding: 20px 15px;
-    }
-    
-    h1 {
-        font-size: 24px;
-    }
-    
-    .question {
-        font-size: 18px;
-    }
-    
-    .primary-button, .secondary-button {
-        width: 100%;
-        min-width: unset;
-    }
-    
-    .result-buttons {
+    .share-container, .result-buttons {
         flex-direction: column;
         gap: 10px;
     }
     
+    .start-screen h2, #start-screen h1 {
+        font-size: 24px;
+    }
+    
+    .start-screen p, #start-screen p {
+        max-width: 100%;
+        font-size: 15px;
+    }
+    
+    .features {
+        flex-wrap: wrap;
+    }
+    
+    .feature-item {
+        margin: 10px;
+    }
+    
     .difficulty-buttons {
         flex-direction: column;
+        align-items: center;
     }
     
     .difficulty-btn {
-        width: 100%;
-        min-width: unset;
+        width: 80%;
     }
-    
-    .score p:nth-child(2) {
-        font-size: 32px;
-    }
-}
-
-/* Дополнительные стили для VK Mini Apps */
-.vk-mini-app {
-    --background_content: var(--main-bg);
-    --text_primary: var(--text-color);
-    --text_secondary: var(--secondary-text);
-    --accent: var(--btn-primary-bg);
-    --button_secondary_background: var(--btn-primary-bg-hover);
-    --field_border: var(--border-color);
-    --background_hover: var(--option-bg-hover);
-}
-
-.vk-mini-app.vk-dark-theme {
-    --background_content: #19191a;
-    --text_primary: #e7e8ea;
-    --text_secondary: #8a8b8c;
-    --accent: #447bba;
-    --button_secondary_background: #3b6a9b;
-    --field_border: #333333;
-    --background_hover: #2c2d2e;
 }
