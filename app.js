@@ -534,46 +534,39 @@ if (userInfoElement && (!userInfoElement.innerHTML || userInfoElement.innerHTML.
 // Функция для инициализации VK Bridge
 function initVKBridge(bridge) {
     try {
-        // Инициализация VK Bridge
+        // Инициализация VK Bridge и цепочка промисов
         bridge.send('VKWebAppInit')
             .then(data => {
                 console.log('VK Bridge успешно инициализирован:', data);
-                
-                // Получаем конфигурацию приложения для применения темы
-                bridge.send('VKWebAppGetConfig')
-                    .then(config => {
-                        console.log('Получена конфигурация приложения:', config);
-                        if (config && config.scheme) {
-                            applyVKTheme(config.scheme);
-                        }
-                    })
-                    .catch(error => {
-                        console.error('Ошибка получения конфигурации:', error);
-                    });
-                
-                // Получаем данные пользователя
-                bridge.send('VKWebAppGetUserInfo')
-                    .then(userData => {
-                        console.log('Данные пользователя получены:', userData);
-                        if (typeof showUserInfo === 'function') {
-                            showUserInfo(userData);
-                        }
-                    })
-                    .catch(error => {
-                        console.error('Ошибка получения данных пользователя:', error);
-                        if (typeof showGuestMode === 'function') {
-                            showGuestMode();
-                        }
-                    });
+                // Сразу после успешной инициализации получаем данные пользователя
+                return bridge.send('VKWebAppGetUserInfo');
+            })
+            .then(userData => {
+                console.log('Данные пользователя получены:', userData);
+                // Немедленно отображаем информацию о пользователе
+                const userInfoElement = document.getElementById('user-info');
+                if (userInfoElement) {
+                    userInfoElement.innerHTML = `
+                        <img src="${userData.photo_100}" alt="${userData.first_name}">
+                        <span>${userData.first_name} ${userData.last_name || ''}</span>
+                    `;
+                    console.log('Информация о пользователе добавлена в DOM');
+                }
+                // Затем получаем конфигурацию
+                return bridge.send('VKWebAppGetConfig');
+            })
+            .then(config => {
+                console.log('Получена конфигурация приложения:', config);
+                if (config && config.scheme) {
+                    applyVKTheme(config.scheme);
+                }
             })
             .catch(error => {
-                console.error('Ошибка инициализации VK Bridge:', error);
-                if (typeof showGuestMode === 'function') {
-                    showGuestMode();
-                }
+                console.error('Ошибка при работе с VK Bridge:', error);
+                showGuestMode();
             });
         
-        // Подписка на события VK Bridge для отслеживания темы
+        // Подписка на события VK Bridge
         bridge.subscribe(event => {
             if (event.detail && event.detail.type === 'VKWebAppUpdateConfig') {
                 applyVKTheme(event.detail.data.scheme);
@@ -581,9 +574,7 @@ function initVKBridge(bridge) {
         });
     } catch (e) {
         console.error('Критическая ошибка при работе с VK Bridge:', e);
-        if (typeof showGuestMode === 'function') {
-            showGuestMode();
-        }
+        showGuestMode();
     }
 }
 
@@ -747,31 +738,43 @@ window.addEventListener('load', function() {
         });
     }
 
-    #user-info {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    margin: 20px auto;
-    padding: 12px 20px;
-    background-color: rgba(74, 118, 168, 0.1);
-    border-radius: 15px;
-    transition: all 0.3s ease;
-    min-width: 200px;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+    // Функция для принудительного получения информации о пользователе
+function forceGetUserInfo() {
+    console.log('Запуск принудительного получения информации о пользователе');
+    
+    let bridge = null;
+    if (window.vkBridgeInstance) {
+        bridge = window.vkBridgeInstance;
+    } else if (window.vkBridge) {
+        bridge = window.vkBridge;
+    } else if (typeof vkBridge !== 'undefined') {
+        bridge = vkBridge;
+    }
+    
+    if (!bridge) {
+        console.error('VK Bridge не доступен для принудительного получения информации');
+        return;
+    }
+    
+    // Принудительно вызываем API для получения информации о пользователе
+    bridge.send('VKWebAppGetUserInfo')
+        .then(userData => {
+            console.log('FORCE: Данные пользователя получены:', userData);
+            
+            const userInfoElement = document.getElementById('user-info');
+            if (userInfoElement) {
+                userInfoElement.innerHTML = `
+                    <img src="${userData.photo_100}" alt="${userData.first_name}">
+                    <span>${userData.first_name} ${userData.last_name || ''}</span>
+                `;
+                console.log('FORCE: Данные пользователя добавлены в DOM');
+            }
+        })
+        .catch(error => {
+            console.error('FORCE: Ошибка получения данных:', error);
+        });
 }
 
-#user-info img {
-    width: 50px;
-    height: 50px;
-    border-radius: 50%;
-    margin-right: 15px;
-    border: 2px solid white;
-    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-}
-
-#user-info span {
-    font-weight: 600;
-    font-size: 16px;
-    color: #4a76a8;
-}
+// Запускаем принудительное получение данных через 2 секунды
+setTimeout(forceGetUserInfo, 2000);
 });
