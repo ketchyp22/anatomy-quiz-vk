@@ -157,6 +157,13 @@ document.addEventListener('DOMContentLoaded', async function() {
     async function loadDifficultQuestions() {
         const baseUrl = getBaseUrl();
         
+        // Сначала проверяем, есть ли в window
+        if (typeof window.difficultQuestions !== 'undefined' && Array.isArray(window.difficultQuestions)) {
+            console.log(`Сложные вопросы найдены в window: ${window.difficultQuestions.length}`);
+            difficultQuestions = window.difficultQuestions;
+            return true;
+        }
+        
         // Возможные пути к файлу со сложными вопросами
         const possiblePaths = [
             'difficult-questions.json',
@@ -230,13 +237,22 @@ function createCategorySelector() {
         </div>
         <div class="category-buttons">
             <button id="general-btn" class="category-btn active">Обычные вопросы</button>
-            <button id="difficult-btn" class="category-btn" disabled>Сложные вопросы</button>
+            <button id="difficult-btn" class="category-btn" ${difficultQuestions.length === 0 ? 'disabled' : ''}>Сложные вопросы</button>
         </div>
     `;
     
     // Вставляем в начало контейнера
     const targetContainer = startScreen || quizContainer;
-    targetContainer.insertBefore(categorySelector, targetContainer.firstChild);
+    
+    // Находим подходящее место для вставки
+    const title = targetContainer.querySelector('h2');
+    if (title) {
+        // Если есть заголовок, вставляем после него
+        title.parentNode.insertBefore(categorySelector, title.nextSibling);
+    } else {
+        // Иначе вставляем в начало
+        targetContainer.insertBefore(categorySelector, targetContainer.firstChild);
+    }
     
     // Добавляем стили для переключателя категорий
     addCategoryStyles();
@@ -360,29 +376,6 @@ function changeCategory(category) {
 }
 
 // Инициализация приложения
-// Обработка темы VK
-function applyVKTheme(scheme) {
-    console.log('Применяется тема:', scheme);
-    const isDarkTheme = ['space_gray', 'vkcom_dark'].includes(scheme);
-    document.documentElement.classList.toggle('vk-dark-theme', isDarkTheme);
-}
-
-// Функция для перемешивания массива (алгоритм Фишера-Йейтса)
-function shuffleArray(array) {
-    if (!Array.isArray(array) || array.length === 0) {
-        console.error('Ошибка: shuffleArray получил неверный массив');
-        return [];
-    }
-    
-    const newArray = [...array]; // Создаем копию массива
-    for (let i = newArray.length - 1; i > 0; i--) {
-        const j = Math.floor(Math.random() * (i + 1));
-        [newArray[i], newArray[j]] = [newArray[j], newArray[i]];
-    }
-    
-    return newArray;
-}
-
 function initializeApp() {
     // DOM элементы - проверяем их существование перед использованием
     const startScreen = document.getElementById('start-screen');
@@ -718,48 +711,6 @@ function initializeApp() {
             if (startScreen) startScreen.style.display = 'block';
         });
     }
-    
-    // Для API приложения (добавляем методы, чтобы другие модули могли взаимодействовать)
-    window.quizApp = {
-        isInitialized: true,
-        
-        // Метод для установки новых вопросов
-        setQuestions: function(newQuestions) {
-            if (!Array.isArray(newQuestions) || newQuestions.length === 0) {
-                console.error('Ошибка: Новые вопросы должны быть непустым массивом');
-                return false;
-            }
-            
-            if (currentCategory === 'difficult') {
-                difficultQuestions = [...newQuestions];
-            } else {
-                generalQuestions = [...newQuestions];
-            }
-            
-            return true;
-        },
-        
-        // Метод для сброса к оригинальным вопросам
-        resetToDefaultQuestions: function() {
-            // Здесь нет необходимости что-то сбрасывать, 
-            // так как категории хранятся отдельно
-            return true;
-        },
-        
-        // Метод для перезапуска квиза
-        restartQuiz: function() {
-            if (typeof startQuiz === 'function') {
-                startQuiz();
-                return true;
-            }
-            return false;
-        },
-        
-        // Метод для изменения категории
-        changeCategory: function(category) {
-            return changeCategory(category);
-        }
-    };
 }
 
 // Функция для инициализации VK Bridge
@@ -819,3 +770,27 @@ function initVKBridge(bridge) {
             showGuestMode();
         }
     }
+}
+
+// Обработка темы VK
+function applyVKTheme(scheme) {
+    console.log('Применяется тема:', scheme);
+    const isDarkTheme = ['space_gray', 'vkcom_dark'].includes(scheme);
+    document.documentElement.classList.toggle('vk-dark-theme', isDarkTheme);
+}
+
+// Функция для перемешивания массива (алгоритм Фишера-Йейтса)
+function shuffleArray(array) {
+    if (!Array.isArray(array) || array.length === 0) {
+        console.error('Ошибка: shuffleArray получил неверный массив');
+        return [];
+    }
+    
+    const newArray = [...array]; // Создаем копию массива
+    for (let i = newArray.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [newArray[i], newArray[j]] = [newArray[j], newArray[i]];
+    }
+    
+    return newArray;
+}
