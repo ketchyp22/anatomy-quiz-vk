@@ -6,76 +6,62 @@
     <meta name="format-detection" content="telephone=no">
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="theme-color" content="#4a76a8">
     <title>Анатомический квиз</title>
     
-    <!-- Стили приложения -->
+    <!-- Стили -->
     <link rel="stylesheet" href="style.css">
     
-    <!-- VK Bridge должен загружаться первым -->
+    <!-- VK Bridge обязательно первым -->
     <script src="https://unpkg.com/@vkontakte/vk-bridge/dist/browser.min.js"></script>
     
-    <!-- Вспомогательные скрипты для VK -->
-    <script src="vk-params.js"></script>
-    
-    <!-- Скрипт с вопросами -->
+    <!-- Основные скрипты -->
     <script src="questions.js"></script>
-    
-    <!-- Скрипт выбора сложности -->
     <script src="vk-difficulty.js"></script>
-    
-    <!-- Основной файл приложения загружается последним -->
     <script src="app.js"></script>
 </head>
-<body class="vk-mini-app">
-    <div class="app-container">
-        <!-- Стартовый экран -->
-        <div id="start-screen" class="screen">
-            <h1>Анатомический квиз</h1>
-            <p>Проверьте свои знания анатомии человека!</p>
-            
-            <div id="user-info" class="user-info">
-                <!-- Данные пользователя будут загружены через JS -->
+<body>
+    <!-- Стартовый экран -->
+    <div id="start-screen">
+        <h1>Анатомический квиз</h1>
+        <p>Проверьте свои знания анатомии человека!</p>
+        
+        <div id="user-info"></div>
+        
+        <div class="difficulty-selector">
+            <h3>Выберите уровень сложности:</h3>
+            <div class="difficulty-buttons">
+                <button id="normal-difficulty" class="difficulty-btn active">Обычный</button>
+                <button id="hard-difficulty" class="difficulty-btn">Сложный</button>
             </div>
-            
-            <div class="difficulty-selector">
-                <h3>Выберите уровень сложности:</h3>
-                <div class="difficulty-buttons">
-                    <button id="normal-difficulty" class="difficulty-btn active">Обычный</button>
-                    <button id="hard-difficulty" class="difficulty-btn">Сложный</button>
-                </div>
-            </div>
-            
-            <button id="start-quiz" class="primary-button">Начать тест</button>
         </div>
         
-        <!-- Контейнер с вопросами -->
-        <div id="quiz-container" class="screen" style="display: none;">
-            <div class="progress-container">
-                <div id="progress-bar" class="progress-bar"></div>
-            </div>
-            
-            <div id="question-counter" class="question-counter">Вопрос 1 из 25</div>
-            
-            <div id="question" class="question"></div>
-            
-            <div id="options" class="options"></div>
-            
-            <button id="next-question" class="primary-button" disabled>Далее</button>
+        <button id="start-quiz" class="btn-start">Начать тест</button>
+    </div>
+    
+    <!-- Контейнер с вопросами -->
+    <div id="quiz-container" style="display: none;">
+        <div class="progress-container">
+            <div id="progress-bar"></div>
         </div>
         
-        <!-- Экран результатов -->
-        <div id="results-container" class="screen" style="display: none;">
-            <h2>Ваш результат</h2>
-            
-            <div id="score" class="score">
-                <!-- Результаты будут загружены через JS -->
-            </div>
-            
-            <div class="result-buttons">
-                <button id="share-results" class="secondary-button">Поделиться</button>
-                <button id="restart-quiz" class="primary-button">Пройти еще раз</button>
-            </div>
+        <div id="question-counter">Вопрос 1 из 25</div>
+        
+        <div id="question"></div>
+        
+        <div id="options"></div>
+        
+        <button id="next-question" disabled>Далее</button>
+    </div>
+    
+    <!-- Экран результатов -->
+    <div id="results-container" style="display: none;">
+        <h2>Ваш результат</h2>
+        
+        <div id="score"></div>
+        
+        <div class="result-buttons">
+            <button id="share-results">Поделиться</button>
+            <button id="restart-quiz">Пройти еще раз</button>
         </div>
     </div>
 </body>
