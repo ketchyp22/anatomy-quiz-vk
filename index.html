@@ -6,18 +6,19 @@
     <meta name="format-detection" content="telephone=no">
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="theme-color" content="#4a76a8">
     <title>Анатомический квиз</title>
     
     <!-- Стили -->
     <link rel="stylesheet" href="style.css">
     
-    <!-- VK Bridge обязательно первым -->
-    <script src="https://unpkg.com/@vkontakte/vk-bridge/dist/browser.min.js"></script>
+    <!-- VK Bridge первым -->
+    <script src="https://unpkg.com/@vkontakte/vk-bridge@2.10.0/dist/browser.min.js"></script>
     
     <!-- Основные скрипты -->
     <script src="questions.js"></script>
     <script src="vk-difficulty.js"></script>
-    <script src="app.js"></script>
+    <script src="app.js" defer></script>
 </head>
 <body>
     <!-- Стартовый экран -->
