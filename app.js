@@ -103,7 +103,6 @@ let currentUserData = null; // Данные текущего пользоват�
 const startScreen = document.getElementById('start-screen');
 const quizContainer = document.getElementById('quiz-container');
 const resultsContainer = document.getElementById('results-container');
-const statisticsContainer = document.getElementById('statistics-container');
 const questionElement = document.getElementById('question');
 const optionsElement = document.getElementById('options');
 const progressBar = document.getElementById('progress-bar');
@@ -114,14 +113,6 @@ const userInfoElement = document.getElementById('user-info');
 const startQuizButton = document.getElementById('start-quiz');
 const shareResultsButton = document.getElementById('share-results');
 const restartQuizButton = document.getElementById('restart-quiz');
-const showStatsButton = document.getElementById('show-stats');
-const backToHomeButton = document.getElementById('back-to-home');
-const viewStatsButton = document.getElementById('view-stats');
-const totalQuizzesElement = document.getElementById('total-quizzes');
-const bestScoreElement = document.getElementById('best-score');
-const lastScoreElement = document.getElementById('last-score');
-const averageScoreElement = document.getElementById('average-score');
-const topUsersList = document.getElementById('top-users-list');
 
 // Проверяем наличие необходимых элементов
 if (!startScreen || !quizContainer || !resultsContainer || 
@@ -195,7 +186,6 @@ function startQuiz() {
     
     startScreen.style.display = 'none';
     quizContainer.style.display = 'block';
-    if (statisticsContainer) statisticsContainer.style.display = 'none';
     currentQuestion = 0;
     score = 0;
     
@@ -320,7 +310,6 @@ function showResults() {
     
     quizContainer.style.display = 'none';
     resultsContainer.style.display = 'block';
-    if (statisticsContainer) statisticsContainer.style.display = 'none';
     
     const percentage = Math.round((score / questionsForQuiz.length) * 100);
     
@@ -340,188 +329,6 @@ function showResults() {
         <p>${percentage}%</p>
         <p>${resultText}</p>
     `;
-    
-    // Обновляем статистику пользователя
-    updateStatsAfterQuiz();
-}
-
-// Сохранение статистики пользователя
-function saveUserStats(userId, scorePercent, totalQuestions, correctAnswers) {
-    if (!userId) return null;
-    
-    try {
-        // Получаем текущую статистику
-        const statsJson = localStorage.getItem('anatomyQuizStats');
-        const allStats = statsJson ? JSON.parse(statsJson) : {};
-        
-        // Проверяем, есть ли статистика для данного пользователя
-        const userStats = allStats[userId] || {
-            totalQuizzes: 0,
-            bestScore: 0,
-            averageScore: 0,
-            totalScore: 0,
-            history: []
-        };
-        
-        // Обновляем статистику
-        userStats.totalQuizzes += 1;
-        userStats.lastScore = scorePercent;
-        userStats.bestScore = Math.max(userStats.bestScore, scorePercent);
-        userStats.totalScore += scorePercent;
-        userStats.averageScore = Math.round(userStats.totalScore / userStats.totalQuizzes);
-        
-        // Добавляем текущий результат в историю
-        userStats.history.push({
-            date: new Date().toISOString(),
-            score: scorePercent,
-            totalQuestions,
-            correctAnswers
-        });
-        
-        // Ограничиваем историю последними 20 тестами
-        if (userStats.history.length > 20) {
-            userStats.history = userStats.history.slice(-20);
-        }
-        
-        // Сохраняем обновленную статистику
-        allStats[userId] = userStats;
-        localStorage.setItem('anatomyQuizStats', JSON.stringify(allStats));
-        
-        return userStats;
-    } catch (error) {
-        console.error('Ошибка при сохранении статистики:', error);
-        return null;
-    }
-}
-
-// Получение статистики пользователя
-function getUserStats(userId) {
-    if (!userId) return null;
-    
-    try {
-        const statsJson = localStorage.getItem('anatomyQuizStats');
-        if (!statsJson) return null;
-        
-        const allStats = JSON.parse(statsJson);
-        return allStats[userId] || null;
-    } catch (error) {
-        console.error('Ошибка при получении статистики:', error);
-        return null;
-    }
-}
-
-// Получение топа пользователей
-function getTopUsers() {
-    try {
-        // Получаем статистику всех пользователей
-        const statsJson = localStorage.getItem('anatomyQuizStats');
-        if (!statsJson) return [];
-        
-        const allStats = JSON.parse(statsJson);
-        
-        // Преобразуем объект в массив
-        const usersArray = Object.keys(allStats).map(userId => ({
-            id: userId,
-            stats: allStats[userId]
-        }));
-        
-        // Сортируем по лучшему результату
-        usersArray.sort((a, b) => b.stats.bestScore - a.stats.bestScore);
-        
-        // Возвращаем топ-10 пользователей
-        return usersArray.slice(0, 10);
-    } catch (error) {
-        console.error('Ошибка при получении топа пользователей:', error);
-        return [];
-    }
-}
-
-// Обновление статистики после завершения теста
-function updateStatsAfterQuiz() {
-    if (currentUserData && currentUserData.id) {
-        const percentage = Math.round((score / questionsForQuiz.length) * 100);
-        saveUserStats(
-            currentUserData.id, 
-            percentage, 
-            questionsForQuiz.length, 
-            score
-        );
-    }
-}
-
-// Показать страницу статистики
-function showStatistics() {
-    if (!startScreen || !quizContainer || !resultsContainer || !statisticsContainer) return;
-    
-    startScreen.style.display = 'none';
-    quizContainer.style.display = 'none';
-    resultsContainer.style.display = 'none';
-    statisticsContainer.style.display = 'block';
-    
-    // Загружаем статистику текущего пользователя
-    if (currentUserData && currentUserData.id) {
-        const userStats = getUserStats(currentUserData.id);
-        
-        if (userStats && totalQuizzesElement && bestScoreElement && lastScoreElement && averageScoreElement) {
-            totalQuizzesElement.textContent = userStats.totalQuizzes;
-            bestScoreElement.textContent = userStats.bestScore + '%';
-            lastScoreElement.textContent = userStats.lastScore + '%';
-            averageScoreElement.textContent = userStats.averageScore + '%';
-        } else if (totalQuizzesElement && bestScoreElement && lastScoreElement && averageScoreElement) {
-            totalQuizzesElement.textContent = '0';
-            bestScoreElement.textContent = '0%';
-            lastScoreElement.textContent = '0%';
-            averageScoreElement.textContent = '0%';
-        }
-    }
-    
-    // Загружаем топ пользователей
-    loadTopUsers();
-}
-
-// Загрузка списка топ пользователей
-function loadTopUsers() {
-    if (!topUsersList) return;
-    
-    const topUsers = getTopUsers();
-    topUsersList.innerHTML = '';
-    
-    if (topUsers.length === 0) {
-        topUsersList.innerHTML = '<div class="no-data">Нет данных о пользователях</div>';
-        return;
-    }
-    
-    // Создаем элементы списка
-    topUsers.forEach((user, index) => {
-        const userItem = document.createElement('div');
-        userItem.className = `top-user-item ${index < 3 ? 'top-' + (index + 1) : ''}`;
-        
-        // Если это текущий пользователь, добавляем соответствующий класс
-        if (currentUserData && user.id === currentUserData.id.toString()) {
-            userItem.classList.add('current-user');
-        }
-        
-        // Ищем данные пользователя или используем заглушку
-        let userName = `Пользователь ${user.id}`;
-        let userAvatar = 'https://vk.com/images/camera_100.png'; // Стандартный аватар
-        
-        if (currentUserData && user.id === currentUserData.id.toString()) {
-            userName = `${currentUserData.first_name} ${currentUserData.last_name}`;
-            userAvatar = currentUserData.photo_100;
-        }
-        
-        userItem.innerHTML = `
-            <div class="user-rank">${index + 1}</div>
-            <img class="user-avatar" src="${userAvatar}" alt="${userName}">
-            <div class="user-info">
-                <div class="user-name">${userName}</div>
-                <div class="user-score">${user.stats.bestScore}%</div>
-            </div>
-            ${currentUserData && user.id === currentUserData.id.toString() ? '<div class="user-indicator">Вы</div>' : ''}
-        `;
-        
-        topUsersList.appendChild(userItem);
-    });
 }
 
 // Поделиться результатами - проверяем наличие кнопки перед добавлением обработчика
@@ -552,23 +359,5 @@ if (restartQuizButton) {
     restartQuizButton.addEventListener('click', () => {
         if (resultsContainer) resultsContainer.style.display = 'none';
         startQuiz();
-    });
-}
-
-// Показать статистику - проверяем наличие кнопки перед добавлением обработчика
-if (showStatsButton) {
-    showStatsButton.addEventListener('click', showStatistics);
-}
-
-// Просмотр статистики с экрана результатов - проверяем наличие кнопки перед добавлением обработчика
-if (viewStatsButton) {
-    viewStatsButton.addEventListener('click', showStatistics);
-}
-
-// Вернуться на главную со страницы статистики - проверяем наличие кнопки перед добавлением обработчика
-if (backToHomeButton) {
-    backToHomeButton.addEventListener('click', () => {
-        if (statisticsContainer) statisticsContainer.style.display = 'none';
-        if (startScreen) startScreen.style.display = 'block';
     });
 }
