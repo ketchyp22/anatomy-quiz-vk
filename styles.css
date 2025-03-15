@@ -1,49 +1,84 @@
+/* Определение переменных для светлой темы (по умолчанию) */
+:root {
+    --bg-color: #f5f7fa;
+    --bg-gradient: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+    --main-bg: #ffffff;
+    --text-color: #333333;
+    --secondary-text: #666666;
+    --btn-primary-bg: #4a76a8;
+    --btn-primary-bg-hover: #3d6798;
+    --btn-secondary-bg: #f2f2f2;
+    --btn-secondary-bg-hover: #e0e0e0;
+    --border-color: #dddddd;
+    --option-bg: #f5f5f5;
+    --option-bg-hover: #e8e8e8;
+    --option-selected-bg: #e3f2fd;
+    --option-correct-bg: #c8e6c9;
+    --option-wrong-bg: #ffcdd2;
+    --card-bg: #f5f5f5;
+    --card-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    --header-border: #dddddd;
+    --stats-row-border: #e7e8ec;
+    --progress-bg: #e0e0e0;
+}
+
+/* Базовые стили */
 * {
     margin: 0;
     padding: 0;
     box-sizing: border-box;
     font-family: 'Roboto', sans-serif;
 }
+
 body {
-    /* Заменяем статический фон на градиент */
-    background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+    background: var(--bg-gradient);
     min-height: 100vh;
-    color: #333;
+    color: var(--text-color);
 }
+
 .container {
     max-width: 800px;
     margin: 0 auto;
     padding: 20px;
 }
+
+/* Стили заголовка */
 .header {
     display: flex;
     justify-content: space-between;
     align-items: center;
     margin-bottom: 30px;
     padding-bottom: 10px;
-    border-bottom: 1px solid #ddd;
+    border-bottom: 1px solid var(--header-border);
 }
+
 .header h1 {
-    color: #4a76a8;
+    color: var(--btn-primary-bg);
     font-size: 24px;
 }
+
 .user-info {
     display: flex;
     align-items: center;
 }
+
 .user-info img {
     width: 40px;
     height: 40px;
     border-radius: 50%;
     margin-right: 10px;
 }
+
+/* Основной контейнер */
 .main {
-    background-color: #fff;
+    background-color: var(--main-bg);
     border-radius: 8px;
     padding: 20px;
-    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    box-shadow: var(--card-shadow);
     margin-bottom: 30px;
 }
+
+/* Стили кнопок */
 .btn {
     padding: 12px 24px;
     border: none;
@@ -53,109 +88,133 @@ body {
     font-weight: 500;
     transition: all 0.3s ease;
 }
+
 .btn-primary {
-    background-color: #4a76a8;
+    background-color: var(--btn-primary-bg);
     color: #fff;
 }
+
 .btn-primary:hover {
-    background-color: #3d6798;
+    background-color: var(--btn-primary-bg-hover);
 }
+
 .btn-secondary {
-    background-color: #f2f2f2;
-    color: #333;
+    background-color: var(--btn-secondary-bg);
+    color: var(--text-color);
 }
+
 .btn-secondary:hover {
-    background-color: #e0e0e0;
+    background-color: var(--btn-secondary-bg-hover);
 }
+
 .btn:disabled {
     background-color: #ccc;
     cursor: not-allowed;
 }
+
+/* Стили начального экрана */
 .start-screen {
     text-align: center;
     padding: 40px 20px;
 }
+
 .start-screen h2 {
     margin-bottom: 20px;
-    color: #4a76a8;
+    color: var(--btn-primary-bg);
 }
+
 .start-screen p {
     margin-bottom: 30px;
     line-height: 1.6;
 }
+
+/* Стили контейнера викторины */
 .quiz-container {
     padding: 20px;
 }
+
 .progress-bar-container {
     height: 8px;
-    background-color: #e0e0e0;
+    background-color: var(--progress-bg);
     border-radius: 4px;
     margin-bottom: 20px;
 }
+
 .progress-bar {
     height: 100%;
-    background-color: #4a76a8;
+    background-color: var(--btn-primary-bg);
     border-radius: 4px;
     width: 0%;
     transition: width 0.3s ease;
 }
+
 .question-counter {
     text-align: right;
     margin-bottom: 10px;
     font-size: 14px;
-    color: #666;
+    color: var(--secondary-text);
 }
+
 .question {
     margin-bottom: 20px;
     font-size: 18px;
     font-weight: 500;
 }
+
 .options {
     display: grid;
     grid-gap: 15px;
     margin-bottom: 30px;
 }
+
 .option {
-    background-color: #f5f5f5;
+    background-color: var(--option-bg);
     padding: 15px;
     border-radius: 8px;
     cursor: pointer;
     transition: all 0.3s ease;
 }
+
 .option:hover {
-    background-color: #e8e8e8;
+    background-color: var(--option-bg-hover);
 }
+
 .option.selected {
-    background-color: #e3f2fd;
-    border: 1px solid #4a76a8;
+    background-color: var(--option-selected-bg);
+    border: 1px solid var(--btn-primary-bg);
 }
+
 .option.correct {
-    background-color: #c8e6c9;
+    background-color: var(--option-correct-bg);
 }
+
 .option.wrong {
-    background-color: #ffcdd2;
+    background-color: var(--option-wrong-bg);
 }
+
+/* Стили контейнера результатов */
 .results-container {
     text-align: center;
     padding: 40px 20px;
 }
+
 .score {
     font-size: 24px;
     margin: 20px 0 30px;
 }
+
 .share-container {
     display: flex;
     justify-content: center;
     gap: 20px;
-    flex-wrap: wrap; /* Добавлено для адаптивности кнопок */
-}
-.footer {
-    text-align: center;
-    color: #666;
-    font-size: 14px;
+    flex-wrap: wrap;
 }
 
-/* === НОВЫЕ СТИЛИ ДЛЯ СТРАНИЦЫ СТАТИСТИКИ === */
+.footer {
+    text-align: center;
+    color: var(--secondary-text);
+    font-size: 14px;
+}
 
 /* Стили для страницы статистики */
 .statistics-container {
@@ -164,12 +223,12 @@ body {
 }
 
 .statistics-container h2 {
-    color: #4a76a8;
+    color: var(--btn-primary-bg);
     margin-bottom: 20px;
 }
 
 .statistics-container h3 {
-    color: #4a76a8;
+    color: var(--btn-primary-bg);
     margin: 20px 0 10px;
 }
 
@@ -179,18 +238,18 @@ body {
 }
 
 .stats-card {
-    background-color: #f5f5f5;
+    background-color: var(--card-bg);
     border-radius: 8px;
     padding: 16px;
     margin: 16px 0;
-    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
+    box-shadow: var(--card-shadow);
 }
 
 .stats-row {
     display: flex;
     justify-content: space-between;
     padding: 12px 0;
-    border-bottom: 1px solid #e7e8ec;
+    border-bottom: 1px solid var(--stats-row-border);
 }
 
 .stats-row:last-child {
@@ -199,12 +258,12 @@ body {
 
 .stats-row span:first-child {
     font-weight: 500;
-    color: #333;
+    color: var(--text-color);
 }
 
 .stats-row span:last-child {
     font-weight: 600;
-    color: #4a76a8;
+    color: var(--btn-primary-bg);
 }
 
 .top-users-list {
@@ -214,7 +273,7 @@ body {
 .top-user-item {
     display: flex;
     align-items: center;
-    background-color: #f5f5f5;
+    background-color: var(--card-bg);
     border-radius: 8px;
     padding: 12px 16px;
     margin-bottom: 8px;
@@ -263,29 +322,53 @@ body {
 }
 
 .user-score {
-    color: #666;
+    color: var(--secondary-text);
     font-size: 14px;
 }
 
 .user-indicator {
     padding: 2px 8px;
-    background-color: #4a76a8;
+    background-color: var(--btn-primary-bg);
     color: white;
     border-radius: 4px;
     font-size: 12px;
 }
 
 .current-user {
-    background-color: #e3f2fd;
-    border: 1px solid #4a76a8;
+    background-color: var(--option-selected-bg);
+    border: 1px solid var(--btn-primary-bg);
 }
 
 .no-data {
     padding: 20px;
     text-align: center;
-    color: #666;
-    background-color: #f5f5f5;
+    color: var(--secondary-text);
+    background-color: var(--card-bg);
     border-radius: 8px;
+}
+
+/* Темная тема для VK Mini Apps */
+.vk-dark-theme {
+    --bg-color: #19191a;
+    --bg-gradient: linear-gradient(135deg, #1a1a1a 0%, #2d2d2e 100%);
+    --main-bg: #2d2d2e;
+    --text-color: #e1e3e6;
+    --secondary-text: #aaaeb3;
+    --btn-primary-bg: #5181b8;
+    --btn-primary-bg-hover: #5b88bd;
+    --btn-secondary-bg: #303030;
+    --btn-secondary-bg-hover: #3a3a3a;
+    --border-color: #424242;
+    --option-bg: #303030;
+    --option-bg-hover: #3a3a3a;
+    --option-selected-bg: #34495e;
+    --option-correct-bg: #2d5739;
+    --option-wrong-bg: #843a39;
+    --card-bg: #303030;
+    --card-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+    --header-border: #424242;
+    --stats-row-border: #424242;
+    --progress-bg: #404040;
 }
 
 /* Адаптивность для мобильных устройств */
