@@ -2,94 +2,88 @@
 document.addEventListener('DOMContentLoaded', function() {
     console.log('DOM полностью загружен');
     
-    // Обработка темы VK
-    function applyVKTheme(scheme) {
-        const isDarkTheme = ['space_gray', 'vkcom_dark'].includes(scheme);
-        document.documentElement.classList.toggle('vk-dark-theme', isDarkTheme);
-    }
-    
     // Проверяем, что questions определены
     if (typeof questions !== 'undefined') {
         console.log(`Загружено ${questions.length} вопросов`);
     } else {
-        console.error('Ошибка: Массив questions не определен. Проверьте подключение файла questions.js');
+        console.error('Ошибка: Массив questions не определен');
     }
     
-    // Запуск VK Bridge
-    if (typeof vkBridge !== 'undefined') {
-        console.log('VK Bridge найден, инициализация...');
-        
-        // Инициализация VK Bridge
-        vkBridge.send('VKWebAppInit')
-            .then(data => {
-                console.log('VK Bridge успешно инициализирован:', data);
-            })
-            .catch(error => {
-                console.error('Ошибка инициализации VK Bridge:', error);
-            });
-        
-        // Подписка на события VK Bridge для отслеживания темы
-        vkBridge.subscribe(event => {
-            if (event.detail.type === 'VKWebAppUpdateConfig') {
-                applyVKTheme(event.detail.data.scheme);
-            }
-        });
-        
-        // Получение данных пользователя
-        vkBridge.send('VKWebAppGetUserInfo')
-            .then(data => {
-                console.log('Данные пользователя получены:', data);
-                showUserInfo(data);
-            })
-            .catch(error => {
-                console.error('Ошибка получения данных пользователя:', error);
-                // Показываем гостевой режим
-                showGuestMode();
-            });
+    // Проверяем доступность VK Bridge
+    let bridge = null;
+    if (window.vkBridgeInstance) {
+        console.log('VK Bridge найден через window.vkBridgeInstance');
+        bridge = window.vkBridgeInstance;
+    } else if (window.vkBridge) {
+        console.log('VK Bridge найден через window.vkBridge');
+        bridge = window.vkBridge;
+    } else if (typeof vkBridge !== 'undefined') {
+        console.log('VK Bridge найден через глобальную переменную vkBridge');
+        bridge = vkBridge;
+    }
+    
+    if (bridge) {
+        initVKBridge(bridge);
     } else {
-        console.warn('VK Bridge не определен. Проверьте подключение VK Bridge SDK.');
-        // Показываем гостевой режим для тестирования
+        console.warn('VK Bridge не определен. Переключение в гостевой режим.');
         showGuestMode();
     }
 });
 
-// Дополнительная проверка загрузки страницы
-window.addEventListener('load', function() {
-    console.log('Страница полностью загружена');
-    
-    // Повторная проверка VK Bridge
-    if (typeof vkBridge !== 'undefined' && typeof vkBridge.send === 'function') {
-        console.log('Повторная попытка инициализации VK Bridge...');
-        try {
-            vkBridge.send('VKWebAppGetConfig')
-                .then(data => {
-                    console.log('Получена конфигурация приложения:', data);
-                    // Применяем тему, если есть
-                    if (data.scheme) {
-                        const isDarkTheme = ['space_gray', 'vkcom_dark'].includes(data.scheme);
-                        document.documentElement.classList.toggle('vk-dark-theme', isDarkTheme);
-                    }
-                })
-                .catch(error => {
-                    console.error('Ошибка получения конфигурации:', error);
-                });
-        } catch (e) {
-            console.error('Исключение при повторной инициализации:', e);
-        }
+// Функция для инициализации VK Bridge
+function initVKBridge(bridge) {
+    try {
+        // Инициализация VK Bridge
+        bridge.send('VKWebAppInit')
+            .then(data => {
+                console.log('VK Bridge успешно инициализирован:', data);
+                
+                // Получаем конфигурацию приложения для применения темы
+                bridge.send('VKWebAppGetConfig')
+                    .then(config => {
+                        console.log('Получена конфигурация приложения:', config);
+                        if (config && config.scheme) {
+                            applyVKTheme(config.scheme);
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Ошибка получения конфигурации:', error);
+                    });
+                
+                // Получаем данные пользователя
+                bridge.send('VKWebAppGetUserInfo')
+                    .then(userData => {
+                        console.log('Данные пользователя получены:', userData);
+                        showUserInfo(userData);
+                    })
+                    .catch(error => {
+                        console.error('Ошибка получения данных пользователя:', error);
+                        showGuestMode();
+                    });
+            })
+            .catch(error => {
+                console.error('Ошибка инициализации VK Bridge:', error);
+                showGuestMode();
+            });
+        
+        // Подписка на события VK Bridge для отслеживания темы
+        bridge.subscribe(event => {
+            if (event.detail && event.detail.type === 'VKWebAppUpdateConfig') {
+                applyVKTheme(event.detail.data.scheme);
+            }
+        });
+    } catch (e) {
+        console.error('Критическая ошибка при работе с VK Bridge:', e);
+        showGuestMode();
     }
-});
+}
 
-// Глобальный обработчик ошибок для отладки
-window.onerror = function(message, source, lineno, colno, error) {
-    console.error('Глобальная ошибка:', {
-        message: message,
-        source: source,
-        lineno: lineno,
-        colno: colno,
-        error: error
-    });
-    return false;
-};
+// Обработка темы VK
+function applyVKTheme(scheme) {
+    console.log('Применяется тема:', scheme);
+    const isDarkTheme = ['space_gray', 'vkcom_dark'].includes(scheme);
+    document.documentElement.classList.toggle('vk-dark-theme', isDarkTheme);
+}
 
 // Глобальные переменные
 let currentQuestion = 0;
@@ -98,6 +92,7 @@ let selectedOption = null;
 let questionsForQuiz = []; // Массив для хранения выбранных вопросов
 const totalQuestionsToShow = 20; // Количество вопросов для показа в одном тесте
 let currentUserData = null; // Данные текущего пользователя
+let vkBridgeInstance = null; // Экземпляр VK Bridge для использования в функциях
 
 // DOM элементы - проверяем их существование перед использованием
 const startScreen = document.getElementById('start-screen');
@@ -117,7 +112,7 @@ const restartQuizButton = document.getElementById('restart-quiz');
 // Проверяем наличие необходимых элементов
 if (!startScreen || !quizContainer || !resultsContainer || 
     !questionElement || !optionsElement || !progressBar) {
-    console.error('Ошибка: Некоторые необходимые элементы не найдены в DOM. Проверьте HTML-структуру.');
+    console.error('Ошибка: Некоторые необходимые элементы не найдены в DOM');
 }
 
 // Гостевой режим для тестирования (если VK API недоступен)
@@ -148,7 +143,7 @@ function showUserInfo(userData) {
     if (userData && userData.photo_100) {
         userInfoElement.innerHTML = `
             <img src="${userData.photo_100}" alt="${userData.first_name}">
-            <span>${userData.first_name} ${userData.last_name}</span>
+            <span>${userData.first_name}</span>
         `;
     }
 }
@@ -156,6 +151,8 @@ function showUserInfo(userData) {
 // Начало квиза - проверяем наличие кнопки перед добавлением обработчика
 if (startQuizButton) {
     startQuizButton.addEventListener('click', startQuiz);
+} else {
+    console.error('Ошибка: кнопка startQuizButton не найдена');
 }
 
 // Функция для перемешивания массива (алгоритм Фишера-Йейтса)
@@ -182,7 +179,10 @@ function selectRandomQuestions() {
 }
 
 function startQuiz() {
-    if (!startScreen || !quizContainer) return;
+    if (!startScreen || !quizContainer) {
+        console.error('Ошибка: не найдены необходимые элементы DOM');
+        return;
+    }
     
     startScreen.style.display = 'none';
     quizContainer.style.display = 'block';
@@ -337,15 +337,25 @@ if (shareResultsButton) {
         const percentage = Math.round((score / questionsForQuiz.length) * 100);
         const message = `Я прошел Анатомический квиз и набрал ${percentage}%! Попробуй и ты!`;
         
-        if (typeof vkBridge !== 'undefined') {
-            vkBridge.send('VKWebAppShare', {
+        let bridge = null;
+        if (window.vkBridgeInstance) {
+            bridge = window.vkBridgeInstance;
+        } else if (window.vkBridge) {
+            bridge = window.vkBridge;
+        } else if (typeof vkBridge !== 'undefined') {
+            bridge = vkBridge;
+        }
+        
+        if (bridge) {
+            bridge.send('VKWebAppShare', {
                 message: message
             })
             .then(data => {
                 console.log('Поделились результатом:', data);
             })
             .catch(error => {
-                console.error('Error sharing results:', error);
+                console.error('Ошибка при шеринге:', error);
+                alert(message);
             });
         } else {
             alert(message);
