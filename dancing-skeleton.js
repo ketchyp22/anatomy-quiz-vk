@@ -1,369 +1,235 @@
-// animated-heart-stethoscope.js
+// animated-pulse.js
 (function() {
-    // Добавляем стили для анимированного фонендоскопа
-    function addStethoscopeStyles() {
+    // Добавляем стили для анимированного пульса
+    function addPulseStyles() {
         const style = document.createElement('style');
         style.textContent = `
-            .stethoscope-container {
+            .pulse-container {
                 position: absolute;
-                bottom: 10px;
+                bottom: 20px;
                 right: 20px;
-                width: 120px;
-                height: 150px;
+                width: 150px;
+                height: 60px;
                 z-index: 5;
                 cursor: pointer;
+                overflow: hidden;
             }
             
-            .stethoscope {
+            .pulse-line {
+                position: relative;
                 width: 100%;
                 height: 100%;
-                position: relative;
-                transform-origin: center;
-                animation: stethoscope-float 3s infinite ease-in-out;
-            }
-            
-            /* Ушная дуга */
-            .stethoscope-earpiece {
-                position: absolute;
-                top: 0;
-                left: 50%;
-                transform: translateX(-50%);
-                width: 60px;
-                height: 10px;
-                background-color: #C0C0C0;
-                border-radius: 10px 10px 0 0;
-                z-index: 2;
-            }
-            
-            /* Ушные наконечники */
-            .stethoscope-ear-tips {
-                position: absolute;
-                top: 0;
-                left: 50%;
-                transform: translateX(-50%);
-                width: 70px;
-                height: 10px;
                 display: flex;
-                justify-content: space-between;
+                align-items: center;
+                justify-content: center;
             }
             
-            .stethoscope-ear-tip {
-                width: 10px;
-                height: 10px;
-                background-color: #009688;
-                border-radius: 50%;
-            }
-            
-            /* Трубки от ушей */
-            .stethoscope-tube-left,
-            .stethoscope-tube-right {
+            .pulse-svg {
                 position: absolute;
-                top: 10px;
-                width: 6px;
                 height: 40px;
-                background-color: #009688;
-                border-radius: 5px;
-            }
-            
-            .stethoscope-tube-left {
-                left: calc(50% - 25px);
-                transform-origin: top;
-                transform: rotate(20deg);
-                animation: tube-wave-left 3s infinite ease-in-out;
-            }
-            
-            .stethoscope-tube-right {
-                right: calc(50% - 25px);
-                transform-origin: top;
-                transform: rotate(-20deg);
-                animation: tube-wave-right 3s infinite ease-in-out;
-            }
-            
-            /* Соединение Y-образное */
-            .stethoscope-y-piece {
-                position: absolute;
-                top: 48px;
-                left: 50%;
-                transform: translateX(-50%);
-                width: 10px;
-                height: 15px;
-                background-color: #C0C0C0;
-                border-radius: 3px;
-                z-index: 2;
-            }
-            
-            /* Основная трубка */
-            .stethoscope-tube-main {
-                position: absolute;
-                top: 60px;
-                left: 50%;
-                transform: translateX(-50%);
-                width: 8px;
-                height: 40px;
-                background-color: #009688;
-                border-radius: 5px;
-            }
-            
-            /* Металлические кольца на трубке */
-            .stethoscope-ring-1,
-            .stethoscope-ring-2 {
-                position: absolute;
-                left: 50%;
-                transform: translateX(-50%);
-                width: 12px;
-                height: 4px;
-                background-color: #C0C0C0;
-                border-radius: 2px;
-                z-index: 2;
-            }
-            
-            .stethoscope-ring-1 {
-                top: 70px;
-            }
-            
-            .stethoscope-ring-2 {
-                top: 90px;
-            }
-            
-            /* Сердце (головка фонендоскопа) */
-            .stethoscope-heart {
-                position: absolute;
-                top: 105px;
-                left: 50%;
-                transform: translateX(-50%) rotate(45deg);
-                width: 25px;
-                height: 25px;
-                background-color: #ff5a5a;
-                animation: heart-pulse 1s infinite;
-                z-index: 1;
-                box-shadow: 0 2px 5px rgba(0,0,0,0.2);
-            }
-            
-            .stethoscope-heart:before,
-            .stethoscope-heart:after {
-                content: "";
-                position: absolute;
-                width: 25px;
-                height: 25px;
-                background-color: #ff5a5a;
-                border-radius: 50%;
-                box-shadow: 0 2px 5px rgba(0,0,0,0.2);
-            }
-            
-            .stethoscope-heart:before {
-                top: -13px;
+                width: 500px;
                 left: 0;
+                animation: pulse-move 6s linear infinite;
             }
             
-            .stethoscope-heart:after {
-                top: 0;
-                left: -13px;
+            .pulse-path {
+                stroke: #FF5A5A;
+                stroke-width: 2;
+                fill: none;
+                stroke-linecap: round;
+                stroke-linejoin: round;
             }
             
-            /* Металлическое кольцо вокруг головки */
-            .stethoscope-chest-piece-ring {
+            .pulse-glow {
+                stroke: #FF5A5A;
+                stroke-width: 1;
+                fill: none;
+                stroke-linecap: round;
+                stroke-linejoin: round;
+                filter: blur(4px);
+                opacity: 0.6;
+            }
+            
+            /* Круги пульса при R-зубце ЭКГ */
+            .pulse-highlight {
                 position: absolute;
-                top: 120px;
-                left: 50%;
-                transform: translateX(-50%);
-                width: 40px;
-                height: 5px;
-                background-color: #C0C0C0;
-                border-radius: 5px;
-                z-index: 2;
-            }
-            
-            /* Круги пульса */
-            .pulse-rings {
-                position: absolute;
-                top: 110px;
-                left: 50%;
-                transform: translateX(-50%);
-                width: 60px;
-                height: 60px;
-                z-index: 0;
-            }
-            
-            .pulse-ring {
-                position: absolute;
+                width: 15px;
+                height: 15px;
+                border-radius: 50%;
+                background: rgba(255, 90, 90, 0.4);
+                box-shadow: 0 0 10px rgba(255, 90, 90, 0.6);
                 top: 50%;
                 left: 50%;
-                transform: translate(-50%, -50%);
-                width: 30px;
-                height: 30px;
-                border: 2px solid rgba(255, 90, 90, 0.6);
-                border-radius: 50%;
-                opacity: 0;
+                transform: translate(-50%, -50%) scale(0);
+                animation: pulse-highlight 2s infinite;
             }
             
-            .pulse-ring-1 {
-                animation: pulse-ring 2s infinite;
-                animation-delay: 0s;
-            }
-            
-            .pulse-ring-2 {
-                animation: pulse-ring 2s infinite;
-                animation-delay: 0.5s;
-            }
-            
-            .pulse-ring-3 {
-                animation: pulse-ring 2s infinite;
-                animation-delay: 1s;
-            }
-            
-            /* Символы сердцебиения */
-            .heartbeat-symbols {
+            /* Сердечко в центре */
+            .pulse-heart {
                 position: absolute;
-                width: 100%;
-                height: 100%;
-                top: 0;
+                width: 20px;
+                height: 20px;
+                top: 50%;
+                left: 50%;
+                transform: translate(-50%, -50%) rotate(45deg) scale(1);
+                background-color: rgba(255, 90, 90, 0.85);
+                animation: heart-beat 2s infinite;
+                z-index: 3;
+                box-shadow: 0 0 8px rgba(255, 90, 90, 0.5);
+            }
+            
+            .pulse-heart:before,
+            .pulse-heart:after {
+                content: "";
+                position: absolute;
+                width: 20px;
+                height: 20px;
+                background-color: rgba(255, 90, 90, 0.85);
+                border-radius: 50%;
+            }
+            
+            .pulse-heart:before {
+                top: -10px;
                 left: 0;
             }
             
-            .heartbeat-symbol {
-                position: absolute;
-                font-size: 14px;
-                opacity: 0;
-                color: #ff5a5a;
-                animation: float-symbol 2s linear infinite;
+            .pulse-heart:after {
+                top: 0;
+                left: -10px;
             }
             
-            .symbol-1 { top: 60px; left: 15px; animation-delay: 0s; }
-            .symbol-2 { top: 40px; right: 15px; animation-delay: 0.7s; }
-            .symbol-3 { top: 90px; left: 10px; animation-delay: 1.4s; }
+            /* Затухающий след пульса */
+            .pulse-fade {
+                position: absolute;
+                height: 40px;
+                width: 80px;
+                right: 0;
+                background: linear-gradient(to right, rgba(255, 255, 255, 0), rgba(255, 255, 255, 0.9));
+                z-index: 2;
+            }
             
             /* Анимации */
-            @keyframes stethoscope-float {
-                0%, 100% { transform: translateY(0); }
-                50% { transform: translateY(-5px); }
+            @keyframes pulse-move {
+                0% {
+                    transform: translateX(0);
+                }
+                100% {
+                    transform: translateX(-350px);
+                }
             }
             
-            @keyframes tube-wave-left {
-                0%, 100% { transform: rotate(20deg); }
-                50% { transform: rotate(25deg); }
+            @keyframes pulse-highlight {
+                0%, 100% {
+                    transform: translate(-50%, -50%) scale(0);
+                    opacity: 0;
+                }
+                10% {
+                    transform: translate(-50%, -50%) scale(1.5);
+                    opacity: 1;
+                }
+                30% {
+                    transform: translate(-50%, -50%) scale(0);
+                    opacity: 0;
+                }
             }
             
-            @keyframes tube-wave-right {
-                0%, 100% { transform: rotate(-20deg); }
-                50% { transform: rotate(-25deg); }
+            @keyframes heart-beat {
+                0%, 100% {
+                    transform: translate(-50%, -50%) rotate(45deg) scale(1);
+                }
+                15% {
+                    transform: translate(-50%, -50%) rotate(45deg) scale(1.3);
+                }
+                30% {
+                    transform: translate(-50%, -50%) rotate(45deg) scale(1);
+                }
+                45% {
+                    transform: translate(-50%, -50%) rotate(45deg) scale(1.2);
+                }
+                60% {
+                    transform: translate(-50%, -50%) rotate(45deg) scale(1);
+                }
             }
             
-            @keyframes heart-pulse {
-                0%, 100% { transform: translateX(-50%) rotate(45deg) scale(1); }
-                50% { transform: translateX(-50%) rotate(45deg) scale(1.1); }
-            }
-            
-            @keyframes pulse-ring {
-                0% { width: 35px; height: 35px; opacity: 0.8; }
-                100% { width: 60px; height: 60px; opacity: 0; }
-            }
-            
-            @keyframes float-symbol {
-                0% { transform: translate(0, 0); opacity: 0; }
-                10% { opacity: 1; }
-                90% { opacity: 1; }
-                100% { transform: translate(-10px, -20px); opacity: 0; }
-            }
-            
-            .vk-dark-theme .stethoscope-tube-left,
-            .vk-dark-theme .stethoscope-tube-right,
-            .vk-dark-theme .stethoscope-tube-main,
-            .vk-dark-theme .stethoscope-ear-tip {
-                background-color: #009688;
-            }
-            
-            .vk-dark-theme .stethoscope-earpiece,
-            .vk-dark-theme .stethoscope-y-piece,
-            .vk-dark-theme .stethoscope-ring-1,
-            .vk-dark-theme .stethoscope-ring-2,
-            .vk-dark-theme .stethoscope-chest-piece-ring {
-                background-color: #A0A0A0;
+            /* Темная тема */
+            .vk-dark-theme .pulse-fade {
+                background: linear-gradient(to right, rgba(40, 40, 40, 0), rgba(40, 40, 40, 0.9));
             }
         `;
         document.head.appendChild(style);
     }
     
-    // Создаем анимированный фонендоскоп
-    function createAnimatedStethoscope() {
+    // Создаем анимированный пульс
+    function createAnimatedPulse() {
         const startScreen = document.getElementById('start-screen');
         if (!startScreen) return;
         
-        // Создаем контейнер для фонендоскопа
-        const stethoscopeContainer = document.createElement('div');
-        stethoscopeContainer.className = 'stethoscope-container';
+        // Создаем контейнер для пульса
+        const pulseContainer = document.createElement('div');
+        pulseContainer.className = 'pulse-container';
         
-        // Создаем разметку фонендоскопа
-        stethoscopeContainer.innerHTML = `
-            <div class="stethoscope">
-                <div class="stethoscope-earpiece"></div>
-                <div class="stethoscope-ear-tips">
-                    <div class="stethoscope-ear-tip"></div>
-                    <div class="stethoscope-ear-tip"></div>
-                </div>
-                <div class="stethoscope-tube-left"></div>
-                <div class="stethoscope-tube-right"></div>
-                <div class="stethoscope-y-piece"></div>
-                <div class="stethoscope-tube-main"></div>
-                <div class="stethoscope-ring-1"></div>
-                <div class="stethoscope-ring-2"></div>
-                <div class="stethoscope-heart"></div>
-                <div class="stethoscope-chest-piece-ring"></div>
-                <div class="pulse-rings">
-                    <div class="pulse-ring pulse-ring-1"></div>
-                    <div class="pulse-ring pulse-ring-2"></div>
-                    <div class="pulse-ring pulse-ring-3"></div>
-                </div>
-                <div class="heartbeat-symbols">
-                    <div class="heartbeat-symbol symbol-1">❤</div>
-                    <div class="heartbeat-symbol symbol-2">❤</div>
-                    <div class="heartbeat-symbol symbol-3">❤</div>
-                </div>
+        // Создаем SVG пульс (повторяющаяся ЭКГ)
+        const pulseSvgContent = `
+            <svg class="pulse-svg" viewBox="0 0 500 60" preserveAspectRatio="none">
+                <!-- Путь ЭКГ с эффектом свечения -->
+                <path class="pulse-glow" d="M0,30 L30,30 L35,30 L40,10 L45,50 L50,30 L55,30 L70,30 L75,30 L80,30 L85,10 L90,50 L95,30 L100,30 L130,30 L135,30 L140,10 L145,50 L150,30 L155,30 L170,30 L175,30 L180,30 L185,10 L190,50 L195,30 L200,30 L230,30 L235,30 L240,10 L245,50 L250,30 L255,30 L270,30 L275,30 L280,30 L285,10 L290,50 L295,30 L300,30 L330,30 L335,30 L340,10 L345,50 L350,30 L355,30 L370,30 L375,30 L380,30 L385,10 L390,50 L395,30 L400,30 L430,30 L435,30 L440,10 L445,50 L450,30 L455,30 L470,30 L475,30 L480,30 L485,10 L490,50 L495,30 L500,30"></path>
+                
+                <!-- Основной путь ЭКГ -->
+                <path class="pulse-path" d="M0,30 L30,30 L35,30 L40,10 L45,50 L50,30 L55,30 L70,30 L75,30 L80,30 L85,10 L90,50 L95,30 L100,30 L130,30 L135,30 L140,10 L145,50 L150,30 L155,30 L170,30 L175,30 L180,30 L185,10 L190,50 L195,30 L200,30 L230,30 L235,30 L240,10 L245,50 L250,30 L255,30 L270,30 L275,30 L280,30 L285,10 L290,50 L295,30 L300,30 L330,30 L335,30 L340,10 L345,50 L350,30 L355,30 L370,30 L375,30 L380,30 L385,10 L390,50 L395,30 L400,30 L430,30 L435,30 L440,10 L445,50 L450,30 L455,30 L470,30 L475,30 L480,30 L485,10 L490,50 L495,30 L500,30"></path>
+            </svg>
+        `;
+        
+        // Создаем разметку пульса
+        pulseContainer.innerHTML = `
+            <div class="pulse-line">
+                ${pulseSvgContent}
+                <div class="pulse-heart"></div>
+                <div class="pulse-highlight"></div>
+                <div class="pulse-fade"></div>
             </div>
         `;
         
-        // Добавляем фонендоскоп на страницу
-        startScreen.appendChild(stethoscopeContainer);
+        // Добавляем пульс на страницу
+        startScreen.appendChild(pulseContainer);
         
         // Добавляем интерактивность
-        stethoscopeContainer.addEventListener('mouseenter', () => {
-            const heart = stethoscopeContainer.querySelector('.stethoscope-heart');
-            heart.style.animationDuration = '0.5s';
+        pulseContainer.addEventListener('mouseenter', () => {
+            const pulseSvg = pulseContainer.querySelector('.pulse-svg');
+            pulseSvg.style.animationDuration = '3s';
             
-            const pulseRings = stethoscopeContainer.querySelectorAll('.pulse-ring');
-            pulseRings.forEach(ring => {
-                ring.style.animationDuration = '1.2s';
-            });
+            const pulseHeart = pulseContainer.querySelector('.pulse-heart');
+            pulseHeart.style.animationDuration = '1s';
         });
         
-        stethoscopeContainer.addEventListener('mouseleave', () => {
-            const heart = stethoscopeContainer.querySelector('.stethoscope-heart');
-            heart.style.animationDuration = '1s';
+        pulseContainer.addEventListener('mouseleave', () => {
+            const pulseSvg = pulseContainer.querySelector('.pulse-svg');
+            pulseSvg.style.animationDuration = '6s';
             
-            const pulseRings = stethoscopeContainer.querySelectorAll('.pulse-ring');
-            pulseRings.forEach(ring => {
-                ring.style.animationDuration = '2s';
-            });
+            const pulseHeart = pulseContainer.querySelector('.pulse-heart');
+            pulseHeart.style.animationDuration = '2s';
         });
         
-        // Добавляем звук сердцебиения при клике
-        stethoscopeContainer.addEventListener('click', () => {
-            // Можно добавить звук сердцебиения, если есть аудио файл
-            console.log('❤ Тук-тук! Звук сердцебиения');
+        // Добавляем ускорение анимации при клике
+        pulseContainer.addEventListener('click', () => {
+            console.log('💓 Ускорение пульса!');
             
-            // Увеличиваем интенсивность пульсации при клике
-            const heart = stethoscopeContainer.querySelector('.stethoscope-heart');
-            heart.style.animationDuration = '0.3s';
+            const pulseSvg = pulseContainer.querySelector('.pulse-svg');
+            pulseSvg.style.animationDuration = '1.5s';
+            
+            const pulseHeart = pulseContainer.querySelector('.pulse-heart');
+            pulseHeart.style.animationDuration = '0.6s';
             
             setTimeout(() => {
-                heart.style.animationDuration = '1s';
-            }, 1500);
+                pulseSvg.style.animationDuration = '6s';
+                pulseHeart.style.animationDuration = '2s';
+            }, 3000);
         });
     }
     
     // Инициализация
     document.addEventListener('DOMContentLoaded', () => {
-        addStethoscopeStyles();
-        createAnimatedStethoscope();
-        console.log('❤ Анимированный фонендоскоп в форме сердечка добавлен на начальный экран');
+        addPulseStyles();
+        createAnimatedPulse();
+        console.log('💓 Анимированный пульс добавлен на начальный экран');
     });
 })();
