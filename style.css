@@ -177,6 +177,10 @@ p {
     box-shadow: 0 4px 10px rgba(74, 118, 168, 0.3);
 }
 
+.difficulty-btn.active.hard {
+    animation: pulse 2s infinite;
+}
+
 .difficulty-btn:disabled {
     opacity: 0.7;
     cursor: not-allowed;
@@ -210,6 +214,43 @@ p {
 #start-quiz:active, .btn-start:active {
     transform: translateY(-1px);
     box-shadow: 0 3px 10px rgba(74, 118, 168, 0.3);
+}
+
+/* Эффект блеска для кнопок */
+#start-quiz::after, .btn-start::after {
+    content: '';
+    position: absolute;
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    background: linear-gradient(
+        to right,
+        rgba(255, 255, 255, 0) 0%,
+        rgba(255, 255, 255, 0.3) 50%,
+        rgba(255, 255, 255, 0) 100%
+    );
+    transform: rotate(30deg);
+    opacity: 0;
+    transition: opacity 0.3s;
+}
+
+#start-quiz:hover::after, .btn-start:hover::after {
+    animation: shine 1.5s ease-in-out;
+}
+
+@keyframes shine {
+    0% {
+        opacity: 0;
+        left: -50%;
+    }
+    50% {
+        opacity: 0.7;
+    }
+    100% {
+        opacity: 0;
+        left: 150%;
+    }
 }
 
 /* Контейнер с вопросами */
@@ -484,16 +525,213 @@ p {
     --progress-bg: #404040;
 }
 
-/* Базовые анимации для совместимости со скриптами анимаций */
+/* Стили для анимации счета */
+.score-animation {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    color: #4CAF50;
+    font-size: 80px;
+    font-weight: bold;
+    animation: scorePopup 1s ease-out forwards;
+    z-index: 100;
+    pointer-events: none;
+}
+
+@keyframes scorePopup {
+    0% {
+        opacity: 0;
+        transform: translate(-50%, -50%) scale(0.5);
+    }
+    50% {
+        opacity: 1;
+        transform: translate(-50%, -50%) scale(1.2);
+    }
+    100% {
+        opacity: 0;
+        transform: translate(-50%, -50%) scale(1);
+    }
+}
+
+/* Стили для анимированного фона */
+.anatomy-background-wrapper {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    z-index: -1;
+    opacity: 0.1;
+}
+
+.anatomy-symbol {
+    position: absolute;
+    user-select: none;
+    opacity: 0.7;
+}
+
+@keyframes float {
+    0%, 100% {
+        transform: translateY(0) rotate(0deg);
+    }
+    50% {
+        transform: translateY(-20px) rotate(10deg);
+    }
+}
+
+/* Стили для танцующего скелета */
+#dancing-skeleton {
+    position: absolute;
+    bottom: 10px;
+    right: 10px;
+    font-size: 50px;
+    animation: dance 2s infinite;
+}
+
+@keyframes dance {
+    0%, 100% {
+        transform: rotate(0deg);
+    }
+    25% {
+        transform: rotate(20deg) translateY(-10px);
+    }
+    50% {
+        transform: rotate(0deg);
+    }
+    75% {
+        transform: rotate(-20deg) translateY(-10px);
+    }
+}
+
+/* Стили для пульсирующей линии */
+.pulse-line-container {
+    position: absolute;
+    bottom: 20px;
+    right: 20px;
+    width: 150px;
+    height: 40px;
+    z-index: 5;
+}
+
+.pulse-line-svg {
+    width: 100%;
+    height: 100%;
+    overflow: visible;
+}
+
+.pulse-line-path {
+    stroke: #FF5A5A;
+    stroke-width: 2.5;
+    fill: none;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    stroke-dasharray: 300;
+    stroke-dashoffset: 300;
+    animation: pulse-line-draw 2s forwards infinite;
+}
+
+@keyframes pulse-line-draw {
+    0% {
+        stroke-dashoffset: 300;
+    }
+    100% {
+        stroke-dashoffset: 0;
+    }
+}
+
+/* Стили для кнопки включения/выключения звука */
+.sound-toggle {
+    position: fixed;
+    bottom: 20px;
+    left: 20px;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: var(--btn-primary-bg);
+    color: white;
+    border: none;
+    font-size: 20px;
+    cursor: pointer;
+    z-index: 100;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s ease;
+}
+
+.sound-toggle:hover {
+    transform: scale(1.1);
+}
+
+/* Базовые анимации */
 @keyframes fadeIn {
     from { opacity: 0; transform: translateY(20px); }
     to { opacity: 1; transform: translateY(0); }
+}
+
+.fadeIn {
+    animation: fadeIn 0.5s ease forwards;
 }
 
 @keyframes pulse {
     0% { box-shadow: 0 0 0 0 rgba(74, 118, 168, 0.7); }
     70% { box-shadow: 0 0 0 10px rgba(74, 118, 168, 0); }
     100% { box-shadow: 0 0 0 0 rgba(74, 118, 168, 0); }
+}
+
+/* Стили для улучшенного отображения результатов */
+.result-emoji {
+    font-size: 64px;
+    margin: 15px 0;
+    animation: bounce 2s infinite;
+}
+
+.result-percentage {
+    font-size: 48px;
+    font-weight: 700;
+    margin: 15px 0;
+    color: var(--btn-primary-bg);
+}
+
+.result-percentage.excellent {
+    color: #4CAF50;
+}
+
+.result-percentage.good {
+    color: #8BC34A;
+}
+
+.result-percentage.average {
+    color: #FFC107;
+}
+
+.result-percentage.needs-improvement {
+    color: #FF9800;
+}
+
+.correct-answers {
+    font-size: 18px;
+    margin: 15px 0;
+    color: var(--secondary-text);
+}
+
+.result-message {
+    font-size: 20px;
+    font-weight: 600;
+    margin: 15px 0;
+    color: var(--text-color);
+}
+
+@keyframes bounce {
+    0%, 100% {
+        transform: translateY(0);
+    }
+    50% {
+        transform: translateY(-15px);
+    }
 }
 
 /* Адаптивность для мобильных устройств */
@@ -539,5 +777,16 @@ p {
     
     #score p:nth-child(2) {
         font-size: 32px;
+    }
+    
+    .result-percentage {
+        font-size: 40px;
+    }
+    
+    .pulse-line-container {
+        width: 120px;
+        height: 30px;
+        bottom: 15px;
+        right: 15px;
     }
 }
