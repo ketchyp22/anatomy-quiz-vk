@@ -60,6 +60,19 @@
                 margin-bottom: 20px;
             }
             
+            .quiz-share-difficulty {
+                display: inline-block;
+                font-size: 12px;
+                background-color: rgba(255, 255, 255, 0.2);
+                padding: 3px 8px;
+                border-radius: 12px;
+                margin-bottom: 5px;
+            }
+            
+            .quiz-share-difficulty.hard {
+                background-color: rgba(255, 87, 34, 0.7);
+            }
+            
             .quiz-share-score {
                 font-size: 28px;
                 font-weight: bold;
@@ -135,6 +148,7 @@
                 <button class="quiz-share-close" id="share-close">×</button>
                 <h3 class="quiz-share-title">Поделиться результатом</h3>
                 <div class="quiz-share-preview">
+                    <div><span id="difficulty-badge" class="quiz-share-difficulty">Обычный уровень</span></div>
                     <div>Анатомический квиз</div>
                     <div class="quiz-share-score" id="modal-score">0%</div>
                     <div id="modal-message">Мой результат!</div>
@@ -226,10 +240,26 @@
             });
         }
         
+        // Функция для определения типа сложности
+        function isDifficultMode() {
+            // Проверяем использовались ли сложные вопросы
+            if (window.difficultQuestions && window.questions === window.difficultQuestions) {
+                return true;
+            }
+            
+            // Проверяем badge на экране результатов
+            const difficultyBadge = document.querySelector('.difficulty-badge');
+            if (difficultyBadge && difficultyBadge.classList.contains('hard')) {
+                return true;
+            }
+            
+            return false;
+        }
+        
         // Функция для получения корректного процента результата
         function getResultPercentage() {
             // Пробуем получить процент из видимого элемента 
-            const percentElement = document.querySelector('#score p:nth-child(2)');
+            const percentElement = document.querySelector('.result-percentage');
             if (percentElement) {
                 const percentMatch = percentElement.textContent.match(/(\d+)/);
                 if (percentMatch) {
@@ -238,7 +268,7 @@
             }
             
             // Если не удалось получить из элемента, вычисляем по счету
-            const scoreText = document.querySelector('#score p:first-child');
+            const scoreText = document.querySelector('.correct-answers');
             if (scoreText) {
                 const match = scoreText.textContent.match(/на (\d+) из (\d+)/);
                 if (match && match.length >= 3) {
@@ -266,6 +296,9 @@
                 // Предотвращаем стандартное поведение
                 event.preventDefault();
                 
+                // Определяем режим сложности
+                const isHardMode = isDifficultMode();
+                
                 // Получаем актуальный процент
                 let percentage = getResultPercentage();
                 
@@ -275,7 +308,7 @@
                     percentage = 0;
                 }
                 
-                console.log("Подготовка шеринга с процентом:", percentage + "%");
+                console.log("Подготовка шеринга с процентом:", percentage + "%, сложность:", isHardMode ? "сложная" : "обычная");
                 
                 // Обновляем данные в модальном окне
                 const modalScore = document.getElementById('modal-score');
@@ -283,16 +316,42 @@
                     modalScore.textContent = percentage + "%";
                 }
                 
+                // Обновляем бейдж сложности
+                const difficultyBadge = document.getElementById('difficulty-badge');
+                if (difficultyBadge) {
+                    if (isHardMode) {
+                        difficultyBadge.textContent = "Сложный уровень";
+                        difficultyBadge.classList.add('hard');
+                    } else {
+                        difficultyBadge.textContent = "Обычный уровень";
+                        difficultyBadge.classList.remove('hard');
+                    }
+                }
+                
                 // Создаем сообщение для шеринга
                 let shareMessage = '';
-                if (percentage >= 90) {
-                    shareMessage = `Я эксперт в анатомии! Набрал ${percentage}% в анатомическом квизе!`;
-                } else if (percentage >= 70) {
-                    shareMessage = `Хорошо знаю анатомию! Мой результат ${percentage}% в анатомическом квизе!`;
-                } else if (percentage >= 50) {
-                    shareMessage = `Неплохой результат в анатомическом квизе - ${percentage}%. Сможешь лучше?`;
+                if (isHardMode) {
+                    // Сообщения для сложного режима
+                    if (percentage >= 90) {
+                        shareMessage = `Я настоящий эксперт в анатомии! Набрал ${percentage}% в СЛОЖНОМ анатомическом квизе!`;
+                    } else if (percentage >= 70) {
+                        shareMessage = `Хорошо знаю анатомию! Набрал ${percentage}% в СЛОЖНОМ анатомическом квизе!`;
+                    } else if (percentage >= 50) {
+                        shareMessage = `Неплохой результат в СЛОЖНОМ анатомическом квизе - ${percentage}%. Сможешь лучше?`;
+                    } else {
+                        shareMessage = `Я прошел СЛОЖНЫЙ анатомический квиз и набрал ${percentage}%. Попробуй и ты!`;
+                    }
                 } else {
-                    shareMessage = `Я прошел анатомический квиз и набрал ${percentage}%. Попробуй и ты!`;
+                    // Сообщения для обычного режима
+                    if (percentage >= 90) {
+                        shareMessage = `Я эксперт в анатомии! Набрал ${percentage}% в анатомическом квизе!`;
+                    } else if (percentage >= 70) {
+                        shareMessage = `Хорошо знаю анатомию! Мой результат ${percentage}% в анатомическом квизе!`;
+                    } else if (percentage >= 50) {
+                        shareMessage = `Неплохой результат в анатомическом квизе - ${percentage}%. Сможешь лучше?`;
+                    } else {
+                        shareMessage = `Я прошел анатомический квиз и набрал ${percentage}%. Попробуй и ты!`;
+                    }
                 }
                 
                 const shareText = document.getElementById('share-text');
