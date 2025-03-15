@@ -238,6 +238,7 @@ body {
 /* Стили контейнера викторины */
 .quiz-container {
     padding: 20px;
+    position: relative;
 }
 
 .progress-bar-container {
@@ -356,6 +357,114 @@ body {
     background-color: rgba(81, 129, 184, 0.2);
 }
 
+/* Стили для селектора сложности */
+.difficulty-selector {
+    margin: 20px 0;
+    text-align: center;
+}
+
+.difficulty-selector h3 {
+    margin-bottom: 15px;
+    font-size: 18px;
+    color: var(--secondary-text);
+}
+
+.difficulty-buttons {
+    display: flex;
+    justify-content: center;
+    gap: 15px;
+    margin-bottom: 25px;
+}
+
+.difficulty-btn {
+    padding: 10px 20px;
+    border-radius: 30px;
+    border: 2px solid var(--btn-primary-bg);
+    background-color: transparent;
+    color: var(--btn-primary-bg);
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.difficulty-btn:hover {
+    background-color: rgba(74, 118, 168, 0.1);
+    transform: translateY(-2px);
+}
+
+.difficulty-btn.active {
+    background-color: var(--btn-primary-bg);
+    color: white;
+}
+
+.difficulty-btn:disabled {
+    opacity: 0.7;
+    cursor: not-allowed;
+}
+
+/* Стили для индикатора сложности */
+.difficulty-indicator {
+    display: inline-block;
+    padding: 4px 10px;
+    background-color: var(--btn-primary-bg);
+    color: white;
+    border-radius: 12px;
+    font-size: 12px;
+    font-weight: 600;
+    position: absolute;
+    top: 15px;
+    right: 15px;
+}
+
+.difficulty-indicator.hard {
+    background-color: #e53935;
+}
+
+/* Значок сложности на странице результатов */
+.difficulty-badge {
+    display: inline-block;
+    padding: 5px 12px;
+    background-color: var(--btn-primary-bg);
+    color: white;
+    border-radius: 15px;
+    font-size: 14px;
+    font-weight: 600;
+    margin-bottom: 15px;
+}
+
+.difficulty-badge.hard {
+    background-color: #e53935;
+}
+
+/* Стили для спиннера загрузки */
+.loading-spinner {
+    display: inline-block;
+    animation: spin 1.5s linear infinite;
+    margin-left: 5px;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+/* Стили для кнопки с ошибкой */
+.difficulty-btn.error {
+    border-color: #e53935;
+    color: #e53935;
+}
+
+/* Эффект пульсации для индикатора сложного режима */
+.difficulty-indicator.hard {
+    animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.05); box-shadow: 0 0 10px rgba(229, 57, 53, 0.5); }
+    100% { transform: scale(1); }
+}
+
 /* Адаптивность для мобильных устройств */
 @media (max-width: 480px) {
     .share-container {
@@ -378,5 +487,15 @@ body {
     
     .feature-item {
         margin: 10px;
+    }
+    
+    .difficulty-buttons {
+        flex-direction: column;
+        gap: 10px;
+    }
+    
+    .difficulty-btn {
+        width: 80%;
+        margin: 0 auto;
     }
 }
