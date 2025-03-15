@@ -18,13 +18,21 @@
     <!-- Основные вопросы -->
     <script src="questions.js"></script>
     
-    <!-- Загрузка сложных вопросов из JSON -->
+    <!-- Загрузка сложных вопросов из JSON и нормализация формата -->
     <script>
-        // Глобальная переменная для хранения сложных вопросов
-        window.difficultQuestions = [];
-        
-        // Загружаем сложные вопросы при загрузке страницы
+        // Загрузка сложных вопросов при загрузке страницы
         document.addEventListener('DOMContentLoaded', function() {
+            // Глобальные переменные для хранения оригинальных и сложных вопросов
+            window.originalQuestions = [];
+            window.difficultQuestions = [];
+            
+            // Сохраняем оригинальные вопросы, если они доступны
+            if (window.questions && Array.isArray(window.questions)) {
+                window.originalQuestions = [...window.questions];
+                console.log('Сохранены оригинальные вопросы:', window.originalQuestions.length);
+            }
+            
+            // Загружаем сложные вопросы
             fetch('difficult-questions.json')
                 .then(response => {
                     if (!response.ok) {
@@ -33,17 +41,73 @@
                     return response.json();
                 })
                 .then(data => {
-                    window.difficultQuestions = data;
-                    console.log(`Загружено ${data.length} сложных вопросов из difficult-questions.json`);
+                    if (!Array.isArray(data) || data.length === 0) {
+                        throw new Error('Загруженные данные не являются массивом или пусты');
+                    }
+                    
+                    // Нормализуем формат сложных вопросов
+                    window.difficultQuestions = data.map(question => {
+                        // Создаем копию вопроса
+                        const normalizedQuestion = {...question};
+                        
+                        // Если в вопросе есть поле answer, но нет correctAnswer
+                        if (normalizedQuestion.hasOwnProperty('answer') && !normalizedQuestion.hasOwnProperty('correctAnswer')) {
+                            normalizedQuestion.correctAnswer = normalizedQuestion.answer;
+                        }
+                        
+                        return normalizedQuestion;
+                    });
+                    
+                    console.log(`Загружено и нормализовано ${window.difficultQuestions.length} сложных вопросов`);
+                    
+                    // Назначаем обработчики для кнопок выбора сложности
+                    setupDifficultyButtons();
                     
                     // Создаем событие о загрузке сложных вопросов
-                    const event = new CustomEvent('difficultQuestionsLoaded', { detail: { count: data.length } });
+                    const event = new CustomEvent('difficultQuestionsLoaded', { 
+                        detail: { count: window.difficultQuestions.length } 
+                    });
                     document.dispatchEvent(event);
                 })
                 .catch(error => {
                     console.error('Ошибка при загрузке сложных вопросов:', error);
                 });
         });
+        
+        // Функция для настройки кнопок выбора сложности
+        function setupDifficultyButtons() {
+            const normalButton = document.getElementById('normal-difficulty');
+            const hardButton = document.getElementById('hard-difficulty');
+            
+            if (!normalButton || !hardButton) {
+                console.warn('Кнопки выбора сложности не найдены');
+                return;
+            }
+            
+            // Обработчик для обычных вопросов
+            normalButton.addEventListener('click', function() {
+                if (window.originalQuestions.length > 0) {
+                    window.questions = window.originalQuestions;
+                    console.log('Установлен набор обычных вопросов:', window.questions.length);
+                    
+                    // Визуальное выделение
+                    normalButton.classList.add('active');
+                    hardButton.classList.remove('active');
+                }
+            });
+            
+            // Обработчик для сложных вопросов
+            hardButton.addEventListener('click', function() {
+                if (window.difficultQuestions.length > 0) {
+                    window.questions = window.difficultQuestions;
+                    console.log('Установлен набор сложных вопросов:', window.questions.length);
+                    
+                    // Визуальное выделение
+                    hardButton.classList.add('active');
+                    normalButton.classList.remove('active');
+                }
+            });
+        }
     </script>
     
     <!-- Анимационные файлы и звуки -->
@@ -52,45 +116,9 @@
     <script src="animated-pulse-line.js"></script>
     <script src="sound-effects.js"></script>
     <script src="enhanced-results.js"></script>
+    <script src="enhanced-sharing.js"></script>
     
-    <!-- Модифицированный скрипт выбора сложности -->
-    <script>
-        // Модифицируем vk-difficulty.js для работы с загруженными сложными вопросами
-        document.addEventListener('difficultQuestionsLoaded', function(event) {
-            console.log(`Получено событие загрузки сложных вопросов: ${event.detail.count} вопросов`);
-            
-            // Назначаем обработчик кнопки сложного режима
-            const hardButton = document.getElementById('hard-difficulty');
-            if (hardButton) {
-                hardButton.addEventListener('click', function() {
-                    if (window.difficultQuestions && window.difficultQuestions.length > 0) {
-                        // Сохраняем оригинальные вопросы если еще не сохранены
-                        if (!window.originalQuestions) {
-                            window.originalQuestions = [...window.questions];
-                        }
-                        
-                        // Устанавливаем сложные вопросы
-                        window.questions = window.difficultQuestions;
-                        console.log('Установлен набор сложных вопросов из JSON-файла');
-                    }
-                });
-            }
-            
-            // Назначаем обработчик кнопки обычного режима
-            const normalButton = document.getElementById('normal-difficulty');
-            if (normalButton) {
-                normalButton.addEventListener('click', function() {
-                    // Восстанавливаем оригинальные вопросы если они были сохранены
-                    if (window.originalQuestions) {
-                        window.questions = window.originalQuestions;
-                        console.log('Восстановлен набор обычных вопросов');
-                    }
-                });
-            }
-        });
-    </script>
-    
-    <!-- Основной скрипт приложения -->
+    <!-- Основные скрипты -->
     <script src="vk-difficulty.js"></script>
     <script src="app.js" defer></script>
 </head>
@@ -106,7 +134,7 @@
         <!-- Информация о пользователе -->
         <div id="user-info"></div>
         
-        <!-- Анимированная линия пульса создается скриптом -->
+        <!-- Анимированная линия пульса добавляется через JavaScript -->
         
         <!-- Селектор сложности -->
         <div class="difficulty-selector">
