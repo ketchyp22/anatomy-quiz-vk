@@ -38,26 +38,23 @@
     
     // Исправление ошибки VK Bridge
     function fixVKBridgeError() {
-        window.originalEnsureVKBridge = window.ensureVKBridge;
-        window.ensureVKBridge = function() {
-            const result = window.originalEnsureVKBridge ? window.originalEnsureVKBridge() : null;
-            
-            if (result && typeof result.then === 'function') {
-                // Если result уже Promise, просто возвращаем его
-                return result;
-            } else {
-                // Иначе создаем Promise, который разрешается с найденным VK Bridge или null
-                return new Promise((resolve) => {
-                    if (typeof vkBridge !== 'undefined') {
-                        resolve(vkBridge);
-                    } else if (typeof window.vkBridge !== 'undefined') {
-                        resolve(window.vkBridge);
-                    } else {
-                        resolve(null);
-                    }
-                });
-            }
-        };
+        // Перехватываем вызовы ensureVKBridge().then
+        const originalEnsureVKBridge = window.ensureVKBridge;
+        if (originalEnsureVKBridge) {
+            window.ensureVKBridge = function() {
+                const result = originalEnsureVKBridge();
+                
+                if (result && typeof result.then === 'function') {
+                    // Если результат - Promise, возвращаем его
+                    return result;
+                } else {
+                    // Иначе оборачиваем результат в Promise
+                    return new Promise((resolve) => {
+                        resolve(result);
+                    });
+                }
+            };
+        }
     }
     
     // Функция загрузки сложных вопросов
@@ -94,8 +91,8 @@
                 
                 console.log(`Загружено и нормализовано ${window.difficultQuestions.length} сложных вопросов`);
                 
-                // Перехватываем оригинальную функцию selectOption
-                patchOptionSelectionFunction();
+                // Добавляем патч для проверки правильных ответов
+                patchAnswerChecking();
                 
                 // Назначаем обработчики для кнопок выбора сложности
                 setupDifficultyButtons();
@@ -111,146 +108,24 @@
             });
     }
     
-    // Функция для перехвата selectOption и nextButton
-    function patchOptionSelectionFunction() {
-        // Сохраняем ссылку на оригинальную функцию appendChild
-        const originalAppendChild = Element.prototype.appendChild;
-        
-        // Перехватываем appendChild для отслеживания добавления вариантов ответа
-        Element.prototype.appendChild = function(element) {
-            // Вызываем оригинальную функцию
-            const result = originalAppendChild.call(this, element);
-            
-            // Если добавляется элемент с классом 'option'
-            if (element.classList && element.classList.contains('option')) {
-                // Проверяем, есть ли у него обработчик клика
-                const hasClickListener = element.onclick || 
-                                        (element._events && element._events.click && element._events.click.length > 0);
-                
-                // Если нет обработчика, добавляем свой
-                if (!hasClickListener) {
-                    element.addEventListener('click', function(e) {
-                        console.log('Выбран вариант:', this.textContent);
-                        
-                        // Устанавливаем выбранный вариант
-                        window.selectedOption = parseInt(this.dataset.index);
-                        
-                        // Выделяем выбранный вариант
-                        const options = document.querySelectorAll('.option');
-                        options.forEach(opt => opt.classList.remove('selected'));
-                        this.classList.add('selected');
-                        
-                        // Активируем кнопку "Далее"
-                        const nextButton = document.getElementById('next-question');
-                        if (nextButton) nextButton.disabled = false;
-                    });
-                }
-            }
-            
-            return result;
-        };
-        
-        // Отслеживаем момент загрузки вопроса
-        const originalLoadQuestion = window.loadQuestion;
-        if (originalLoadQuestion) {
-            window.loadQuestion = function() {
-                // Вызываем оригинальную функцию
-                originalLoadQuestion.apply(this, arguments);
-                
-                // Добавляем обработчики для вариантов ответа, если их нет
-                setTimeout(function() {
-                    const options = document.querySelectorAll('.option');
-                    options.forEach(option => {
-                        if (!option.onclick && !option._listeners) {
-                            option.addEventListener('click', function() {
-                                console.log('Выбран вариант через патч:', this.textContent);
-                                
-                                // Устанавливаем выбранный вариант
-                                window.selectedOption = parseInt(this.dataset.index);
-                                
-                                // Выделяем выбранный вариант
-                                const allOptions = document.querySelectorAll('.option');
-                                allOptions.forEach(opt => opt.classList.remove('selected'));
-                                this.classList.add('selected');
-                                
-                                // Активируем кнопку "Далее"
-                                const nextButton = document.getElementById('next-question');
-                                if (nextButton) nextButton.disabled = false;
-                            });
-                        }
-                    });
-                }, 200);
-            };
-        }
-        
-        // Переопределяем обработчик кнопки "Далее"
+    // Патчим функцию проверки ответов для работы с обоими форматами
+    function patchAnswerChecking() {
+        // Отслеживаем нажатия на кнопку "Далее"
         document.addEventListener('click', function(e) {
             if (e.target && e.target.id === 'next-question' && !e.target.disabled) {
-                handleNextButtonClick(e);
+                // Проверяем текущий вопрос
+                if (window.questionsForQuiz && window.currentQuestion < window.questionsForQuiz.length) {
+                    const currentQuestionObj = window.questionsForQuiz[window.currentQuestion];
+                    
+                    // Если в вопросе нет поля correct, но есть answer, добавляем его
+                    if (!currentQuestionObj.hasOwnProperty('correct') && 
+                        currentQuestionObj.hasOwnProperty('answer')) {
+                        console.log('Добавляем поле correct для текущего вопроса');
+                        currentQuestionObj.correct = currentQuestionObj.answer;
+                    }
+                }
             }
         }, true);
-    }
-    
-    // Обработчик нажатия кнопки "Далее"
-    function handleNextButtonClick(e) {
-        if (window.selectedOption === null || !Array.isArray(window.questionsForQuiz) || 
-            window.currentQuestion >= window.questionsForQuiz.length) {
-            return;
-        }
-        
-        // Блокировка кнопки после клика
-        e.target.disabled = true;
-        
-        // Получаем текущий вопрос
-        const currentQuestionObj = window.questionsForQuiz[window.currentQuestion];
-        
-        // Проверка ответа - поддерживаем оба формата: correct и answer
-        let correctAnswerIndex;
-        if (currentQuestionObj.hasOwnProperty('correct')) {
-            correctAnswerIndex = currentQuestionObj.correct;
-        } else if (currentQuestionObj.hasOwnProperty('correctAnswer')) {
-            correctAnswerIndex = currentQuestionObj.correctAnswer;
-        } else if (currentQuestionObj.hasOwnProperty('answer')) {
-            correctAnswerIndex = currentQuestionObj.answer;
-        } else {
-            console.error('Не найден правильный ответ в вопросе:', currentQuestionObj);
-            correctAnswerIndex = 0; // По умолчанию
-        }
-        
-        console.log('Проверка ответа:', window.selectedOption, 'правильный:', correctAnswerIndex);
-        
-        // Если правильный ответ совпадает с выбранным, увеличиваем счет
-        if (window.selectedOption === correctAnswerIndex) {
-            window.score++;
-            console.log('Правильный ответ! Счет:', window.score);
-        }
-        
-        // Подсветка правильного/неправильного ответа
-        const options = document.querySelectorAll('.option');
-        if (options[correctAnswerIndex]) options[correctAnswerIndex].classList.add('correct');
-        if (window.selectedOption !== correctAnswerIndex && options[window.selectedOption]) {
-            options[window.selectedOption].classList.add('wrong');
-        }
-        
-        // Блокировка выбора после проверки
-        options.forEach(option => {
-            option.style.pointerEvents = 'none';
-        });
-        
-        // Задержка перед следующим вопросом
-        setTimeout(() => {
-            window.currentQuestion++;
-            
-            if (window.currentQuestion < window.questionsForQuiz.length) {
-                if (typeof window.loadQuestion === 'function') {
-                    window.loadQuestion();
-                }
-            } else {
-                if (typeof window.showResults === 'function') {
-                    window.showResults();
-                }
-            }
-        }, 1500);
     }
     
     // Функция для настройки кнопок выбора сложности
@@ -270,10 +145,6 @@
             if (window.originalQuestions && window.originalQuestions.length > 0) {
                 window.questions = window.originalQuestions;
                 console.log('Установлен набор обычных вопросов:', window.questions.length);
-                
-                // Визуальное выделение
-                normalButton.classList.add('active');
-                hardButton.classList.remove('active');
             } else {
                 console.warn("Оригинальные вопросы не найдены");
             }
@@ -284,10 +155,6 @@
             if (window.difficultQuestions && window.difficultQuestions.length > 0) {
                 window.questions = window.difficultQuestions;
                 console.log('Установлен набор сложных вопросов:', window.questions.length);
-                
-                // Визуальное выделение
-                hardButton.classList.add('active');
-                normalButton.classList.remove('active');
             } else {
                 console.warn("Сложные вопросы не загружены");
             }
