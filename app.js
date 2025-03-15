@@ -8,17 +8,45 @@ let currentUserData = null; // Данные текущего пользоват�
 let vkBridgeInstance = null; // Экземпляр VK Bridge для использования в функциях
 
 // Ждем полную загрузку страницы
-window.addEventListener('load', function() {
-    console.log('Страница полностью загружена');
+document.addEventListener('DOMContentLoaded', function() {
+    console.log('DOM полностью загружен');
     
-    // Проверяем наличие массива questions
-    if (typeof window.questions !== 'undefined') {
-        console.log(`Загружено ${window.questions.length} вопросов`);
-        initializeApp(); // Инициализируем приложение только если вопросы доступны
-    } else {
-        console.error('Ошибка: Массив questions не определен. Проверьте файл questions.js');
-        alert('Ошибка загрузки вопросов. Пожалуйста, обновите страницу.');
+    // Проверяем наличие и пытаемся загрузить массив questions
+    function checkQuestionsLoaded() {
+        if (typeof window.questions !== 'undefined' && Array.isArray(window.questions)) {
+            console.log(`Загружено ${window.questions.length} вопросов`);
+            initializeApp(); // Инициализируем приложение только если вопросы доступны
+        } else {
+            console.error('Ошибка: Массив questions не определен. Проверьте файл questions.js');
+            
+            // Пробуем загрузить questions.js динамически
+            const scriptElement = document.createElement('script');
+            scriptElement.src = 'questions.js?' + new Date().getTime(); // Добавляем timestamp для избежания кэширования
+            
+            scriptElement.onload = function() {
+                console.log('Файл questions.js загружен динамически');
+                
+                // Проверяем, появился ли массив после загрузки
+                if (typeof window.questions !== 'undefined' && Array.isArray(window.questions)) {
+                    console.log(`Загружено ${window.questions.length} вопросов после динамической загрузки`);
+                    initializeApp();
+                } else {
+                    console.error('Критическая ошибка: Массив questions не определен даже после динамической загрузки');
+                    alert('Ошибка загрузки вопросов. Пожалуйста, проверьте файл questions.js и обновите страницу.');
+                }
+            };
+            
+            scriptElement.onerror = function() {
+                console.error('Не удалось найти или загрузить файл questions.js');
+                alert('Ошибка загрузки вопросов. Пожалуйста, проверьте наличие файла questions.js и обновите страницу.');
+            };
+            
+            document.head.appendChild(scriptElement);
+        }
     }
+    
+    // Запускаем проверку наличия вопросов
+    checkQuestionsLoaded();
 });
 
 // Инициализация приложения
@@ -106,18 +134,16 @@ function initializeApp() {
 
     // Выбор случайных вопросов из общего пула
     function selectRandomQuestions() {
-        // Напрямую обращаемся к глобальному массиву window.questions
-        const allQuestions = window.questions;
-        
-        if (!Array.isArray(allQuestions)) {
+        // Проверяем, что window.questions существует и является массивом
+        if (!Array.isArray(window.questions)) {
             console.error('Ошибка: переменная window.questions не является массивом');
             return [];
         }
         
-        console.log(`Доступно ${allQuestions.length} вопросов, выбираем ${totalQuestionsToShow}`);
+        console.log(`Доступно ${window.questions.length} вопросов, выбираем ${totalQuestionsToShow}`);
         
         // Перемешиваем и выбираем нужное количество
-        const shuffled = shuffleArray(allQuestions);
+        const shuffled = shuffleArray(window.questions);
         return shuffled.slice(0, totalQuestionsToShow);
     }
 
