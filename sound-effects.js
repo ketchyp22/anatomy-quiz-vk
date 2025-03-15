@@ -1,4 +1,4 @@
-// sound-effects.js
+// sound-effects.js - исправленная версия
 (function() {
     // Создаем звуковые эффекты с использованием Web Audio API
     class SoundEffects {
@@ -217,25 +217,22 @@
                     });
                 }
                 
-                // Звук при проверке ответа
+                // Звук при проверке ответа - исправленная версия
                 const nextButton = document.getElementById('next-question');
                 if (nextButton) {
-                    const originalClickHandler = nextButton.onclick;
-                    
                     nextButton.addEventListener('click', () => {
-                        // Проверяем правильность ответа
-                        const selectedOption = window.selectedOption;
-                        const currentQuestion = window.currentQuestion;
-                        const questionsForQuiz = window.questionsForQuiz;
-                        
-                        if (questionsForQuiz && 
-                            currentQuestion < questionsForQuiz.length && 
-                            selectedOption !== null) {
+                        // Проверяем, что все необходимые переменные существуют
+                        if (typeof window.selectedOption !== 'undefined' && 
+                            typeof window.currentQuestion !== 'undefined' && 
+                            typeof window.questionsForQuiz !== 'undefined' && 
+                            window.questionsForQuiz && 
+                            window.currentQuestion < window.questionsForQuiz.length && 
+                            window.selectedOption !== null) {
                             
-                            const correctAnswer = questionsForQuiz[currentQuestion].correct;
+                            const correctAnswer = window.questionsForQuiz[window.currentQuestion].correct;
                             
                             if (!this.isMuted) {
-                                if (selectedOption === correctAnswer) {
+                                if (window.selectedOption === correctAnswer) {
                                     setTimeout(() => {
                                         this.sounds.correct.play();
                                         console.log("🎮 Правильный ответ - проигрывается звук");
@@ -247,6 +244,8 @@
                                     }, 300);
                                 }
                             }
+                        } else {
+                            console.log("⚠️ Недостаточно данных для воспроизведения звука ответа");
                         }
                     });
                 }
