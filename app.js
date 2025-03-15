@@ -568,3 +568,81 @@ function shuffleArray(array) {
     
     return newArray;
 }
+
+// Проверка доступности VK Bridge и его повторная инициализация при необходимости
+function ensureVKBridge() {
+    console.log('Проверка доступности VK Bridge...');
+    
+    // Проверяем наличие VK Bridge в разных местах
+    if (typeof vkBridge !== 'undefined') {
+        console.log('VK Bridge найден как глобальная переменная');
+        return vkBridge;
+    } else if (typeof window.vkBridge !== 'undefined') {
+        console.log('VK Bridge найден через window.vkBridge');
+        return window.vkBridge;
+    }
+    
+    console.warn('VK Bridge не найден, пробуем загрузить его динамически');
+    
+    // Пробуем загрузить VK Bridge, если он недоступен
+    return new Promise((resolve, reject) => {
+        const script = document.createElement('script');
+        script.src = 'https://unpkg.com/@vkontakte/vk-bridge/dist/browser.min.js';
+        script.onload = () => {
+            console.log('VK Bridge успешно загружен динамически');
+            
+            if (typeof window.vkBridge !== 'undefined') {
+                // Инициализируем VK Bridge после загрузки
+                window.vkBridge.send('VKWebAppInit')
+                    .then(() => {
+                        console.log('VK Bridge инициализирован после динамической загрузки');
+                        resolve(window.vkBridge);
+                    })
+                    .catch((error) => {
+                        console.error('Ошибка инициализации VK Bridge после загрузки:', error);
+                        reject(error);
+                    });
+            } else {
+                console.error('VK Bridge не найден даже после загрузки скрипта');
+                reject(new Error('VK Bridge недоступен'));
+            }
+        };
+        script.onerror = (error) => {
+            console.error('Ошибка при загрузке VK Bridge:', error);
+            reject(error);
+        };
+        document.head.appendChild(script);
+    }).catch((error) => {
+        console.error('Не удалось загрузить VK Bridge:', error);
+        return null; // Возвращаем null, чтобы код продолжил работу в гостевом режиме
+    });
+}
+
+// Функция для установки файлов cookie для VK
+function setVKCookies() {
+    // Устанавливаем необходимые cookie для работы с VK
+    document.cookie = "remixlang=0; path=/; secure";
+    document.cookie = "remixstlid=0; path=/; secure";
+    document.cookie = "remixflash=0; path=/; secure";
+    document.cookie = "remixscreen_depth=24; path=/; secure";
+    console.log('VK cookies установлены');
+}
+
+// Вызываем функции при загрузке страницы
+window.addEventListener('load', function() {
+    setVKCookies();
+    
+    // Дополнительная попытка инициализации VK Bridge, если он не был инициализирован ранее
+    if (!vkBridgeInstance) {
+        ensureVKBridge().then(bridge => {
+            if (bridge) {
+                vkBridgeInstance = bridge;
+                window.vkBridgeInstance = bridge;
+                initVKBridge(bridge);
+            } else {
+                console.warn('VK Bridge не удалось инициализировать, работаем в гостевом режиме');
+                showGuestMode();
+            }
+        });
+    }
+});
