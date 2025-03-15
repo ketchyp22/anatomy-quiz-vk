@@ -1,3 +1,30 @@
+// Инициализация VK Bridge сразу в начале
+let vkBridgeInstance = null;
+if (typeof vkBridge !== 'undefined') {
+    console.log('Пытаемся инициализировать VK Bridge (глобальный)');
+    vkBridge.send('VKWebAppInit')
+        .then(data => {
+            console.log('VK Bridge успешно инициализирован (глобальный)', data);
+            vkBridgeInstance = vkBridge;
+        })
+        .catch(error => {
+            console.error('Ошибка инициализации VK Bridge (глобальный):', error);
+        });
+} else if (typeof window.vkBridge !== 'undefined') {
+    console.log('Пытаемся инициализировать VK Bridge (window)');
+    window.vkBridge.send('VKWebAppInit')
+        .then(data => {
+            console.log('VK Bridge успешно инициализирован (window)', data);
+            vkBridgeInstance = window.vkBridge;
+            window.vkBridgeInstance = vkBridgeInstance;
+        })
+        .catch(error => {
+            console.error('Ошибка инициализации VK Bridge (window):', error);
+        });
+} else {
+    console.warn('VK Bridge не найден при загрузке скрипта');
+}
+
 // Глобальные переменные
 let currentQuestion = 0;
 let score = 0;
