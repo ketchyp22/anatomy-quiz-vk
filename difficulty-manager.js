@@ -5,40 +5,107 @@
     let hardQuestionsLoaded = false;
     let hardQuestions = [];
     let normalQuestions = []; // Сохраним оригинальные вопросы
+    let isOfflineMode = false; // Флаг автономного режима
+    
+    // Проверка доступности VK Bridge
+    function checkVKBridgeAvailability() {
+        try {
+            if (typeof window.vkBridge !== 'undefined' || typeof window.vkBridgeInstance !== 'undefined') {
+                return true;
+            }
+            return false;
+        } catch (e) {
+            console.log('VK Bridge недоступен, работаем в автономном режиме');
+            return false;
+        }
+    }
     
     // Функция загрузки сложных вопросов
     async function loadHardQuestions() {
         try {
+            // Проверяем, доступны ли сложные вопросы в localStorage
+            const cachedQuestions = localStorage.getItem('hardQuestions');
+            if (cachedQuestions) {
+                try {
+                    hardQuestions = JSON.parse(cachedQuestions);
+                    hardQuestionsLoaded = true;
+                    console.log('Сложные вопросы загружены из localStorage:', hardQuestions.length);
+                    activateHardButton();
+                    return true;
+                } catch (e) {
+                    console.warn('Ошибка при загрузке сложных вопросов из localStorage', e);
+                    // Продолжаем загрузку с сервера
+                }
+            }
+            
+            // Загружаем с сервера
             const response = await fetch('difficult-questions.json');
             if (!response.ok) {
                 throw new Error('Не удалось загрузить сложные вопросы');
             }
+            
             hardQuestions = await response.json();
             hardQuestionsLoaded = true;
-            console.log('Сложные вопросы успешно загружены:', hardQuestions.length);
+            console.log('Сложные вопросы успешно загружены с сервера:', hardQuestions.length);
             
-            // Активируем кнопку сложного уровня
-            const hardBtn = document.getElementById('hard-difficulty');
-            if (hardBtn) {
-                hardBtn.disabled = false;
-                if (hardBtn.querySelector('.loading-spinner')) {
-                    hardBtn.querySelector('.loading-spinner').remove();
-                    hardBtn.textContent = 'Сложный';
-                }
+            // Кэшируем вопросы в localStorage для офлайн-режима
+            try {
+                localStorage.setItem('hardQuestions', JSON.stringify(hardQuestions));
+                console.log('Сложные вопросы кэшированы в localStorage');
+            } catch (e) {
+                console.warn('Не удалось сохранить вопросы в localStorage', e);
             }
             
+            activateHardButton();
             return true;
         } catch (error) {
             console.error('Ошибка при загрузке сложных вопросов:', error);
             
-            // Показываем ошибку на кнопке
-            const hardBtn = document.getElementById('hard-difficulty');
-            if (hardBtn) {
-                hardBtn.textContent = 'Ошибка загрузки';
-                hardBtn.classList.add('error');
+            // Попробуем создать заглушку с меньшим набором сложных вопросов
+            if (window.questions && Array.isArray(window.questions)) {
+                console.log('Создаем заглушку для сложных вопросов');
+                // Возьмем последние 30 вопросов из основного набора как "сложные"
+                hardQuestions = window.questions.slice(-30);
+                hardQuestionsLoaded = true;
+                activateHardButton(true); // true = это заглушка
+                return true;
             }
             
+            showErrorOnHardButton();
             return false;
+        }
+    }
+    
+    // Активация кнопки сложного режима
+    function activateHardButton(isStub = false) {
+        const hardBtn = document.getElementById('hard-difficulty');
+        if (hardBtn) {
+            hardBtn.disabled = false;
+            
+            // Удаляем спиннер загрузки, если он есть
+            if (hardBtn.querySelector('.loading-spinner')) {
+                hardBtn.querySelector('.loading-spinner').remove();
+            }
+            
+            // Обновляем текст кнопки
+            hardBtn.textContent = isStub ? 'Сложный (демо)' : 'Сложный';
+            
+            // Удаляем класс ошибки, если он был
+            hardBtn.classList.remove('error');
+        }
+    }
+    
+    // Показываем ошибку на кнопке
+    function showErrorOnHardButton() {
+        const hardBtn = document.getElementById('hard-difficulty');
+        if (hardBtn) {
+            hardBtn.disabled = true;
+            hardBtn.textContent = 'Недоступно';
+            hardBtn.classList.add('error');
+            
+            if (hardBtn.querySelector('.loading-spinner')) {
+                hardBtn.querySelector('.loading-spinner').remove();
+            }
         }
     }
     
@@ -52,6 +119,13 @@
         
         // Сохраняем текущий уровень сложности
         difficultyLevel = level;
+        
+        // Сохраняем в localStorage для запоминания выбора
+        try {
+            localStorage.setItem('difficultyLevel', level);
+        } catch (e) {
+            console.warn('Не удалось сохранить уровень сложности в localStorage', e);
+        }
         
         // Обновляем интерфейс
         updateDifficultyUI(level);
@@ -108,9 +182,28 @@
         }
     }
     
+    // Восстановление последнего выбранного уровня сложности
+    function restoreLastDifficulty() {
+        try {
+            const lastLevel = localStorage.getItem('difficultyLevel');
+            if (lastLevel && (lastLevel === 'normal' || (lastLevel === 'hard' && hardQuestionsLoaded))) {
+                console.log(`Восстановление последнего уровня сложности: ${lastLevel}`);
+                setDifficultyLevel(lastLevel);
+            }
+        } catch (e) {
+            console.warn('Ошибка при восстановлении уровня сложности', e);
+        }
+    }
+    
     // Инициализация модуля
     function initDifficultyManager() {
         console.log('Инициализация менеджера сложности');
+        
+        // Проверяем доступность VK Bridge
+        isOfflineMode = !checkVKBridgeAvailability();
+        if (isOfflineMode) {
+            console.log('Работаем в автономном режиме');
+        }
         
         // Подготавливаем кнопки выбора сложности
         const normalBtn = document.getElementById('normal-difficulty');
@@ -140,7 +233,10 @@
             });
             
             // Начинаем загрузку сложных вопросов
-            loadHardQuestions();
+            loadHardQuestions().then(() => {
+                // После загрузки восстанавливаем последний выбранный уровень
+                restoreLastDifficulty();
+            });
         } else {
             console.error('Не найдены кнопки выбора сложности');
         }
@@ -151,17 +247,29 @@
         init: initDifficultyManager,
         setLevel: setDifficultyLevel,
         getCurrentLevel: function() { return difficultyLevel; },
-        areHardQuestionsLoaded: function() { return hardQuestionsLoaded; }
+        areHardQuestionsLoaded: function() { return hardQuestionsLoaded; },
+        isOfflineMode: function() { return isOfflineMode; }
     };
     
     // Автоматический запуск после загрузки DOM
     document.addEventListener('DOMContentLoaded', function() {
-        // Проверяем наличие необходимых элементов
-        if (document.getElementById('normal-difficulty') && document.getElementById('hard-difficulty')) {
-            initDifficultyManager();
-        } else {
-            console.warn('Селектор сложности не найден, инициализация отложена');
-            // Можем попробовать инициализировать позже, когда элементы появятся в DOM
-        }
+        // Даем небольшую задержку для загрузки других скриптов
+        setTimeout(function() {
+            // Проверяем наличие необходимых элементов
+            if (document.getElementById('normal-difficulty') && document.getElementById('hard-difficulty')) {
+                initDifficultyManager();
+            } else {
+                console.warn('Селектор сложности не найден, инициализация отложена');
+                
+                // Пробуем инициализировать позже, когда элементы могут появиться в DOM
+                setTimeout(function() {
+                    if (document.getElementById('normal-difficulty') && document.getElementById('hard-difficulty')) {
+                        initDifficultyManager();
+                    } else {
+                        console.error('Селектор сложности не найден даже после ожидания');
+                    }
+                }, 2000);
+            }
+        }, 500);
     });
-})()
+})();
