@@ -5,20 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Анатомический квиз</title>
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
-    <!-- VK Bridge должен быть загружен первым -->
-    <script src="https://unpkg.com/@vkontakte/vk-bridge/dist/browser.min.js"></script>
-    <script>
-        // Обеспечиваем доступность VK Bridge как глобальной переменной
-        if (window.vkBridge) {
-            window.vkBridgeInstance = window.vkBridge;
-        }
-    </script>
     <link rel="stylesheet" href="style.css">
-    <!-- Дополнительные стили -->
-    <link rel="stylesheet" href="enhanced-styles.css">
-    <!-- Сначала загружаем вопросы, затем основной скрипт -->
-    <script src="questions.js"></script>
-    <script src="app.js" defer></script>
 </head>
 <body>
     <div class="container">
@@ -77,7 +64,14 @@
                     </div>
                 </div>
                 
-                <!-- Селектор сложности будет добавлен автоматически -->
+                <!-- Встроенный селектор сложности -->
+                <div style="margin: 20px 0; text-align: center;">
+                    <h3 style="margin-bottom: 15px; font-size: 18px; color: #666666;">Выберите уровень сложности:</h3>
+                    <div style="display: flex; justify-content: center; gap: 15px; margin-bottom: 25px;">
+                        <button id="normal-mode" style="padding: 10px 20px; border-radius: 30px; border: 2px solid #4a76a8; background-color: #4a76a8; color: white; font-weight: 600; cursor: pointer;">Обычный</button>
+                        <button id="hard-mode" style="padding: 10px 20px; border-radius: 30px; border: 2px solid #4a76a8; background-color: transparent; color: #4a76a8; font-weight: 600; cursor: pointer;">Сложный</button>
+                    </div>
+                </div>
                 
                 <button id="start-quiz" class="btn-start">Начать тест</button>
             </div>
@@ -113,12 +107,102 @@
         </div>
     </div>
     
-    <!-- Загрузка улучшений и скриптов -->
-    <script src="animated-background.js"></script>
-    <script src="enhanced-sharing.js"></script>
-    <script src="sound-effects.js"></script>
-    <script src="dancing-skeleton.js"></script>
-    <script src="enhancements-loader.js"></script>
-    <script src="standalone-difficulty-manager.js"></script>
+    <!-- Загрузка вопросов и основного скрипта -->
+    <script src="questions.js"></script>
+    <script src="app.js"></script>
+    
+    <!-- Встроенный скрипт для выбора сложности -->
+    <script>
+    // Функция для инициализации селектора сложности после загрузки DOM
+    document.addEventListener('DOMContentLoaded', function() {
+        console.log("Инициализация простого селектора сложности (встроенный)");
+        
+        // Получаем ссылки на кнопки режимов
+        const normalButton = document.getElementById('normal-mode');
+        const hardButton = document.getElementById('hard-mode');
+        
+        // Сохраняем оригинальные вопросы при загрузке страницы
+        let originalQuestions = [];
+        let hardQuestions = [];
+        
+        // Функция для получения оригинальных вопросов
+        function saveOriginalQuestions() {
+            if (window.questions && Array.isArray(window.questions) && window.questions.length > 0) {
+                originalQuestions = [...window.questions];
+                console.log(`Сохранены оригинальные вопросы: ${originalQuestions.length}`);
+                
+                // Создаем "сложные" вопросы
+                createHardQuestions();
+            } else {
+                // Если вопросы не доступны сразу, ждем немного
+                setTimeout(saveOriginalQuestions, 1000);
+            }
+        }
+        
+        // Функция для создания "сложных" вопросов
+        function createHardQuestions() {
+            if (originalQuestions.length === 0) return;
+            
+            // Простая функция для перемешивания массива
+            function shuffle(array) {
+                let shuffled = [...array];
+                for (let i = shuffled.length - 1; i > 0; i--) {
+                    const j = Math.floor(Math.random() * (i + 1));
+                    [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+                }
+                return shuffled;
+            }
+            
+            // Перемешиваем вопросы и берем первые 30 как "сложные"
+            hardQuestions = shuffle(originalQuestions).slice(0, 30);
+            console.log(`Создан набор из ${hardQuestions.length} "сложных" вопросов`);
+            
+            // Активируем кнопку сложного режима
+            if (hardButton && hardQuestions.length > 0) {
+                hardButton.disabled = false;
+            }
+        }
+        
+        // Обработчики кликов
+        if (normalButton) {
+            normalButton.addEventListener('click', function() {
+                // Визуальное выделение
+                normalButton.style.backgroundColor = '#4a76a8';
+                normalButton.style.color = 'white';
+                if (hardButton) {
+                    hardButton.style.backgroundColor = 'transparent';
+                    hardButton.style.color = '#4a76a8';
+                }
+                
+                // Возвращаем оригинальные вопросы
+                if (originalQuestions.length > 0) {
+                    window.questions = originalQuestions;
+                    console.log("Установлен обычный уровень сложности");
+                }
+            });
+        }
+        
+        if (hardButton) {
+            hardButton.addEventListener('click', function() {
+                if (hardQuestions.length === 0) return;
+                
+                // Визуальное выделение
+                hardButton.style.backgroundColor = '#4a76a8';
+                hardButton.style.color = 'white';
+                if (normalButton) {
+                    normalButton.style.backgroundColor = 'transparent';
+                    normalButton.style.color = '#4a76a8';
+                }
+                
+                // Устанавливаем сложные вопросы
+                window.questions = hardQuestions;
+                console.log("Установлен сложный уровень сложности");
+            });
+        }
+        
+        // Запускаем сохранение вопросов
+        saveOriginalQuestions();
+    });
+    </script>
 </body>
 </html>
