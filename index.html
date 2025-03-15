@@ -15,7 +15,7 @@
     <!-- VK Bridge первым -->
     <script src="https://unpkg.com/@vkontakte/vk-bridge@2.10.0/dist/browser.min.js"></script>
     
-    <!-- Анимационные файлы -->
+    <!-- Анимационные файлы и звуки как отдельные модули -->
     <script src="animations.js"></script>
     <script src="animated-background.js"></script>
     <script src="animated-pulse-line.js"></script>
@@ -86,79 +86,5 @@
     
     <!-- Контейнер для анимаций счета -->
     <div id="animations-container"></div>
-    
-    <script>
-        // Инициализация анимаций после загрузки DOM
-        document.addEventListener('DOMContentLoaded', function() {
-            // Инициализация анимаций
-            if (window.QuizAnimations && window.QuizAnimations.enhancer) {
-                window.QuizAnimations.enhancer.init();
-            }
-            
-            // Инициализация звуковых эффектов
-            if (typeof SoundEffects !== 'undefined' && typeof SoundEffects.init === 'function') {
-                SoundEffects.init();
-            }
-            
-            // Подключение обработчиков событий для звуковых эффектов
-            const startButton = document.getElementById('start-quiz');
-            if (startButton && typeof SoundEffects !== 'undefined') {
-                startButton.addEventListener('click', function() {
-                    if (typeof SoundEffects.playSound === 'function') {
-                        SoundEffects.playSound('click');
-                    }
-                });
-            }
-            
-            const nextButton = document.getElementById('next-question');
-            if (nextButton && typeof SoundEffects !== 'undefined') {
-                nextButton.addEventListener('click', function() {
-                    if (typeof SoundEffects.playSound === 'function') {
-                        SoundEffects.playSound('click');
-                    }
-                });
-            }
-            
-            // Подключаем звуки к кнопкам выбора сложности
-            const difficultyButtons = document.querySelectorAll('.difficulty-btn');
-            difficultyButtons.forEach(button => {
-                if (button && typeof SoundEffects !== 'undefined') {
-                    button.addEventListener('click', function() {
-                        if (typeof SoundEffects.playSound === 'function') {
-                            SoundEffects.playSound('click');
-                        }
-                    });
-                }
-            });
-            
-            console.log('Анимации и звуковые эффекты инициализированы');
-        });
-        
-        // Функция для воспроизведения звука при правильном ответе
-        function playCorrectSound() {
-            if (typeof SoundEffects !== 'undefined' && typeof SoundEffects.playSound === 'function') {
-                SoundEffects.playSound('correct');
-            }
-        }
-        
-        // Функция для воспроизведения звука при неправильном ответе
-        function playWrongSound() {
-            if (typeof SoundEffects !== 'undefined' && typeof SoundEffects.playSound === 'function') {
-                SoundEffects.playSound('wrong');
-            }
-        }
-        
-        // Функция для воспроизведения звука при завершении квиза
-        function playCompleteSound() {
-            if (typeof SoundEffects !== 'undefined' && typeof SoundEffects.playSound === 'function') {
-                SoundEffects.playSound('complete');
-            }
-        }
-        
-        // Глобальная доступность функций
-        window.playCorrectSound = playCorrectSound;
-        window.playWrongSound = playWrongSound;
-        window.playCompleteSound = playCompleteSound;
-    </script>
 </body>
 </html>
