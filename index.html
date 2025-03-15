@@ -13,14 +13,20 @@
     <link rel="stylesheet" href="style.css">
     <link rel="stylesheet" href="enhanced-styles.css">
     
-    <!-- Загрузка VK Bridge -->
+    <!-- VK Bridge - первый скрипт, который должен загрузиться -->
     <script src="https://unpkg.com/@vkontakte/vk-bridge/dist/browser.min.js"></script>
     
-    <!-- Наш вспомогательный модуль для работы с VK Bridge -->
-    <script src="vk-bridge-helper.js"></script>
+    <!-- Вспомогательные скрипты для VK -->
+    <script src="vk-params.js"></script>
     
-    <!-- Основные файлы приложения -->
+    <!-- Скрипт с вопросами -->
     <script src="questions.js"></script>
+    
+    <!-- Скрипт выбора сложности -->
+    <script src="vk-difficulty.js"></script>
+    
+    <!-- Основной файл приложения загружается последним -->
+    <script src="app.js"></script>
 </head>
 <body>
     <div class="app-container">
@@ -71,8 +77,5 @@
             </div>
         </div>
     </div>
-    
-    <!-- Скрипты, которые должны загружаться в конце -->
-    <script src="app.js"></script>
 </body>
 </html>
