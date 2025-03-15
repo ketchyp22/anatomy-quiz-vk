@@ -15,40 +15,34 @@
     <!-- VK Bridge должен загружаться первым -->
     <script src="https://unpkg.com/@vkontakte/vk-bridge@2.10.0/dist/browser.min.js"></script>
     
-    <!-- Файлы с вопросами -->
+    <!-- Основные вопросы -->
     <script src="questions.js"></script>
-    <!-- Добавляем ссылку на файл сложных вопросов -->
+    
+    <!-- Загрузка сложных вопросов из JSON -->
     <script>
-        // Загрузка сложных вопросов
-        fetch('difficult-questions.json')
-            .then(response => response.json())
-            .then(data => {
-                window.difficultQuestions = data;
-                console.log('Сложные вопросы загружены:', data.length);
-            })
-            .catch(error => {
-                console.error('Ошибка при загрузке сложных вопросов:', error);
-            });
+        // Глобальная переменная для хранения сложных вопросов
+        window.difficultQuestions = [];
         
-        // Обновляем обработчик кнопки выбора сложности
+        // Загружаем сложные вопросы при загрузке страницы
         document.addEventListener('DOMContentLoaded', function() {
-            const hardBtn = document.getElementById('hard-difficulty');
-            if (hardBtn) {
-                hardBtn.addEventListener('click', function() {
-                    // При выборе сложной категории используем сложные вопросы
-                    if (window.difficultQuestions) {
-                        window.currentQuestions = window.difficultQuestions;
+            fetch('difficult-questions.json')
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error(`HTTP ошибка! Статус: ${response.status}`);
                     }
+                    return response.json();
+                })
+                .then(data => {
+                    window.difficultQuestions = data;
+                    console.log(`Загружено ${data.length} сложных вопросов из difficult-questions.json`);
+                    
+                    // Создаем событие о загрузке сложных вопросов
+                    const event = new CustomEvent('difficultQuestionsLoaded', { detail: { count: data.length } });
+                    document.dispatchEvent(event);
+                })
+                .catch(error => {
+                    console.error('Ошибка при загрузке сложных вопросов:', error);
                 });
-            }
-            
-            const normalBtn = document.getElementById('normal-difficulty');
-            if (normalBtn) {
-                normalBtn.addEventListener('click', function() {
-                    // При выборе обычной категории используем обычные вопросы
-                    window.currentQuestions = window.questions;
-                });
-            }
         });
     </script>
     
@@ -59,7 +53,44 @@
     <script src="sound-effects.js"></script>
     <script src="enhanced-results.js"></script>
     
-    <!-- Основные скрипты -->
+    <!-- Модифицированный скрипт выбора сложности -->
+    <script>
+        // Модифицируем vk-difficulty.js для работы с загруженными сложными вопросами
+        document.addEventListener('difficultQuestionsLoaded', function(event) {
+            console.log(`Получено событие загрузки сложных вопросов: ${event.detail.count} вопросов`);
+            
+            // Назначаем обработчик кнопки сложного режима
+            const hardButton = document.getElementById('hard-difficulty');
+            if (hardButton) {
+                hardButton.addEventListener('click', function() {
+                    if (window.difficultQuestions && window.difficultQuestions.length > 0) {
+                        // Сохраняем оригинальные вопросы если еще не сохранены
+                        if (!window.originalQuestions) {
+                            window.originalQuestions = [...window.questions];
+                        }
+                        
+                        // Устанавливаем сложные вопросы
+                        window.questions = window.difficultQuestions;
+                        console.log('Установлен набор сложных вопросов из JSON-файла');
+                    }
+                });
+            }
+            
+            // Назначаем обработчик кнопки обычного режима
+            const normalButton = document.getElementById('normal-difficulty');
+            if (normalButton) {
+                normalButton.addEventListener('click', function() {
+                    // Восстанавливаем оригинальные вопросы если они были сохранены
+                    if (window.originalQuestions) {
+                        window.questions = window.originalQuestions;
+                        console.log('Восстановлен набор обычных вопросов');
+                    }
+                });
+            }
+        });
+    </script>
+    
+    <!-- Основной скрипт приложения -->
     <script src="vk-difficulty.js"></script>
     <script src="app.js" defer></script>
 </head>
@@ -75,7 +106,7 @@
         <!-- Информация о пользователе -->
         <div id="user-info"></div>
         
-        <!-- Анимированная линия пульса будет добавлена с помощью JavaScript -->
+        <!-- Анимированная линия пульса создается скриптом -->
         
         <!-- Селектор сложности -->
         <div class="difficulty-selector">
