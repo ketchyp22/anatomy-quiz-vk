@@ -3,224 +3,81 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Анатомический квиз</title>
-    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
-    <!-- VK Bridge должен быть загружен первым -->
-    <script src="https://unpkg.com/@vkontakte/vk-bridge/dist/browser.min.js"></script>
-    <script>
-        // Обеспечиваем доступность VK Bridge как глобальной переменной
-        if (window.vkBridge) {
-            window.vkBridgeInstance = window.vkBridge;
-        }
-    </script>
-    <link rel="stylesheet" href="style.css">
-    <!-- Дополнительные стили -->
-    <link rel="stylesheet" href="enhanced-styles.css">
-    <!-- Сначала загружаем вопросы, затем основной скрипт -->
-    <script src="questions.js"></script>
-    <script src="app.js" defer></script>
-</head>
-<body>
-    <div class="container">
-        <div class="header">
-            <h1>
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" style="vertical-align: middle; margin-right: 8px;">
-                    <path d="M12 15a3 3 0 100-6 3 3 0 000 6z" fill="#4a76a8"/>
-                    <path d="M3 12c0 5 4 9 9 9s9-4 9-9-4-9-9-9-9 4-9 9zm2 0a7 7 0 1114 0 7 7 0 01-14 0z" fill="#4a76a8"/>
-                </svg>
-                Анатомический квиз
-            </h1>
-            <div id="user-info" class="user-info"></div>
-        </div>
-        
-        <div class="main">
-            <!-- Экран приветствия -->
-            <div id="start-screen" class="start-screen">
-                <!-- Добавляем иконку сверху -->
-                <svg class="quiz-icon" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                    <path fill="#4a76a8" d="M12,3.5c-4.7,0-8.5,3.8-8.5,8.5s3.8,8.5,8.5,8.5s8.5-3.8,8.5-8.5S16.7,3.5,12,3.5z M12,19.5
-                      c-4.1,0-7.5-3.4-7.5-7.5S7.9,4.5,12,4.5s7.5,3.4,7.5,7.5S16.1,19.5,12,19.5z M12.5,17h-1v-2h1V17z M12.5,14h-1
-                      c0-3.2,3-3,3-5c0-1.1-0.9-2-2-2s-2,0.9-2,2h-1c0-1.7,1.3-3,3-3s3,1.3,3,3C13.5,11.5,12.5,12.1,12.5,14z"/>
-                </svg>
-                
-                <h2>Проверьте свои знания анатомии</h2>
-                
-                <p>Этот квиз из 25 случайных вопросов из нашей базы в 300 вопросов поможет вам проверить и углубить ваши знания о строении человеческого тела. Ответьте на серию вопросов и узнайте, насколько хорошо вы разбираетесь в анатомии!</p>
-                
-                <!-- Добавляем блок с особенностями квиза -->
-                <div class="features">
-                    <div class="feature-item">
-                        <div class="feature-icon">
-                            <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                                <path d="M12,20L3,10.53v-1.2L12,2l9,7.33v1.2L12,20z M5.84,10.3L12,16.6l6.16-6.3L12,4.39L5.84,10.3z"/>
-                            </svg>
-                        </div>
-                        <span class="feature-text">25 вопросов</span>
-                    </div>
-                    <div class="feature-item">
-                        <div class="feature-icon">
-                            <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                                <path d="M11.99,2C6.47,2,2,6.48,2,12s4.47,10,9.99,10C17.52,22,22,17.52,22,12S17.52,2,11.99,2z M12,20c-4.42,0-8-3.58-8-8
-                                    s3.58-8,8-8s8,3.58,8,8S16.42,20,12,20z M12.5,7H11v6l5.25,3.15l0.75-1.23l-4.5-2.67V7z"/>
-                            </svg>
-                        </div>
-                        <span class="feature-text">10 минут</span>
-                    </div>
-                    <div class="feature-item">
-                        <div class="feature-icon">
-                            <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                                <path d="M19,5v14H5V5H19 M19,3H5C3.9,3,3,3.9,3,5v14c0,1.1,0.9,2,2,2h14c1.1,0,2-0.9,2-2V5C21,3.9,20.1,3,19,3L19,3z"/>
-                                <path d="M14,17H7v-2h7V17z M17,13H7v-2h10V13z M17,9H7V7h10V9z"/>
-                            </svg>
-                        </div>
-                        <span class="feature-text">10 разделов</span>
-                    </div>
-                </div>
-                
-                <!-- Встроенный селектор сложности -->
-                <div style="margin: 20px 0; text-align: center;">
-                    <h3 style="margin-bottom: 15px; font-size: 18px; color: #666666;">Выберите уровень сложности:</h3>
-                    <div style="display: flex; justify-content: center; gap: 15px; margin-bottom: 25px;">
-                        <button id="normal-difficulty" style="padding: 10px 20px; border-radius: 30px; border: 2px solid #4a76a8; background-color: #4a76a8; color: white; font-weight: 600; cursor: pointer;">Обычный</button>
-                        <button id="hard-difficulty" style="padding: 10px 20px; border-radius: 30px; border: 2px solid #4a76a8; background-color: transparent; color: #4a76a8; font-weight: 600; cursor: pointer;">Сложный</button>
-                    </div>
-                </div>
-                
-                <button id="start-quiz" class="btn-start">Начать тест</button>
-            </div>
-            
-            <!-- Контейнер с вопросами -->
-            <div id="quiz-container" class="quiz-container" style="display: none;">
-                <div class="progress-bar-container">
-                    <div id="progress-bar" class="progress-bar"></div>
-                </div>
-                <div id="question-counter" class="question-counter">Вопрос 1 из 25</div>
-                <div id="question" class="question">Вопрос здесь</div>
-                <div id="options" class="options">
-                    <!-- Варианты ответов будут добавлены динамически -->
-                </div>
-                <button id="next-question" class="btn btn-primary" disabled>Далее</button>
-            </div>
-            
-            <!-- Экран результатов -->
-            <div id="results-container" class="results-container" style="display: none;">
-                <h2>Ваши результаты</h2>
-                <div id="score" class="score">
-                    <!-- Результаты будут добавлены динамически -->
-                </div>
-                <div class="share-container">
-                    <button id="share-results" class="btn btn-primary">Поделиться</button>
-                    <button id="restart-quiz" class="btn btn-secondary">Пройти еще раз</button>
-                </div>
-            </div>
-        </div>
-        
-        <div class="footer">
-            &copy; 2025 Анатомический квиз
-        </div>
-    </div>
+    <meta name="theme-color" content="#4a76a8">
+    <title>Анатомический квиз ВКонтакте</title>
     
-    <!-- Загрузка улучшений и скриптов -->
+    <!-- Стили приложения -->
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="enhanced-styles.css">
+    
+    <!-- VK Bridge должен загружаться самым первым -->
+    <script src="https://unpkg.com/@vkontakte/vk-bridge/dist/browser.min.js"></script>
+    
+    <!-- Затем загружаем все вспомогательные скрипты -->
+    <script src="questions.js"></script>
+    <script src="animations.js"></script>
     <script src="animated-background.js"></script>
-    <script src="enhanced-sharing.js"></script>
     <script src="sound-effects.js"></script>
-    <script src="dancing-skeleton.js"></script>
+    <script src="categories-loader.js"></script>
+    <script src="enhanced-results.js"></script>
+    <script src="enhanced-sharing.js"></script>
     <script src="enhancements-loader.js"></script>
     
-    <!-- Встроенный скрипт для выбора сложности -->
-    <script>
-    // Скрипт выбора сложности, встроенный в HTML
-    document.addEventListener('DOMContentLoaded', function() {
-        console.log("Инициализация встроенного селектора сложности");
-        
-        // Получаем ссылки на кнопки
-        const normalButton = document.getElementById('normal-difficulty');
-        const hardButton = document.getElementById('hard-difficulty');
-        
-        if (!normalButton || !hardButton) {
-            console.error("Не найдены кнопки выбора сложности");
-            return;
-        }
-        
-        // Сохраняем оригинальные вопросы и создаем сложные
-        let originalQuestions = [];
-        let hardQuestions = [];
-        
-        // Функция сохранения вопросов и создания сложного набора
-        function prepareQuestions() {
-            // Проверка наличия вопросов
-            if (!window.questions || !Array.isArray(window.questions) || window.questions.length === 0) {
-                console.log("Вопросы еще не загружены, пробуем позже");
-                setTimeout(prepareQuestions, 500);
-                return;
-            }
+    <!-- Загружаем только ОДИН файл управления сложностью -->
+    <script src="vk-difficulty.js"></script>
+    <!-- <script src="standalone-difficulty-manager.js"></script> -->
+    
+    <!-- Загружаем основной файл приложения в конце -->
+    <script src="app.js"></script>
+</head>
+<body>
+    <div class="app-container">
+        <!-- Стартовый экран -->
+        <div id="start-screen" class="screen">
+            <h1>Анатомический квиз</h1>
+            <p>Проверьте свои знания анатомии человека!</p>
             
-            // Сохраняем оригинальные вопросы
-            originalQuestions = [...window.questions];
-            console.log(`Сохранены оригинальные вопросы: ${originalQuestions.length}`);
+            <div id="user-info" class="user-info">
+                <!-- Данные пользователя будут здесь -->
+            </div>
             
-            // Функция для перемешивания массива
-            function shuffle(array) {
-                const result = [...array];
-                for (let i = result.length - 1; i > 0; i--) {
-                    const j = Math.floor(Math.random() * (i + 1));
-                    [result[i], result[j]] = [result[j], result[i]];
-                }
-                return result;
-            }
+            <!-- Селектор сложности будет добавлен автоматически через JS -->
             
-            // Создаем сложные вопросы (просто перемешиваем оригинальные)
-            hardQuestions = shuffle([...originalQuestions]).slice(0, 30);
-            console.log(`Создан набор из ${hardQuestions.length} сложных вопросов`);
-        }
+            <button id="start-quiz" class="primary-button">Начать тест</button>
+        </div>
         
-        // Начинаем подготовку вопросов
-        prepareQuestions();
-        
-        // Обработчик для обычного режима
-        normalButton.addEventListener('click', function() {
-            // Визуальное выделение
-            normalButton.style.backgroundColor = '#4a76a8';
-            normalButton.style.color = 'white';
-            hardButton.style.backgroundColor = 'transparent';
-            hardButton.style.color = '#4a76a8';
+        <!-- Контейнер с вопросами -->
+        <div id="quiz-container" class="screen" style="display: none;">
+            <div class="progress-container">
+                <div id="progress-bar" class="progress-bar"></div>
+            </div>
             
-            // Устанавливаем обычные вопросы
-            if (originalQuestions.length > 0) {
-                window.questions = [...originalQuestions];
-                console.log("Установлен обычный уровень сложности");
-            }
-        });
-        
-        // Обработчик для сложного режима
-        hardButton.addEventListener('click', function() {
-            // Визуальное выделение
-            hardButton.style.backgroundColor = '#4a76a8';
-            hardButton.style.color = 'white';
-            normalButton.style.backgroundColor = 'transparent';
-            normalButton.style.color = '#4a76a8';
+            <div id="question-counter" class="question-counter">Вопрос 1 из 25</div>
             
-            // Устанавливаем сложные вопросы
-            if (hardQuestions.length > 0) {
-                window.questions = [...hardQuestions];
-                console.log("Установлен сложный уровень сложности");
-            } else if (originalQuestions.length > 0) {
-                // Если сложные вопросы еще не созданы, создаем их сейчас
-                function shuffle(array) {
-                    const result = [...array];
-                    for (let i = result.length - 1; i > 0; i--) {
-                        const j = Math.floor(Math.random() * (i + 1));
-                        [result[i], result[j]] = [result[j], result[i]];
-                    }
-                    return result;
-                }
-                
-                hardQuestions = shuffle([...originalQuestions]).slice(0, 30);
-                window.questions = [...hardQuestions];
-                console.log("Создан и установлен сложный уровень сложности");
-            }
-        });
-    });
-    </script>
+            <div id="question" class="question"></div>
+            
+            <div id="options" class="options"></div>
+            
+            <button id="next-question" class="primary-button" disabled>Далее</button>
+        </div>
+        
+        <!-- Экран результатов -->
+        <div id="results-container" class="screen" style="display: none;">
+            <h2>Ваш результат</h2>
+            
+            <div id="score" class="score"></div>
+            
+            <div class="result-buttons">
+                <button id="share-results" class="secondary-button">Поделиться</button>
+                <button id="restart-quiz" class="primary-button">Пройти еще раз</button>
+            </div>
+        </div>
+        
+        <!-- Анимированный фон -->
+        <div id="animated-background" class="animated-background"></div>
+        
+        <!-- Скелет-танцор для экрана результатов -->
+        <div id="dancing-skeleton" class="dancing-skeleton" style="display: none;"></div>
+    </div>
 </body>
 </html>
