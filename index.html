@@ -9,11 +9,10 @@
     <meta name="theme-color" content="#4a76a8">
     <title>Анатомический квиз</title>
     
-    <!-- Базовые стили -->
+    <!-- Стили приложения -->
     <link rel="stylesheet" href="style.css">
-    <link rel="stylesheet" href="enhanced-styles.css">
     
-    <!-- VK Bridge - первый скрипт, который должен загрузиться -->
+    <!-- VK Bridge должен загружаться первым -->
     <script src="https://unpkg.com/@vkontakte/vk-bridge/dist/browser.min.js"></script>
     
     <!-- Вспомогательные скрипты для VK -->
@@ -28,7 +27,7 @@
     <!-- Основной файл приложения загружается последним -->
     <script src="app.js"></script>
 </head>
-<body>
+<body class="vk-mini-app">
     <div class="app-container">
         <!-- Стартовый экран -->
         <div id="start-screen" class="screen">
@@ -69,7 +68,9 @@
         <div id="results-container" class="screen" style="display: none;">
             <h2>Ваш результат</h2>
             
-            <div id="score" class="score"></div>
+            <div id="score" class="score">
+                <!-- Результаты будут загружены через JS -->
+            </div>
             
             <div class="result-buttons">
                 <button id="share-results" class="secondary-button">Поделиться</button>
