@@ -3,63 +3,62 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Анатомический Квиз</title>
+    <title>Анатомический квиз</title>
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="STYLES.CSS">
+    <!-- ВАЖНО: Подключение VK Bridge SDK перед другими скриптами -->
+    <script src="https://unpkg.com/@vkontakte/vk-bridge/dist/browser.min.js"></script>
 </head>
 <body>
     <div class="container">
-        <header class="header">
-            <h1>Анатомический Квиз</h1>
-            <div id="user-info" class="user-info">
-                <!-- Данные пользователя будут загружены через JS -->
-            </div>
-        </header>
-
-        <main class="main">
-            <!-- Начальный экран -->
+        <div class="header">
+            <h1>Анатомический квиз</h1>
+            <div id="user-info" class="user-info"></div>
+        </div>
+        
+        <div class="main">
+            <!-- Экран приветствия -->
             <div id="start-screen" class="start-screen">
-                <h2>Проверьте свои знания анатомии!</h2>
-                <p>Квиз состоит из 20 вопросов по различным темам анатомии человека. Проверьте свои знания и сравните результаты с другими!</p>
+                <h2>Проверьте свои знания анатомии</h2>
+                <p>Этот квиз поможет вам проверить ваши знания о строении человеческого тела. Постарайтесь ответить правильно на все вопросы!</p>
                 <button id="start-quiz" class="btn btn-primary">Начать тест</button>
-                <button id="show-stats" class="btn btn-secondary">Статистика</button>
+                <button id="view-stats" class="btn btn-secondary">Статистика</button>
             </div>
-
-            <!-- Экран с вопросами -->
+            
+            <!-- Контейнер с вопросами -->
             <div id="quiz-container" class="quiz-container" style="display: none;">
                 <div class="progress-bar-container">
                     <div id="progress-bar" class="progress-bar"></div>
                 </div>
                 <div id="question-counter" class="question-counter">Вопрос 1 из 20</div>
-                <div id="question" class="question"><!-- Текст вопроса --></div>
+                <div id="question" class="question">Вопрос здесь</div>
                 <div id="options" class="options">
-                    <!-- Варианты ответов -->
+                    <!-- Варианты ответов будут добавлены динамически -->
                 </div>
                 <button id="next-question" class="btn btn-primary" disabled>Далее</button>
             </div>
-
-            <!-- Экран с результатами -->
+            
+            <!-- Экран результатов -->
             <div id="results-container" class="results-container" style="display: none;">
-                <h2>Результаты теста</h2>
+                <h2>Ваши результаты</h2>
                 <div id="score" class="score">
-                    <!-- Результаты теста -->
+                    <!-- Результаты будут добавлены динамически -->
                 </div>
                 <div class="share-container">
-                    <button id="share-results" class="btn btn-primary">Поделиться результатом</button>
-                    <button id="restart-quiz" class="btn btn-secondary">Пройти ещё раз</button>
-                    <button id="view-stats" class="btn btn-secondary">Статистика</button>
+                    <button id="share-results" class="btn btn-primary">Поделиться</button>
+                    <button id="restart-quiz" class="btn btn-secondary">Пройти еще раз</button>
+                    <button id="show-stats" class="btn btn-secondary">Статистика</button>
                 </div>
             </div>
-
+            
             <!-- Экран статистики -->
             <div id="statistics-container" class="statistics-container" style="display: none;">
-                <h2>Статистика</h2>
+                <h2>Ваша статистика</h2>
                 
                 <div class="user-stats-container">
-                    <h3>Ваша статистика</h3>
                     <div class="stats-card">
                         <div class="stats-row">
-                            <span>Всего пройдено тестов:</span>
+                            <span>Пройдено тестов:</span>
                             <span id="total-quizzes">0</span>
                         </div>
                         <div class="stats-row">
@@ -80,26 +79,21 @@
                 <div class="top-users-container">
                     <h3>Топ пользователей</h3>
                     <div id="top-users-list" class="top-users-list">
-                        <!-- Список топ пользователей -->
+                        <!-- Список топ пользователей будет добавлен динамически -->
                     </div>
                 </div>
                 
-                <button id="back-to-home" class="btn btn-secondary">На главную</button>
+                <button id="back-to-home" class="btn btn-primary">На главную</button>
             </div>
-        </main>
-
-        <footer class="footer">
-            <p>© 2025 Анатомический Квиз</p>
-        </footer>
+        </div>
+        
+        <div class="footer">
+            &copy; 2025 Анатомический квиз
+        </div>
     </div>
-
-    <!-- Подключаем VK Bridge, если используется -->
-    <script src="https://unpkg.com/@vkontakte/vk-bridge/dist/browser.min.js"></script>
     
-    <!-- Сначала подключаем файл с вопросами -->
+    <!-- ВАЖНО: Подключение скриптов после загрузки DOM -->
     <script src="questions.js"></script>
-    
-    <!-- Затем основной файл приложения -->
     <script src="app.js"></script>
 </body>
 </html>
