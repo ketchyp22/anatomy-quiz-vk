@@ -2,33 +2,25 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="format-detection" content="telephone=no">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="theme-color" content="#4a76a8">
-    <title>Анатомический квиз ВКонтакте</title>
+    <title>Анатомический квиз</title>
     
-    <!-- Стили приложения -->
+    <!-- Базовые стили -->
     <link rel="stylesheet" href="style.css">
     <link rel="stylesheet" href="enhanced-styles.css">
     
-    <!-- VK Bridge должен загружаться самым первым -->
+    <!-- Загрузка VK Bridge -->
     <script src="https://unpkg.com/@vkontakte/vk-bridge/dist/browser.min.js"></script>
     
-    <!-- Затем загружаем все вспомогательные скрипты -->
+    <!-- Наш вспомогательный модуль для работы с VK Bridge -->
+    <script src="vk-bridge-helper.js"></script>
+    
+    <!-- Основные файлы приложения -->
     <script src="questions.js"></script>
-    <script src="animations.js"></script>
-    <script src="animated-background.js"></script>
-    <script src="sound-effects.js"></script>
-    <script src="categories-loader.js"></script>
-    <script src="enhanced-results.js"></script>
-    <script src="enhanced-sharing.js"></script>
-    <script src="enhancements-loader.js"></script>
-    
-    <!-- Загружаем только ОДИН файл управления сложностью -->
-    <script src="vk-difficulty.js"></script>
-    <!-- <script src="standalone-difficulty-manager.js"></script> -->
-    
-    <!-- Загружаем основной файл приложения в конце -->
-    <script src="app.js"></script>
 </head>
 <body>
     <div class="app-container">
@@ -38,10 +30,16 @@
             <p>Проверьте свои знания анатомии человека!</p>
             
             <div id="user-info" class="user-info">
-                <!-- Данные пользователя будут здесь -->
+                <!-- Данные пользователя будут загружены через JS -->
             </div>
             
-            <!-- Селектор сложности будет добавлен автоматически через JS -->
+            <div class="difficulty-selector">
+                <h3>Выберите уровень сложности:</h3>
+                <div class="difficulty-buttons">
+                    <button id="normal-difficulty" class="difficulty-btn active">Обычный</button>
+                    <button id="hard-difficulty" class="difficulty-btn">Сложный</button>
+                </div>
+            </div>
             
             <button id="start-quiz" class="primary-button">Начать тест</button>
         </div>
@@ -72,12 +70,9 @@
                 <button id="restart-quiz" class="primary-button">Пройти еще раз</button>
             </div>
         </div>
-        
-        <!-- Анимированный фон -->
-        <div id="animated-background" class="animated-background"></div>
-        
-        <!-- Скелет-танцор для экрана результатов -->
-        <div id="dancing-skeleton" class="dancing-skeleton" style="display: none;"></div>
     </div>
+    
+    <!-- Скрипты, которые должны загружаться в конце -->
+    <script src="app.js"></script>
 </body>
 </html>
