@@ -15,10 +15,88 @@
     <!-- VK Bridge должен загружаться первым -->
     <script src="https://unpkg.com/@vkontakte/vk-bridge@2.10.0/dist/browser.min.js"></script>
     
-    <!-- Основные вопросы -->
-    <script src="questions.js"></script>
+    <!-- Исправляем обработку вопросов для правильной работы со сложными вопросами -->
+    <script>
+        // Оригинальные функции проверки ответов будут перехвачены
+        document.addEventListener('DOMContentLoaded', function() {
+            // Сохраняем ссылку на оригинальную функцию nextButton.addEventListener из app.js
+            const originalNextButtonClick = Element.prototype.addEventListener;
+            
+            // Переопределяем функцию addEventListener
+            Element.prototype.addEventListener = function(event, callback, options) {
+                if (this.id === 'next-question' && event === 'click') {
+                    // Переопределяем callback для кнопки "Далее"
+                    const enhancedCallback = function() {
+                        if (window.selectedOption === null || !Array.isArray(window.questionsForQuiz) || 
+                            window.currentQuestion >= window.questionsForQuiz.length) {
+                            return;
+                        }
+                        
+                        // Блокировка кнопки после клика
+                        this.disabled = true;
+                        
+                        // Получаем текущий вопрос
+                        const currentQuestionObj = window.questionsForQuiz[window.currentQuestion];
+                        
+                        // Проверка ответа - поддерживаем оба формата: correct и answer
+                        let correctAnswerIndex;
+                        if (currentQuestionObj.hasOwnProperty('correct')) {
+                            correctAnswerIndex = currentQuestionObj.correct;
+                        } else if (currentQuestionObj.hasOwnProperty('correctAnswer')) {
+                            correctAnswerIndex = currentQuestionObj.correctAnswer;
+                        } else if (currentQuestionObj.hasOwnProperty('answer')) {
+                            correctAnswerIndex = currentQuestionObj.answer;
+                        } else {
+                            console.error('Не найден правильный ответ в вопросе:', currentQuestionObj);
+                            correctAnswerIndex = 0; // По умолчанию
+                        }
+                        
+                        // Если правильный ответ совпадает с выбранным, увеличиваем счет
+                        if (window.selectedOption === correctAnswerIndex) {
+                            window.score++;
+                        }
+                        
+                        // Подсветка правильного/неправильного ответа
+                        const options = document.querySelectorAll('.option');
+                        if (options[correctAnswerIndex]) options[correctAnswerIndex].classList.add('correct');
+                        if (window.selectedOption !== correctAnswerIndex && options[window.selectedOption]) {
+                            options[window.selectedOption].classList.add('wrong');
+                        }
+                        
+                        // Блокировка выбора после проверки
+                        options.forEach(option => {
+                            if (typeof window.selectOption === 'function') {
+                                option.removeEventListener('click', window.selectOption);
+                            }
+                            option.style.pointerEvents = 'none';
+                        });
+                        
+                        // Задержка перед следующим вопросом
+                        setTimeout(() => {
+                            window.currentQuestion++;
+                            
+                            if (window.currentQuestion < window.questionsForQuiz.length) {
+                                if (typeof window.loadQuestion === 'function') {
+                                    window.loadQuestion();
+                                }
+                            } else {
+                                if (typeof window.showResults === 'function') {
+                                    window.showResults();
+                                }
+                            }
+                        }, 1500);  // 1.5 секунды, чтобы увидеть правильный ответ
+                    };
+                    
+                    return originalNextButtonClick.call(this, event, enhancedCallback, options);
+                }
+                
+                // Для всех остальных случаев используем оригинальную функцию
+                return originalNextButtonClick.call(this, event, callback, options);
+            };
+        });
+    </script>
     
-    <!-- Загрузка сложных вопросов из JSON и нормализация формата -->
+    <!-- Загрузка сложных вопросов из JSON и их нормализация -->
     <script>
         // Загрузка сложных вопросов при загрузке страницы
         document.addEventListener('DOMContentLoaded', function() {
@@ -50,7 +128,11 @@
                         // Создаем копию вопроса
                         const normalizedQuestion = {...question};
                         
-                        // Если в вопросе есть поле answer, но нет correctAnswer
+                        // Если в вопросе есть поле answer, копируем его в correct и correctAnswer
+                        if (normalizedQuestion.hasOwnProperty('answer') && !normalizedQuestion.hasOwnProperty('correct')) {
+                            normalizedQuestion.correct = normalizedQuestion.answer;
+                        }
+                        
                         if (normalizedQuestion.hasOwnProperty('answer') && !normalizedQuestion.hasOwnProperty('correctAnswer')) {
                             normalizedQuestion.correctAnswer = normalizedQuestion.answer;
                         }
