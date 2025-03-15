@@ -10,6 +10,12 @@
             return;
         }
         
+        // Проверяем, использовались ли сложные вопросы
+        if (window.difficultQuestions && window.questions === window.difficultQuestions) {
+            difficulty = 'hard';
+            console.log('Определен режим сложных вопросов из difficult-questions.json');
+        }
+        
         // Рассчитываем процент
         const percentage = Math.round((score / totalQuestions) * 100);
         
@@ -65,15 +71,6 @@
     
     // Функция для добавления визуальных эффектов к результатам
     function addResultsEffects(container, scoreElement, percentage) {
-        // Показываем танцующий скелет при хорошем результате
-        if (percentage >= 70) {
-            const dancingSkeleton = document.getElementById('dancing-skeleton');
-            if (dancingSkeleton) {
-                dancingSkeleton.innerHTML = '<div class="skeleton-emoji">💀</div>';
-                dancingSkeleton.style.display = 'block';
-            }
-        }
-        
         // Анимируем появление результатов
         if (window.QuizAnimations && window.QuizAnimations.animateElement) {
             const resultElements = scoreElement.querySelectorAll('div, p');
@@ -137,9 +134,18 @@
                 color: var(--text-color);
             }
             
-            .skeleton-emoji {
-                font-size: 50px;
-                animation: dance 2s infinite;
+            .difficulty-badge {
+                display: inline-block;
+                padding: 5px 10px;
+                border-radius: 4px;
+                background-color: #8BC34A;
+                color: white;
+                font-weight: bold;
+                margin-bottom: 10px;
+            }
+            
+            .difficulty-badge.hard {
+                background-color: #FF5722;
             }
             
             @keyframes bounce {
@@ -148,21 +154,6 @@
                 }
                 50% {
                     transform: translateY(-15px);
-                }
-            }
-            
-            @keyframes dance {
-                0%, 100% {
-                    transform: rotate(0deg);
-                }
-                25% {
-                    transform: rotate(20deg) translateY(-10px);
-                }
-                50% {
-                    transform: rotate(0deg);
-                }
-                75% {
-                    transform: rotate(-20deg) translateY(-10px);
                 }
             }
         `;
