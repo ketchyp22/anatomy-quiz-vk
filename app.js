@@ -6,6 +6,9 @@ let questionsForQuiz = []; // Массив для хранения выбран�
 const totalQuestionsToShow = 25; // Количество вопросов для показа в одном тесте
 let currentUserData = null; // Данные текущего пользователя
 let vkBridgeInstance = null; // Экземпляр VK Bridge для использования в функциях
+let currentCategory = 'general'; // Текущая категория вопросов (по умолчанию - общие)
+let generalQuestions = []; // Массив для обычных вопросов
+let difficultQuestions = []; // Массив для сложных вопросов
 
 // Получение базового URL для правильного построения путей к файлам
 function getBaseUrl() {
@@ -51,6 +54,20 @@ function loadQuestionsScript(url) {
     });
 }
 
+// Функция загрузки JSON файла
+async function loadQuestionsJSON(url) {
+    try {
+        const response = await fetch(url);
+        if (!response.ok) {
+            throw new Error(`Ошибка HTTP: ${response.status}`);
+        }
+        return await response.json();
+    } catch (error) {
+        console.error(`Ошибка загрузки JSON: ${url}`, error);
+        return null;
+    }
+}
+
 // Ждем полную загрузку страницы
 document.addEventListener('DOMContentLoaded', async function() {
     console.log('DOM полностью загружен');
@@ -60,6 +77,11 @@ document.addEventListener('DOMContentLoaded', async function() {
         // Если вопросы уже доступны, используем их
         if (typeof window.questions !== 'undefined' && Array.isArray(window.questions)) {
             console.log(`Вопросы уже загружены: ${window.questions.length} вопросов`);
+            generalQuestions = window.questions; // Сохраняем обычные вопросы
+            
+            // Пытаемся загрузить сложные вопросы
+            await loadDifficultQuestions();
+            
             initializeApp();
             return;
         }
@@ -106,6 +128,7 @@ document.addEventListener('DOMContentLoaded', async function() {
                 // Проверяем, загрузились ли вопросы
                 if (typeof window.questions !== 'undefined' && Array.isArray(window.questions)) {
                     console.log(`Вопросы успешно загружены из: ${path}`);
+                    generalQuestions = window.questions; // Сохраняем обычные вопросы
                     loaded = true;
                     break;
                 } else {
@@ -117,7 +140,12 @@ document.addEventListener('DOMContentLoaded', async function() {
         }
         
         if (loaded) {
-            console.log('Вопросы успешно загружены, инициализация приложения...');
+            console.log('Вопросы успешно загружены, пытаемся загрузить сложные вопросы...');
+            
+            // Пытаемся загрузить сложные вопросы
+            await loadDifficultQuestions();
+            
+            console.log('Инициализация приложения...');
             initializeApp();
         } else {
             console.error('Не удалось загрузить вопросы ни по одному из путей');
@@ -125,11 +153,236 @@ document.addEventListener('DOMContentLoaded', async function() {
         }
     }
     
+    // Загрузка сложных вопросов
+    async function loadDifficultQuestions() {
+        const baseUrl = getBaseUrl();
+        
+        // Возможные пути к файлу со сложными вопросами
+        const possiblePaths = [
+            'difficult-questions.json',
+            './difficult-questions.json',
+            `${baseUrl}difficult-questions.json`,
+            '/difficult-questions.json',
+            'js/difficult-questions.json',
+            './js/difficult-questions.json',
+            `${baseUrl}js/difficult-questions.json`
+        ];
+        
+        // Пытаемся загрузить сложные вопросы по разным путям
+        for (const path of possiblePaths) {
+            try {
+                console.log(`Пробуем загрузить сложные вопросы по пути: ${path}`);
+                
+                // Сначала проверим, существует ли файл
+                const exists = await checkFileExists(path);
+                if (!exists) {
+                    console.log(`Файл не найден по пути: ${path}`);
+                    continue;
+                }
+                
+                // Если файл существует, пробуем его загрузить
+                const questions = await loadQuestionsJSON(path);
+                
+                if (questions && Array.isArray(questions) && questions.length > 0) {
+                    console.log(`Сложные вопросы успешно загружены из: ${path}`);
+                    difficultQuestions = questions;
+                    
+                    // Активируем кнопку сложных вопросов
+                    const difficultBtn = document.getElementById('difficult-btn');
+                    if (difficultBtn) {
+                        difficultBtn.disabled = false;
+                    }
+                    
+                    return true;
+                }
+            } catch (error) {
+                console.error(`Ошибка при загрузке сложных вопросов: ${path}`, error);
+            }
+        }
+        
+        console.warn('Не удалось загрузить сложные вопросы. Будут доступны только обычные вопросы.');
+        return false;
+    }
+    
     // Запускаем загрузку вопросов
     await loadQuestions();
 });
 
+// Создание и добавление элементов интерфейса категорий
+function createCategorySelector() {
+    console.log('Создание селектора категорий');
+    
+    // Находим подходящее место для вставки
+    const startScreen = document.getElementById('start-screen');
+    const quizContainer = document.querySelector('.quiz-container') || document.querySelector('#quiz-container');
+    
+    if (!startScreen && !quizContainer) {
+        console.error('Не найден контейнер для вставки переключателя категорий');
+        return false;
+    }
+    
+    // Создаем HTML для переключателя категорий
+    const categorySelector = document.createElement('div');
+    categorySelector.className = 'category-selector';
+    categorySelector.innerHTML = `
+        <div class="difficulty-container">
+            <span id="difficulty-indicator">Сложность: обычная</span>
+        </div>
+        <div class="category-buttons">
+            <button id="general-btn" class="category-btn active">Обычные вопросы</button>
+            <button id="difficult-btn" class="category-btn" disabled>Сложные вопросы</button>
+        </div>
+    `;
+    
+    // Вставляем в начало контейнера
+    const targetContainer = startScreen || quizContainer;
+    targetContainer.insertBefore(categorySelector, targetContainer.firstChild);
+    
+    // Добавляем стили для переключателя категорий
+    addCategoryStyles();
+    
+    return true;
+}
+
+// Добавление стилей для переключателя категорий
+function addCategoryStyles() {
+    const styleElement = document.createElement('style');
+    styleElement.textContent = `
+        .category-selector {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        
+        .difficulty-container {
+            margin-bottom: 10px;
+        }
+        
+        #difficulty-indicator {
+            font-weight: bold;
+            color: #333;
+        }
+        
+        .category-buttons {
+            display: flex;
+            gap: 10px;
+        }
+        
+        .category-btn {
+            padding: 10px 15px;
+            background-color: #f0f0f0;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: 500;
+        }
+        
+        .category-btn:hover:not([disabled]) {
+            background-color: #e0e0e0;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+        
+        .category-btn.active {
+            background-color: #4CAF50;
+            color: white;
+            border-color: #3e8e41;
+        }
+        
+        .category-btn[disabled] {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+        
+        /* Для темной темы VK */
+        .vk-dark-theme .category-btn {
+            background-color: #333;
+            color: #ddd;
+            border-color: #555;
+        }
+        
+        .vk-dark-theme .category-btn:hover:not([disabled]) {
+            background-color: #444;
+        }
+        
+        .vk-dark-theme .category-btn.active {
+            background-color: #5181b8;
+            border-color: #4a76a8;
+        }
+        
+        .vk-dark-theme #difficulty-indicator {
+            color: #ddd;
+        }
+    `;
+    document.head.appendChild(styleElement);
+}
+
+// Инициализация обработчиков для кнопок категорий
+function initCategoryButtons() {
+    const generalBtn = document.getElementById('general-btn');
+    const difficultBtn = document.getElementById('difficult-btn');
+    
+    if (generalBtn) {
+        generalBtn.addEventListener('click', function() {
+            changeCategory('general');
+        });
+    }
+    
+    if (difficultBtn) {
+        difficultBtn.addEventListener('click', function() {
+            changeCategory('difficult');
+        });
+    }
+}
+
+// Функция переключения категории
+function changeCategory(category) {
+    currentCategory = category;
+    
+    // Обновляем активную кнопку
+    const buttons = document.querySelectorAll('.category-btn');
+    buttons.forEach(btn => btn.classList.remove('active'));
+    
+    const activeBtn = document.getElementById(`${category}-btn`);
+    if (activeBtn) {
+        activeBtn.classList.add('active');
+    }
+    
+    // Обновляем индикатор сложности
+    const indicator = document.getElementById('difficulty-indicator');
+    if (indicator) {
+        indicator.textContent = `Сложность: ${category === 'general' ? 'обычная' : 'повышенная'}`;
+    }
+    
+    console.log(`Категория изменена на: ${category}`);
+}
+
 // Инициализация приложения
+// Обработка темы VK
+function applyVKTheme(scheme) {
+    console.log('Применяется тема:', scheme);
+    const isDarkTheme = ['space_gray', 'vkcom_dark'].includes(scheme);
+    document.documentElement.classList.toggle('vk-dark-theme', isDarkTheme);
+}
+
+// Функция для перемешивания массива (алгоритм Фишера-Йейтса)
+function shuffleArray(array) {
+    if (!Array.isArray(array) || array.length === 0) {
+        console.error('Ошибка: shuffleArray получил неверный массив');
+        return [];
+    }
+    
+    const newArray = [...array]; // Создаем копию массива
+    for (let i = newArray.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [newArray[i], newArray[j]] = [newArray[j], newArray[i]];
+    }
+    
+    return newArray;
+}
+
 function initializeApp() {
     // DOM элементы - проверяем их существование перед использованием
     const startScreen = document.getElementById('start-screen');
@@ -151,6 +404,12 @@ function initializeApp() {
         !questionElement || !optionsElement || !progressBar) {
         console.error('Ошибка: Некоторые необходимые элементы не найдены в DOM');
     }
+
+    // Создаем интерфейс для выбора категорий
+    createCategorySelector();
+    
+    // Инициализируем обработчики для кнопок категорий
+    initCategoryButtons();
 
     // Проверяем доступность VK Bridge
     let bridge = null;
@@ -214,17 +473,39 @@ function initializeApp() {
 
     // Выбор случайных вопросов из общего пула
     function selectRandomQuestions() {
-        // Проверяем, что window.questions существует и является массивом
-        if (!Array.isArray(window.questions)) {
-            console.error('Ошибка: переменная window.questions не является массивом');
-            return [];
+        // Выбираем вопросы в зависимости от текущей категории
+        let sourceQuestions = [];
+        
+        if (currentCategory === 'general') {
+            sourceQuestions = generalQuestions;
+            console.log('Используем обычные вопросы');
+        } else if (currentCategory === 'difficult') {
+            sourceQuestions = difficultQuestions;
+            console.log('Используем сложные вопросы');
         }
         
-        console.log(`Доступно ${window.questions.length} вопросов, выбираем ${totalQuestionsToShow}`);
+        // Проверяем, что массив вопросов не пуст
+        if (!Array.isArray(sourceQuestions) || sourceQuestions.length === 0) {
+            console.error(`Ошибка: массив вопросов категории ${currentCategory} пуст`);
+            
+            // Если сложные вопросы не загружены, используем обычные
+            if (currentCategory === 'difficult' && Array.isArray(generalQuestions) && generalQuestions.length > 0) {
+                console.warn('Переключаемся на обычные вопросы, так как сложные не доступны');
+                sourceQuestions = generalQuestions;
+                changeCategory('general');
+            } else {
+                return [];
+            }
+        }
+        
+        console.log(`Доступно ${sourceQuestions.length} вопросов, выбираем ${totalQuestionsToShow}`);
+        
+        // Определяем, сколько вопросов можно выбрать
+        const numToSelect = Math.min(totalQuestionsToShow, sourceQuestions.length);
         
         // Перемешиваем и выбираем нужное количество
-        const shuffled = shuffleArray(window.questions);
-        return shuffled.slice(0, totalQuestionsToShow);
+        const shuffled = shuffleArray(sourceQuestions);
+        return shuffled.slice(0, numToSelect);
     }
 
     function startQuiz() {
@@ -256,7 +537,7 @@ function initializeApp() {
 
     // Загрузка вопроса
     function loadQuestion() {
-        console.log(`Загрузка вопроса ${currentQuestion + 1} из ${totalQuestionsToShow}`);
+        console.log(`Загрузка вопроса ${currentQuestion + 1} из ${questionsForQuiz.length}`);
         
         if (!questionElement || !optionsElement || !questionCounter || !progressBar) {
             console.error('Ошибка при загрузке вопроса: элементы не найдены');
@@ -282,10 +563,10 @@ function initializeApp() {
         questionElement.textContent = question.question;
         
         // Обновление счетчика вопросов
-        questionCounter.textContent = `Вопрос ${currentQuestion + 1} из ${totalQuestionsToShow}`;
+        questionCounter.textContent = `Вопрос ${currentQuestion + 1} из ${questionsForQuiz.length}`;
         
         // Обновление прогресс-бара
-        const progress = ((currentQuestion) / totalQuestionsToShow) * 100;
+        const progress = ((currentQuestion) / questionsForQuiz.length) * 100;
         progressBar.style.width = `${progress}%`;
         
         // Очистка предыдущих вариантов
@@ -334,7 +615,7 @@ function initializeApp() {
             nextButton.disabled = true;
             
             // Проверка ответа
-            const correct = questionsForQuiz[currentQuestion].correct;
+            const correct = questionsForQuiz[currentQuestion].answer;
             if (selectedOption === correct) {
                 score++;
             }
@@ -385,10 +666,14 @@ function initializeApp() {
             resultText = 'Стоит подучить анатомию, но вы уже на пути к знаниям!';
         }
         
+        // Добавляем информацию о категории
+        const categoryInfo = currentCategory === 'general' ? 'Обычные вопросы' : 'Сложные вопросы';
+        
         scoreElement.innerHTML = `
             <p>Вы ответили правильно на ${score} из ${questionsForQuiz.length} вопросов</p>
             <p>${percentage}%</p>
             <p>${resultText}</p>
+            <p class="category-info">Категория: ${categoryInfo}</p>
         `;
     }
 
@@ -396,7 +681,8 @@ function initializeApp() {
     if (shareResultsButton) {
         shareResultsButton.addEventListener('click', () => {
             const percentage = Math.round((score / questionsForQuiz.length) * 100);
-            const message = `Я прошел Анатомический квиз и набрал ${percentage}%! Попробуй и ты!`;
+            const categoryInfo = currentCategory === 'general' ? 'обычная сложность' : 'повышенная сложность';
+            const message = `Я прошел Анатомический квиз (${categoryInfo}) и набрал ${percentage}%! Попробуй и ты!`;
             
             let bridge = null;
             if (window.vkBridgeInstance) {
@@ -429,14 +715,59 @@ function initializeApp() {
     if (restartQuizButton) {
         restartQuizButton.addEventListener('click', () => {
             if (resultsContainer) resultsContainer.style.display = 'none';
-            startQuiz();
+            if (startScreen) startScreen.style.display = 'block';
         });
     }
+    
+    // Для API приложения (добавляем методы, чтобы другие модули могли взаимодействовать)
+    window.quizApp = {
+        isInitialized: true,
+        
+        // Метод для установки новых вопросов
+        setQuestions: function(newQuestions) {
+            if (!Array.isArray(newQuestions) || newQuestions.length === 0) {
+                console.error('Ошибка: Новые вопросы должны быть непустым массивом');
+                return false;
+            }
+            
+            if (currentCategory === 'difficult') {
+                difficultQuestions = [...newQuestions];
+            } else {
+                generalQuestions = [...newQuestions];
+            }
+            
+            return true;
+        },
+        
+        // Метод для сброса к оригинальным вопросам
+        resetToDefaultQuestions: function() {
+            // Здесь нет необходимости что-то сбрасывать, 
+            // так как категории хранятся отдельно
+            return true;
+        },
+        
+        // Метод для перезапуска квиза
+        restartQuiz: function() {
+            if (typeof startQuiz === 'function') {
+                startQuiz();
+                return true;
+            }
+            return false;
+        },
+        
+        // Метод для изменения категории
+        changeCategory: function(category) {
+            return changeCategory(category);
+        }
+    };
 }
 
 // Функция для инициализации VK Bridge
 function initVKBridge(bridge) {
     try {
+        // Сохраняем экземпляр для использования в других функциях
+        vkBridgeInstance = bridge;
+        
         // Инициализация VK Bridge
         bridge.send('VKWebAppInit')
             .then(data => {
@@ -488,27 +819,3 @@ function initVKBridge(bridge) {
             showGuestMode();
         }
     }
-}
-
-// Обработка темы VK
-function applyVKTheme(scheme) {
-    console.log('Применяется тема:', scheme);
-    const isDarkTheme = ['space_gray', 'vkcom_dark'].includes(scheme);
-    document.documentElement.classList.toggle('vk-dark-theme', isDarkTheme);
-}
-
-// Функция для перемешивания массива (алгоритм Фишера-Йейтса)
-function shuffleArray(array) {
-    if (!Array.isArray(array) || array.length === 0) {
-        console.error('Ошибка: shuffleArray получил неверный массив');
-        return [];
-    }
-    
-    const newArray = [...array]; // Создаем копию массива
-    for (let i = newArray.length - 1; i > 0; i--) {
-        const j = Math.floor(Math.random() * (i + 1));
-        [newArray[i], newArray[j]] = [newArray[j], newArray[i]];
-    }
-    
-    return newArray;
-}
