@@ -746,4 +746,32 @@ window.addEventListener('load', function() {
             }
         });
     }
+
+    #user-info {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 20px auto;
+    padding: 12px 20px;
+    background-color: rgba(74, 118, 168, 0.1);
+    border-radius: 15px;
+    transition: all 0.3s ease;
+    min-width: 200px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+#user-info img {
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    margin-right: 15px;
+    border: 2px solid white;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+}
+
+#user-info span {
+    font-weight: 600;
+    font-size: 16px;
+    color: #4a76a8;
+}
 });
