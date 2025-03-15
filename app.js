@@ -415,42 +415,51 @@ if (window.QuizAnimations && window.QuizAnimations.enhancer) {
 
     // Отображение результатов
     function showResults() {
-    if (!quizContainer || !resultsContainer || !scoreElement) return;
+    if (!quizContainer || !resultsContainer) {
+        console.error('Ошибка: не найдены необходимые элементы DOM');
+        return;
+    }
     
     quizContainer.style.display = 'none';
     resultsContainer.style.display = 'block';
     
-    const percentage = Math.round((score / questionsForQuiz.length) * 100);
-    
     // Определяем текущий уровень сложности
-    let difficultyText = '';
     let currentDifficulty = 'normal';
     if (window.difficultyManager && typeof window.difficultyManager.getCurrentLevel === 'function') {
         currentDifficulty = window.difficultyManager.getCurrentLevel();
-        difficultyText = currentDifficulty === 'hard' ? 
+    }
+    
+    // Используем улучшенное отображение результатов, если доступно
+    if (window.EnhancedResults && typeof window.EnhancedResults.showResults === 'function') {
+        window.EnhancedResults.showResults(score, questionsForQuiz.length, currentDifficulty);
+    } else {
+        // Запасной вариант, если улучшенный модуль недоступен
+        const percentage = Math.round((score / questionsForQuiz.length) * 100);
+        
+        const difficultyText = currentDifficulty === 'hard' ? 
             '<div class="difficulty-badge hard">Сложный уровень</div>' : 
             '<div class="difficulty-badge">Обычный уровень</div>';
+        
+        let resultText;
+        if (percentage >= 90) {
+            resultText = currentDifficulty === 'hard' ? 
+                'Великолепно! Вы настоящий эксперт в анатомии!' : 
+                'Отлично! Вы эксперт в анатомии!';
+        } else if (percentage >= 70) {
+            resultText = 'Хороший результат! Вы хорошо знаете анатомию!';
+        } else if (percentage >= 50) {
+            resultText = 'Неплохо! Но есть над чем поработать.';
+        } else {
+            resultText = 'Стоит подучить анатомию, но вы уже на пути к знаниям!';
+        }
+        
+        scoreElement.innerHTML = `
+            ${difficultyText}
+            <p>Вы ответили правильно на ${score} из ${questionsForQuiz.length} вопросов</p>
+            <p>${percentage}%</p>
+            <p>${resultText}</p>
+        `;
     }
-    
-    let resultText;
-    if (percentage >= 90) {
-        resultText = currentDifficulty === 'hard' ? 
-            'Великолепно! Вы настоящий эксперт в анатомии!' : 
-            'Отлично! Вы эксперт в анатомии!';
-    } else if (percentage >= 70) {
-        resultText = 'Хороший результат! Вы хорошо знаете анатомию!';
-    } else if (percentage >= 50) {
-        resultText = 'Неплохо! Но есть над чем поработать.';
-    } else {
-        resultText = 'Стоит подучить анатомию, но вы уже на пути к знаниям!';
-    }
-    
-    scoreElement.innerHTML = `
-        ${difficultyText}
-        <p>Вы ответили правильно на ${score} из ${questionsForQuiz.length} вопросов</p>
-        <p>${percentage}%</p>
-        <p>${resultText}</p>
-    `;
 }
 
     // Поделиться результатами - проверяем наличие кнопки перед добавлением обработчика
