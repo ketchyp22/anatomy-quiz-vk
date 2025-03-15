@@ -569,7 +569,7 @@ function shuffleArray(array) {
     return newArray;
 }
 
-// Проверка доступности VK Bridge и его повторная инициализация при необходимости
+// Функция для проверки доступности VK Bridge и его повторной инициализации при необходимости
 function ensureVKBridge() {
     console.log('Проверка доступности VK Bridge...');
     
@@ -614,6 +614,38 @@ function ensureVKBridge() {
         document.head.appendChild(script);
     }).catch((error) => {
         console.error('Не удалось загрузить VK Bridge:', error);
+        
+        // Важное исправление - вызываем функцию гостевого режима,
+        // но проверяем сначала, существует ли она в глобальной области
+        console.warn('VK Bridge не удалось инициализировать, работаем в гостевом режиме');
+        
+        // Создаем глобальную функцию showGuestMode, если ее еще нет
+        if (typeof window.showGuestMode !== 'function') {
+            window.showGuestMode = function() {
+                const userInfoElement = document.getElementById('user-info');
+                if (!userInfoElement) return;
+                
+                window.currentUserData = {
+                    id: 'guest' + Math.floor(Math.random() * 10000),
+                    first_name: 'Гость',
+                    last_name: '',
+                    photo_100: 'https://vk.com/images/camera_100.png'
+                };
+                
+                userInfoElement.innerHTML = `
+                    <img src="${window.currentUserData.photo_100}" alt="${window.currentUserData.first_name}">
+                    <span>${window.currentUserData.first_name}</span>
+                `;
+                
+                console.log('Запущен гостевой режим с ID:', window.currentUserData.id);
+            };
+        }
+        
+        // Теперь безопасно вызываем функцию
+        if (typeof window.showGuestMode === 'function') {
+            window.showGuestMode();
+        }
+        
         return null; // Возвращаем null, чтобы код продолжил работу в гостевом режиме
     });
 }
@@ -632,6 +664,32 @@ function setVKCookies() {
 window.addEventListener('load', function() {
     setVKCookies();
     
+    // Делаем функцию showGuestMode глобальной, чтобы ее можно было вызвать из любого места
+    if (typeof window.showGuestMode !== 'function' && 
+        typeof initializeApp === 'function') {
+        
+        // Находим определение функции showGuestMode внутри initializeApp
+        // и делаем копию для глобального использования
+        window.showGuestMode = function() {
+            const userInfoElement = document.getElementById('user-info');
+            if (!userInfoElement) return;
+            
+            window.currentUserData = {
+                id: 'guest' + Math.floor(Math.random() * 10000),
+                first_name: 'Гость',
+                last_name: '',
+                photo_100: 'https://vk.com/images/camera_100.png'
+            };
+            
+            userInfoElement.innerHTML = `
+                <img src="${window.currentUserData.photo_100}" alt="${window.currentUserData.first_name}">
+                <span>${window.currentUserData.first_name}</span>
+            `;
+            
+            console.log('Запущен гостевой режим с ID:', window.currentUserData.id);
+        };
+    }
+    
     // Дополнительная попытка инициализации VK Bridge, если он не был инициализирован ранее
     if (!vkBridgeInstance) {
         ensureVKBridge().then(bridge => {
@@ -641,7 +699,9 @@ window.addEventListener('load', function() {
                 initVKBridge(bridge);
             } else {
                 console.warn('VK Bridge не удалось инициализировать, работаем в гостевом режиме');
-                showGuestMode();
+                if (typeof window.showGuestMode === 'function') {
+                    window.showGuestMode();
+                }
             }
         });
     }
