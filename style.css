@@ -33,19 +33,12 @@ body {
     background: var(--bg-gradient);
     min-height: 100vh;
     color: var(--text-color);
-    animation: gradientBackground 15s ease infinite;
     background-size: 200% 200%;
     padding: 20px;
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
-}
-
-@keyframes gradientBackground {
-    0% { background-position: 0% 50%; }
-    50% { background-position: 100% 50%; }
-    100% { background-position: 0% 50%; }
 }
 
 h1, h2, h3 {
@@ -60,7 +53,6 @@ h1 {
     position: relative;
     display: inline-block;
     margin-top: 10px;
-    animation: fadeIn 0.8s ease;
 }
 
 h1::after {
@@ -80,7 +72,6 @@ p {
     margin-bottom: 20px;
     color: var(--secondary-text);
     line-height: 1.5;
-    animation: fadeIn 1s ease;
 }
 
 /* Стартовый экран */
@@ -94,7 +85,6 @@ p {
     box-shadow: var(--card-shadow);
     position: relative;
     overflow: hidden;
-    animation: slideIn 0.5s ease-out;
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -121,7 +111,6 @@ p {
     background-color: rgba(74, 118, 168, 0.1);
     border-radius: 30px;
     transition: all 0.3s ease;
-    animation: fadeIn 1.2s ease;
 }
 
 #user-info:hover {
@@ -148,7 +137,6 @@ p {
     margin: 20px 0;
     text-align: center;
     width: 100%;
-    animation: fadeIn 1.4s ease;
 }
 
 .difficulty-selector h3 {
@@ -212,7 +200,6 @@ p {
     border: none;
     cursor: pointer;
     display: inline-block;
-    animation: fadeIn 1.6s ease, pulse 2s infinite;
 }
 
 #start-quiz:hover, .btn-start:hover {
@@ -225,24 +212,6 @@ p {
     box-shadow: 0 3px 10px rgba(74, 118, 168, 0.3);
 }
 
-#start-quiz::after, .btn-start::after {
-    content: '';
-    position: absolute;
-    top: -50%;
-    left: -50%;
-    width: 200%;
-    height: 200%;
-    background: linear-gradient(to right, rgba(255, 255, 255, 0) 0%, rgba(255, 255, 255, 0.3) 50%, rgba(255, 255, 255, 0) 100%);
-    transform: rotate(30deg);
-    opacity: 0;
-    transition: opacity 0.5s ease;
-}
-
-#start-quiz:hover::after, .btn-start:hover::after {
-    opacity: 1;
-    animation: shine 1.5s ease;
-}
-
 /* Контейнер с вопросами */
 #quiz-container {
     width: 100%;
@@ -252,7 +221,6 @@ p {
     padding: 30px 20px;
     box-shadow: var(--card-shadow);
     position: relative;
-    animation: slideIn 0.5s ease-out;
 }
 
 .progress-container {
@@ -292,7 +260,6 @@ p {
     line-height: 1.5;
     color: var(--text-color);
     padding: 0 10px;
-    animation: fadeIn 0.5s ease;
 }
 
 #options {
@@ -314,7 +281,6 @@ p {
     box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
     position: relative;
     overflow: hidden;
-    animation: fadeIn 0.5s ease;
 }
 
 .option:hover {
@@ -332,13 +298,11 @@ p {
 .option.correct {
     border-color: #4caf50;
     background-color: var(--option-correct-bg);
-    animation: correctAnswer 0.5s ease;
 }
 
 .option.wrong {
     border-color: #f44336;
     background-color: var(--option-wrong-bg);
-    animation: wrongAnswer 0.5s ease;
 }
 
 /* Кнопка Далее */
@@ -385,7 +349,6 @@ p {
     box-shadow: var(--card-shadow);
     text-align: center;
     position: relative;
-    animation: slideIn 0.5s ease-out;
 }
 
 #results-container::before {
@@ -401,7 +364,6 @@ p {
 
 #score {
     margin-bottom: 30px;
-    animation: fadeIn 0.5s ease;
 }
 
 #score p {
@@ -414,7 +376,6 @@ p {
     font-weight: 700;
     color: var(--btn-primary-bg);
     margin: 20px 0;
-    animation: scaleIn 0.5s ease;
 }
 
 .result-buttons {
@@ -482,7 +443,6 @@ p {
 
 .difficulty-indicator.hard {
     background-color: #e53935;
-    animation: pulse 2s infinite;
 }
 
 .difficulty-badge {
@@ -524,226 +484,16 @@ p {
     --progress-bg: #404040;
 }
 
-/* Анимации */
-
-/* Анимация появления элементов */
+/* Базовые анимации для совместимости со скриптами анимаций */
 @keyframes fadeIn {
     from { opacity: 0; transform: translateY(20px); }
     to { opacity: 1; transform: translateY(0); }
 }
 
-.fadeIn {
-    animation: fadeIn 0.5s ease forwards;
-}
-
-/* Анимация масштабирования */
-@keyframes scaleIn {
-    from { transform: scale(0.8); opacity: 0; }
-    to { transform: scale(1); opacity: 1; }
-}
-
-/* Анимация для правильного ответа */
-@keyframes correctAnswer {
-    0% { transform: scale(1); }
-    50% { transform: scale(1.05); }
-    100% { transform: scale(1); }
-}
-
-/* Анимация для неправильного ответа */
-@keyframes wrongAnswer {
-    0% { transform: translateX(0); }
-    25% { transform: translateX(-5px); }
-    50% { transform: translateX(5px); }
-    75% { transform: translateX(-5px); }
-    100% { transform: translateX(0); }
-}
-
-/* Анимация для счета */
-.score-animation {
-    position: fixed;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    font-size: 48px;
-    font-weight: bold;
-    color: #4a76a8;
-    pointer-events: none;
-    animation: scoreUp 1s ease-out forwards;
-    z-index: 1000;
-}
-
-@keyframes scoreUp {
-    0% { opacity: 0; transform: translate(-50%, -50%) scale(0.5); }
-    20% { opacity: 1; transform: translate(-50%, -50%) scale(1.2); }
-    80% { opacity: 1; transform: translate(-50%, -100%) scale(1); }
-    100% { opacity: 0; transform: translate(-50%, -150%) scale(0.8); }
-}
-
-/* Анимированный фон */
-.anatomy-background-wrapper {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    pointer-events: none;
-    z-index: -1;
-    overflow: hidden;
-}
-
-.floating-anatomy-icon {
-    position: absolute;
-    animation: float linear infinite;
-    opacity: 0.6;
-    transform: scale(1);
-}
-
-@keyframes float {
-    0% {
-        transform: translate(0, 0) rotate(0deg) scale(1);
-        opacity: 0;
-    }
-    10% {
-        opacity: 0.6;
-    }
-    90% {
-        opacity: 0.6;
-    }
-    100% {
-        transform: translate(100px, -100px) rotate(360deg) scale(1.5);
-        opacity: 0;
-    }
-}
-
-/* Пульсирующая кнопка */
 @keyframes pulse {
-    0% {
-        box-shadow: 0 0 0 0 rgba(74, 118, 168, 0.7);
-    }
-    70% {
-        box-shadow: 0 0 0 10px rgba(74, 118, 168, 0);
-    }
-    100% {
-        box-shadow: 0 0 0 0 rgba(74, 118, 168, 0);
-    }
-}
-
-/* Анимированная линия пульса */
-.pulse-line-container {
-    position: absolute;
-    bottom: 20px;
-    right: 20px;
-    width: 150px;
-    height: 40px;
-    z-index: 5;
-}
-
-.pulse-line-svg {
-    width: 100%;
-    height: 100%;
-    overflow: visible;
-}
-
-.pulse-line-path {
-    stroke: #FF5A5A;
-    stroke-width: 2.5;
-    fill: none;
-    stroke-linecap: round;
-    stroke-linejoin: round;
-    stroke-dasharray: 300;
-    stroke-dashoffset: 300;
-    animation: pulse-line-draw 2s forwards infinite;
-}
-
-@keyframes pulse-line-draw {
-    0% {
-        stroke-dashoffset: 300;
-    }
-    100% {
-        stroke-dashoffset: 0;
-    }
-}
-
-/* Танцующий скелет */
-#dancing-skeleton {
-    position: absolute;
-    bottom: 20px;
-    right: 20px;
-    width: 100px;
-    height: 150px;
-    background-image: url('images/skeleton.svg');
-    background-size: contain;
-    background-repeat: no-repeat;
-    background-position: center;
-    animation: dance 2s infinite;
-}
-
-@keyframes dance {
-    0% { transform: rotate(-5deg) translateY(0); }
-    25% { transform: rotate(5deg) translateY(-5px); }
-    50% { transform: rotate(-5deg) translateY(0); }
-    75% { transform: rotate(5deg) translateY(-5px); }
-    100% { transform: rotate(-5deg) translateY(0); }
-}
-
-/* Анимации перехода между экранами */
-@keyframes slideIn {
-    from { 
-        opacity: 0;
-        transform: translateY(20px);
-    }
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
-}
-
-/* Эффект блеска для кнопок */
-@keyframes shine {
-    from { left: -50%; opacity: 0; }
-    50% { opacity: 1; }
-    to { left: 150%; opacity: 0; }
-}
-
-/* Подсветка правильных ответов */
-.highlight {
-    animation: highlight 1s;
-}
-
-@keyframes highlight {
-    0% { background-color: rgba(74, 118, 168, 0); }
-    50% { background-color: rgba(74, 118, 168, 0.2); }
-    100% { background-color: rgba(74, 118, 168, 0); }
-}
-
-/* Стили для кнопки выключения звука */
-.mute-button {
-    position: fixed;
-    bottom: 20px;
-    right: 20px;
-    width: 40px;
-    height: 40px;
-    border-radius: 50%;
-    background-color: rgba(74, 118, 168, 0.8);
-    border: none;
-    color: white;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    transition: all 0.3s ease;
-    z-index: 1000;
-    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
-}
-
-.mute-button:hover {
-    background-color: rgba(74, 118, 168, 1);
-    transform: scale(1.1);
-}
-
-.mute-button svg {
-    width: 20px;
-    height: 20px;
+    0% { box-shadow: 0 0 0 0 rgba(74, 118, 168, 0.7); }
+    70% { box-shadow: 0 0 0 10px rgba(74, 118, 168, 0); }
+    100% { box-shadow: 0 0 0 0 rgba(74, 118, 168, 0); }
 }
 
 /* Адаптивность для мобильных устройств */
@@ -789,19 +539,5 @@ p {
     
     #score p:nth-child(2) {
         font-size: 32px;
-    }
-    
-    .mute-button {
-        bottom: 10px;
-        right: 10px;
-        width: 36px;
-        height: 36px;
-    }
-    
-    .pulse-line-container {
-        bottom: 10px;
-        right: 10px;
-        width: 120px;
-        height: 30px;
     }
 }
