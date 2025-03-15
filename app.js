@@ -228,31 +228,47 @@ function initializeApp() {
     }
 
     function startQuiz() {
-        console.log("Начало квиза");
-        
-        if (!startScreen || !quizContainer) {
-            console.error('Ошибка: не найдены необходимые элементы DOM');
-            return;
-        }
-        
-        startScreen.style.display = 'none';
-        quizContainer.style.display = 'block';
-        currentQuestion = 0;
-        score = 0;
-        
-        // Выбираем случайные вопросы для текущего теста
-        questionsForQuiz = selectRandomQuestions();
-        
-        console.log(`Выбрано ${questionsForQuiz.length} вопросов для квиза`);
-        
-        if (questionsForQuiz.length === 0) {
-            console.error('Ошибка: не удалось загрузить вопросы для квиза');
-            alert('Не удалось загрузить вопросы. Пожалуйста, обновите страницу.');
-            return;
-        }
-        
-        loadQuestion();
+    console.log("Начало квиза");
+    
+    if (!startScreen || !quizContainer) {
+        console.error('Ошибка: не найдены необходимые элементы DOM');
+        return;
     }
+    
+    startScreen.style.display = 'none';
+    quizContainer.style.display = 'block';
+    currentQuestion = 0;
+    score = 0;
+    
+    // Определяем текущий уровень сложности
+    let currentDifficulty = 'normal';
+    if (window.difficultyManager && typeof window.difficultyManager.getCurrentLevel === 'function') {
+        currentDifficulty = window.difficultyManager.getCurrentLevel();
+    }
+    
+    console.log(`Запуск квиза с уровнем сложности: ${currentDifficulty}`);
+    
+    // Выбираем случайные вопросы для текущего теста
+    questionsForQuiz = selectRandomQuestions();
+    
+    console.log(`Выбрано ${questionsForQuiz.length} вопросов для квиза`);
+    
+    if (questionsForQuiz.length === 0) {
+        console.error('Ошибка: не удалось загрузить вопросы для квиза');
+        alert('Не удалось загрузить вопросы. Пожалуйста, обновите страницу.');
+        return;
+    }
+    
+    // Добавляем индикатор сложности в контейнер квиза
+    if (currentDifficulty === 'hard') {
+        const indicator = document.createElement('div');
+        indicator.className = 'difficulty-indicator hard';
+        indicator.textContent = 'Сложный уровень';
+        quizContainer.appendChild(indicator);
+    }
+    
+    loadQuestion();
+}
 
     // Загрузка вопроса
     function loadQuestion() {
@@ -367,30 +383,43 @@ function initializeApp() {
 
     // Отображение результатов
     function showResults() {
-        if (!quizContainer || !resultsContainer || !scoreElement) return;
-        
-        quizContainer.style.display = 'none';
-        resultsContainer.style.display = 'block';
-        
-        const percentage = Math.round((score / questionsForQuiz.length) * 100);
-        
-        let resultText;
-        if (percentage >= 90) {
-            resultText = 'Отлично! Вы эксперт в анатомии!';
-        } else if (percentage >= 70) {
-            resultText = 'Хороший результат! Вы хорошо знаете анатомию!';
-        } else if (percentage >= 50) {
-            resultText = 'Неплохо! Но есть над чем поработать.';
-        } else {
-            resultText = 'Стоит подучить анатомию, но вы уже на пути к знаниям!';
-        }
-        
-        scoreElement.innerHTML = `
-            <p>Вы ответили правильно на ${score} из ${questionsForQuiz.length} вопросов</p>
-            <p>${percentage}%</p>
-            <p>${resultText}</p>
-        `;
+    if (!quizContainer || !resultsContainer || !scoreElement) return;
+    
+    quizContainer.style.display = 'none';
+    resultsContainer.style.display = 'block';
+    
+    const percentage = Math.round((score / questionsForQuiz.length) * 100);
+    
+    // Определяем текущий уровень сложности
+    let difficultyText = '';
+    let currentDifficulty = 'normal';
+    if (window.difficultyManager && typeof window.difficultyManager.getCurrentLevel === 'function') {
+        currentDifficulty = window.difficultyManager.getCurrentLevel();
+        difficultyText = currentDifficulty === 'hard' ? 
+            '<div class="difficulty-badge hard">Сложный уровень</div>' : 
+            '<div class="difficulty-badge">Обычный уровень</div>';
     }
+    
+    let resultText;
+    if (percentage >= 90) {
+        resultText = currentDifficulty === 'hard' ? 
+            'Великолепно! Вы настоящий эксперт в анатомии!' : 
+            'Отлично! Вы эксперт в анатомии!';
+    } else if (percentage >= 70) {
+        resultText = 'Хороший результат! Вы хорошо знаете анатомию!';
+    } else if (percentage >= 50) {
+        resultText = 'Неплохо! Но есть над чем поработать.';
+    } else {
+        resultText = 'Стоит подучить анатомию, но вы уже на пути к знаниям!';
+    }
+    
+    scoreElement.innerHTML = `
+        ${difficultyText}
+        <p>Вы ответили правильно на ${score} из ${questionsForQuiz.length} вопросов</p>
+        <p>${percentage}%</p>
+        <p>${resultText}</p>
+    `;
+}
 
     // Поделиться результатами - проверяем наличие кнопки перед добавлением обработчика
     if (shareResultsButton) {
