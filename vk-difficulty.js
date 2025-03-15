@@ -14,8 +14,8 @@
             originalQuestions = [...window.questions];
             console.log(`Сохранены оригинальные вопросы: ${originalQuestions.length}`);
             
-            // Создаем сложные вопросы
-            createHardQuestions();
+            // Загружаем сложные вопросы из JSON-файла
+            loadHardQuestionsFromJson();
         } else {
             console.warn('Вопросы не найдены при инициализации селектора сложности');
             
@@ -24,7 +24,7 @@
                 if (window.questions && Array.isArray(window.questions)) {
                     originalQuestions = [...window.questions];
                     console.log(`Сохранены оригинальные вопросы после события: ${originalQuestions.length}`);
-                    createHardQuestions();
+                    loadHardQuestionsFromJson();
                 }
             });
         }
@@ -33,7 +33,39 @@
         setupDifficultyButtons();
     }
     
-    // Функция для создания сложных вопросов
+    // Функция для загрузки сложных вопросов из JSON-файла
+    function loadHardQuestionsFromJson() {
+        console.log('Загрузка сложных вопросов из JSON-файла...');
+        
+        fetch('difficult-questions.json')
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error(`HTTP ошибка! Статус: ${response.status}`);
+                }
+                return response.json();
+            })
+            .then(data => {
+                if (Array.isArray(data) && data.length > 0) {
+                    hardQuestions = data;
+                    console.log(`Загружено ${hardQuestions.length} сложных вопросов из JSON-файла`);
+                    
+                    // Активируем кнопку сложного режима
+                    const hardButton = document.getElementById('hard-difficulty');
+                    if (hardButton) {
+                        hardButton.disabled = false;
+                    }
+                } else {
+                    throw new Error('Загруженные данные не являются массивом или пусты');
+                }
+            })
+            .catch(error => {
+                console.error('Ошибка при загрузке сложных вопросов:', error);
+                console.log('Используем запасной вариант - создаем сложные вопросы из оригинальных');
+                createHardQuestions();
+            });
+    }
+    
+    // Функция для создания сложных вопросов (запасной вариант)
     function createHardQuestions() {
         if (originalQuestions.length === 0) {
             console.warn('Не удалось создать сложные вопросы: оригинальные вопросы отсутствуют');
@@ -46,7 +78,7 @@
         // Берем только часть вопросов для сложного режима
         hardQuestions = hardQuestions.slice(0, Math.min(30, originalQuestions.length));
         
-        console.log(`Создан набор из ${hardQuestions.length} сложных вопросов`);
+        console.log(`Создан запасной набор из ${hardQuestions.length} сложных вопросов`);
         
         // Активируем кнопку сложного режима
         const hardButton = document.getElementById('hard-difficulty');
