@@ -219,18 +219,25 @@ function initializeApp() {
     }
 
     // Отображение информации о пользователе
-    function showUserInfo(userData) {
-        if (!userInfoElement) return;
-        
-        currentUserData = userData; // Сохраняем данные пользователя
-        
-        if (userData && userData.photo_100) {
-            userInfoElement.innerHTML = `
-                <img src="${userData.photo_100}" alt="${userData.first_name}">
-                <span>${userData.first_name}</span>
-            `;
-        }
+function showUserInfo(userData) {
+    if (!userInfoElement) {
+        console.error('Элемент userInfoElement не найден!');
+        return;
     }
+    
+    console.log('Отображение информации о пользователе:', userData);
+    currentUserData = userData; // Сохраняем данные пользователя
+    
+    if (userData && userData.photo_100) {
+        userInfoElement.innerHTML = `
+            <img src="${userData.photo_100}" alt="${userData.first_name}">
+            <span>${userData.first_name}</span>
+        `;
+        console.log('Информация о пользователе успешно отображена');
+    } else {
+        console.warn('Данные пользователя неполные, невозможно отобразить аватар');
+    }
+}
     
     // Инициализируем анимации
 if (window.QuizAnimations && window.QuizAnimations.enhancer) {
