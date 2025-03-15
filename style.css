@@ -103,26 +103,69 @@ p {
     display: flex;
     align-items: center;
     justify-content: center;
-    margin-bottom: 25px;
+    margin: 15px auto 25px;
     padding: 12px 20px;
-    background-color: var(--medical-grey);
+    background-color: rgba(74, 137, 220, 0.1);
     border-radius: 15px;
     transition: all 0.3s ease;
+    min-width: 200px;
+    max-width: 80%;
     box-shadow: 0 3px 10px rgba(0, 0, 0, 0.05);
 }
 
+#user-info:empty {
+    display: none;
+}
+
 #user-info img {
-    width: 50px;
-    height: 50px;
+    width: 55px;
+    height: 55px;
     border-radius: 50%;
     margin-right: 15px;
-    border: 3px solid var(--white);
+    border: 3px solid white;
     box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    object-fit: cover;
 }
 
 #user-info span {
     font-weight: 600;
+    font-size: 18px;
     color: var(--medical-dark-blue);
+}
+
+/* Пульсирующая линия */
+.pulse-line-container {
+    position: relative;
+    width: 200px;
+    height: 40px;
+    margin: 0 auto 25px;
+    display: block;
+}
+
+.pulse-line-svg {
+    width: 100%;
+    height: 100%;
+    overflow: visible;
+}
+
+.pulse-line-path {
+    stroke: var(--medical-red);
+    stroke-width: 3;
+    fill: none;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    stroke-dasharray: 300;
+    stroke-dashoffset: 300;
+    animation: pulse-line-draw 2s forwards infinite;
+}
+
+@keyframes pulse-line-draw {
+    0% {
+        stroke-dashoffset: 300;
+    }
+    100% {
+        stroke-dashoffset: 0;
+    }
 }
 
 /* Селектор сложности */
@@ -173,6 +216,19 @@ p {
 .difficulty-btn.active.hard {
     background-color: var(--medical-red);
     border-color: var(--medical-red);
+    animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+    0% { 
+        box-shadow: 0 0 0 0 rgba(233, 87, 63, 0.7);
+    }
+    70% { 
+        box-shadow: 0 0 0 10px rgba(233, 87, 63, 0);
+    }
+    100% { 
+        box-shadow: 0 0 0 0 rgba(233, 87, 63, 0);
+    }
 }
 
 /* Кнопка старта */
@@ -189,11 +245,50 @@ p {
     cursor: pointer;
     display: inline-block;
     min-width: 180px;
+    position: relative;
+    overflow: hidden;
 }
 
 #start-quiz:hover, .btn-start:hover {
     box-shadow: 0 6px 20px rgba(74, 137, 220, 0.3);
     transform: translateY(-3px);
+}
+
+/* Эффект блеска для кнопок */
+#start-quiz::after, .btn-start::after {
+    content: '';
+    position: absolute;
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    background: linear-gradient(
+        to right,
+        rgba(255, 255, 255, 0) 0%,
+        rgba(255, 255, 255, 0.3) 50%,
+        rgba(255, 255, 255, 0) 100%
+    );
+    transform: rotate(30deg);
+    opacity: 0;
+    transition: opacity 0.3s;
+}
+
+#start-quiz:hover::after, .btn-start:hover::after {
+    animation: shine 1.5s ease-in-out;
+}
+
+@keyframes shine {
+    0% {
+        opacity: 0;
+        left: -50%;
+    }
+    50% {
+        opacity: 0.7;
+    }
+    100% {
+        opacity: 0;
+        left: 150%;
+    }
 }
 
 /* Контейнер с вопросами */
@@ -466,14 +561,147 @@ p {
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
 }
 
-/* Медицинские иконки и элементы */
-.medical-icon {
-    position: absolute;
-    width: 20px;
-    height: 20px;
-    background-color: var(--medical-blue);
+/* Стили для анимированного фона */
+.anatomy-background-wrapper {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    z-index: -1;
     opacity: 0.1;
-    border-radius: 50%;
+}
+
+.anatomy-symbol {
+    position: absolute;
+    user-select: none;
+    opacity: 0.7;
+}
+
+@keyframes float {
+    0%, 100% {
+        transform: translateY(0) rotate(0deg);
+    }
+    50% {
+        transform: translateY(-20px) rotate(10deg);
+    }
+}
+
+/* Стили для танцующего скелета */
+#dancing-skeleton {
+    position: absolute;
+    bottom: 15px;
+    right: 15px;
+    font-size: 50px;
+    animation: dance 2s infinite;
+}
+
+@keyframes dance {
+    0%, 100% {
+        transform: rotate(0deg);
+    }
+    25% {
+        transform: rotate(20deg) translateY(-10px);
+    }
+    50% {
+        transform: rotate(0deg);
+    }
+    75% {
+        transform: rotate(-20deg) translateY(-10px);
+    }
+}
+
+/* Стили для анимации счета */
+.score-animation {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    color: var(--medical-green);
+    font-size: 80px;
+    font-weight: bold;
+    animation: scorePopup 1s ease-out forwards;
+    z-index: 100;
+    pointer-events: none;
+    text-shadow: 0 0 15px rgba(55, 188, 155, 0.3);
+}
+
+@keyframes scorePopup {
+    0% {
+        opacity: 0;
+        transform: translate(-50%, -50%) scale(0.5);
+    }
+    50% {
+        opacity: 1;
+        transform: translate(-50%, -50%) scale(1.2);
+    }
+    100% {
+        opacity: 0;
+        transform: translate(-50%, -50%) scale(1);
+    }
+}
+
+/* Базовые анимации */
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.fadeIn {
+    animation: fadeIn 0.5s ease forwards;
+}
+
+/* Стили для улучшенного отображения результатов */
+.result-emoji {
+    font-size: 64px;
+    margin: 15px 0;
+    animation: bounce 2s infinite;
+}
+
+.result-percentage {
+    font-size: 48px;
+    font-weight: 700;
+    margin: 15px 0;
+    color: var(--medical-blue);
+}
+
+.result-percentage.excellent {
+    color: var(--medical-green);
+}
+
+.result-percentage.good {
+    color: var(--medical-teal);
+}
+
+.result-percentage.average {
+    color: #f6bb42;
+}
+
+.result-percentage.needs-improvement {
+    color: var(--medical-red);
+}
+
+.correct-answers {
+    font-size: 18px;
+    margin: 15px 0;
+    color: var(--medical-dark-grey);
+}
+
+.result-message {
+    font-size: 20px;
+    font-weight: 600;
+    margin: 15px 0;
+    color: var(--text-color);
+}
+
+@keyframes bounce {
+    0%, 100% {
+        transform: translateY(0);
+    }
+    50% {
+        transform: translateY(-15px);
+    }
 }
 
 /* Адаптивность для мобильных устройств */
@@ -511,5 +739,9 @@ p {
     #share-results, #restart-quiz {
         width: 100%;
         min-width: unset;
+    }
+    
+    .pulse-line-container {
+        width: 80%;
     }
 }
