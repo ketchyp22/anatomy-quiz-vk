@@ -7,46 +7,126 @@ const totalQuestionsToShow = 25; // Количество вопросов для
 let currentUserData = null; // Данные текущего пользователя
 let vkBridgeInstance = null; // Экземпляр VK Bridge для использования в функциях
 
+// Получение базового URL для правильного построения путей к файлам
+function getBaseUrl() {
+    // Получаем текущий URL страницы
+    const currentUrl = window.location.href;
+    // Извлекаем базовый URL (до последнего слеша в пути)
+    const baseUrl = currentUrl.substring(0, currentUrl.lastIndexOf('/') + 1);
+    return baseUrl;
+}
+
+// Функция для проверки существования файла
+function checkFileExists(url) {
+    return new Promise((resolve, reject) => {
+        const xhr = new XMLHttpRequest();
+        xhr.open('HEAD', url, true);
+        xhr.onreadystatechange = function() {
+            if (xhr.readyState === 4) {
+                if (xhr.status === 200) {
+                    resolve(true);
+                } else {
+                    resolve(false);
+                }
+            }
+        };
+        xhr.send();
+    });
+}
+
+// Функция для динамической загрузки скрипта с вопросами
+function loadQuestionsScript(url) {
+    return new Promise((resolve, reject) => {
+        const script = document.createElement('script');
+        script.src = url;
+        script.onload = () => {
+            console.log(`Скрипт успешно загружен: ${url}`);
+            resolve(true);
+        };
+        script.onerror = () => {
+            console.error(`Ошибка загрузки скрипта: ${url}`);
+            reject(new Error(`Не удалось загрузить скрипт: ${url}`));
+        };
+        document.head.appendChild(script);
+    });
+}
+
 // Ждем полную загрузку страницы
-document.addEventListener('DOMContentLoaded', function() {
+document.addEventListener('DOMContentLoaded', async function() {
     console.log('DOM полностью загружен');
     
-    // Проверяем наличие и пытаемся загрузить массив questions
-    function checkQuestionsLoaded() {
+    // Проверка и загрузка вопросов
+    async function loadQuestions() {
+        // Если вопросы уже доступны, используем их
         if (typeof window.questions !== 'undefined' && Array.isArray(window.questions)) {
-            console.log(`Загружено ${window.questions.length} вопросов`);
-            initializeApp(); // Инициализируем приложение только если вопросы доступны
-        } else {
-            console.error('Ошибка: Массив questions не определен. Проверьте файл questions.js');
-            
-            // Пробуем загрузить questions.js динамически
-            const scriptElement = document.createElement('script');
-            scriptElement.src = 'questions.js?' + new Date().getTime(); // Добавляем timestamp для избежания кэширования
-            
-            scriptElement.onload = function() {
-                console.log('Файл questions.js загружен динамически');
+            console.log(`Вопросы уже загружены: ${window.questions.length} вопросов`);
+            initializeApp();
+            return;
+        }
+        
+        console.log('Вопросы не найдены, пытаемся загрузить...');
+        
+        // Базовый URL для корректных путей
+        const baseUrl = getBaseUrl();
+        
+        // Возможные пути к файлу с вопросами
+        const possiblePaths = [
+            'questions.js',
+            './questions.js',
+            `${baseUrl}questions.js`,
+            '/questions.js',
+            'js/questions.js',
+            './js/questions.js',
+            `${baseUrl}js/questions.js`
+        ];
+        
+        // Добавляем timestamp для предотвращения кэширования
+        const timestamp = new Date().getTime();
+        const pathsWithTimestamp = possiblePaths.map(path => 
+            path.includes('?') ? `${path}&t=${timestamp}` : `${path}?t=${timestamp}`
+        );
+        
+        // Пробуем загрузить файл по разным путям
+        let loaded = false;
+        
+        for (const path of pathsWithTimestamp) {
+            try {
+                console.log(`Пробуем загрузить вопросы по пути: ${path}`);
                 
-                // Проверяем, появился ли массив после загрузки
-                if (typeof window.questions !== 'undefined' && Array.isArray(window.questions)) {
-                    console.log(`Загружено ${window.questions.length} вопросов после динамической загрузки`);
-                    initializeApp();
-                } else {
-                    console.error('Критическая ошибка: Массив questions не определен даже после динамической загрузки');
-                    alert('Ошибка загрузки вопросов. Пожалуйста, проверьте файл questions.js и обновите страницу.');
+                // Сначала проверим, существует ли файл
+                const exists = await checkFileExists(path);
+                if (!exists) {
+                    console.log(`Файл не найден по пути: ${path}`);
+                    continue;
                 }
-            };
-            
-            scriptElement.onerror = function() {
-                console.error('Не удалось найти или загрузить файл questions.js');
-                alert('Ошибка загрузки вопросов. Пожалуйста, проверьте наличие файла questions.js и обновите страницу.');
-            };
-            
-            document.head.appendChild(scriptElement);
+                
+                // Если файл существует, пробуем его загрузить
+                await loadQuestionsScript(path);
+                
+                // Проверяем, загрузились ли вопросы
+                if (typeof window.questions !== 'undefined' && Array.isArray(window.questions)) {
+                    console.log(`Вопросы успешно загружены из: ${path}`);
+                    loaded = true;
+                    break;
+                } else {
+                    console.log(`Файл загружен, но вопросы не определены: ${path}`);
+                }
+            } catch (error) {
+                console.error(`Ошибка при загрузке: ${path}`, error);
+            }
+        }
+        
+        if (loaded) {
+            console.log('Вопросы успешно загружены, инициализация приложения...');
+            initializeApp();
+        } else {
+            console.error('Не удалось загрузить вопросы ни по одному из путей');
+            alert('Ошибка загрузки вопросов. Пожалуйста, проверьте файл questions.js и обновите страницу.');
         }
     }
     
-    // Запускаем проверку наличия вопросов
-    checkQuestionsLoaded();
+    // Запускаем загрузку вопросов
+    await loadQuestions();
 });
 
 // Инициализация приложения
