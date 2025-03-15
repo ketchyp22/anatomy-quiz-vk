@@ -237,6 +237,26 @@ if (window.QuizAnimations && window.QuizAnimations.enhancer) {
     window.QuizAnimations.enhancer.init();
     console.log('Анимации инициализированы');
 }
+
+    // Убедимся, что пульс отображается правильно
+const pulseContainer = document.querySelector('.pulse-line-container');
+if (pulseContainer && !pulseContainer.querySelector('.pulse-line-svg')) {
+    // Если в контейнере пульса нет SVG, добавляем его
+    pulseContainer.innerHTML = `
+        <svg class="pulse-line-svg" viewBox="0 0 150 40" preserveAspectRatio="none">
+            <path class="pulse-line-path" d="M0,20 L10,20 L15,20 L20,10 L25,30 L30,20 L35,20 L40,20 L45,20 L50,20 L55,10 L60,30 L65,20 L70,20 L75,20 L80,20 L85,20 L90,10 L95,30 L100,20 L105,20 L110,20 L115,20 L120,20 L125,10 L130,30 L135,20 L140,20 L150,20">
+            </path>
+        </svg>
+    `;
+    console.log('Добавлен SVG пульса в контейнер');
+}
+
+    // Убедимся, что информация о пользователе отображается
+if (userInfoElement && (!userInfoElement.innerHTML || userInfoElement.innerHTML.trim() === '')) {
+    console.log('Элемент пользователя пуст, активируем гостевой режим');
+    showGuestMode();
+}
+    
     // Начало квиза - проверяем наличие кнопки перед добавлением обработчика
     if (startQuizButton) {
         startQuizButton.addEventListener('click', startQuiz);
