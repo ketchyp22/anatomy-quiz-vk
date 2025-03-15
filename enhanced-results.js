@@ -1,213 +1,205 @@
-// enhanced-results.js
+// enhanced-results.js - Улучшенное отображение результатов для анатомического квиза
 (function() {
-    // Функция для улучшения отображения результатов
-    function enhanceResults() {
-        console.log("Инициализация улучшенного отображения результатов");
+    // Функция для показа улучшенных результатов
+    function showEnhancedResults(score, totalQuestions, difficulty) {
+        const resultsContainer = document.getElementById('results-container');
+        const scoreElement = document.getElementById('score');
         
-        // Патчим функцию showResults для корректного отображения результатов
-        if (typeof window.showResults === 'function') {
-            // Сохраняем оригинальную функцию
-            const originalShowResults = window.showResults;
-            
-            // Переопределяем функцию
-            window.showResults = function() {
-                console.log("Вызвана функция отображения результатов");
-                
-                // Сохраняем текущие значения перед вызовом оригинальной функции
-                const currentScore = window.score;
-                const currentTotalQuestions = window.questionsForQuiz ? window.questionsForQuiz.length : 25;
-                
-                console.log("Текущий счет:", currentScore, "Всего вопросов:", currentTotalQuestions);
-                
-                // Вызываем оригинальную функцию
-                originalShowResults.apply(this, arguments);
-                
-                // Находим элемент с результатами
-                const scoreElement = document.getElementById('score');
-                if (!scoreElement) {
-                    console.error("Не найден элемент #score");
-                    return;
-                }
-                
-                // Рассчитываем процент правильных ответов
-                let percentage = 0;
-                if (currentTotalQuestions > 0) {
-                    percentage = Math.round((currentScore / currentTotalQuestions) * 100);
-                }
-                
-                // Проверяем на NaN и устанавливаем на 0, если NaN
-                if (isNaN(percentage)) {
-                    console.error("ВНИМАНИЕ: Процент вычислен как NaN!");
-                    percentage = 0;
-                }
-                
-                console.log("Рассчитанный процент:", percentage + "%");
-                
-                // Определяем текст с результатом
-                let resultText;
-                let resultClass;
-                
-                if (percentage >= 90) {
-                    resultText = 'Отлично! Вы эксперт в анатомии!';
-                    resultClass = 'result-excellent';
-                } else if (percentage >= 70) {
-                    resultText = 'Хороший результат! Вы хорошо знаете анатомию!';
-                    resultClass = 'result-good';
-                } else if (percentage >= 50) {
-                    resultText = 'Неплохо! Но есть над чем поработать.';
-                    resultClass = 'result-average';
-                } else {
-                    resultText = 'Стоит подучить анатомию, но вы уже на пути к знаниям!';
-                    resultClass = 'result-needs-work';
-                }
-                
-                // Обновляем HTML с улучшенным форматированием и анимацией
-                scoreElement.innerHTML = `
-                    <div class="result-summary">
-                        <p>Вы ответили правильно на <strong>${currentScore}</strong> из <strong>${currentTotalQuestions}</strong> вопросов</p>
-                        <div class="result-percentage ${resultClass}">
-                            <span class="percentage-value">${percentage}</span><span class="percentage-symbol">%</span>
-                        </div>
-                        <p class="result-message">${resultText}</p>
-                    </div>
-                `;
-                
-                // Добавляем стили для улучшенного отображения результатов
-                const style = document.createElement('style');
-                style.textContent = `
-                    .result-summary {
-                        text-align: center;
-                        padding: 20px;
-                        animation: fadeInUp 0.5s ease-out;
-                    }
-                    
-                    .result-percentage {
-                        font-size: 72px;
-                        font-weight: bold;
-                        margin: 20px 0;
-                        text-shadow: 0 2px 5px rgba(0,0,0,0.1);
-                        animation: scaleIn 0.7s ease-out;
-                    }
-                    
-                    .percentage-value {
-                        display: inline-block;
-                    }
-                    
-                    .percentage-symbol {
-                        font-size: 40px;
-                        vertical-align: super;
-                    }
-                    
-                    .result-message {
-                        font-size: 20px;
-                        font-weight: 500;
-                        margin-top: 15px;
-                        animation: fadeIn 1s ease-out;
-                    }
-                    
-                    .result-excellent { color: #4CAF50; }
-                    .result-good { color: #8BC34A; }
-                    .result-average { color: #FFC107; }
-                    .result-needs-work { color: #FF9800; }
-                    
-                    @keyframes fadeInUp {
-                        from { opacity: 0; transform: translateY(20px); }
-                        to { opacity: 1; transform: translateY(0); }
-                    }
-                    
-                    @keyframes scaleIn {
-                        from { opacity: 0; transform: scale(0.5); }
-                        to { opacity: 1; transform: scale(1); }
-                    }
-                    
-                    @keyframes fadeIn {
-                        from { opacity: 0; }
-                        to { opacity: 1; }
-                    }
-                `;
-                document.head.appendChild(style);
-                
-                console.log("Отображение результатов успешно улучшено");
-            };
-            
-            console.log("Функция showResults успешно пропатчена");
+        if (!resultsContainer || !scoreElement) {
+            console.error('Не найдены необходимые элементы для отображения результатов');
+            return;
+        }
+        
+        // Рассчитываем процент
+        const percentage = Math.round((score / totalQuestions) * 100);
+        
+        // Определяем текст и классы в зависимости от результата
+        let resultClass, resultEmoji, resultText;
+        
+        if (percentage >= 90) {
+            resultClass = 'excellent';
+            resultEmoji = '🏆';
+            resultText = difficulty === 'hard' ? 
+                'Великолепно! Вы настоящий эксперт в анатомии!' : 
+                'Отлично! Вы эксперт в анатомии!';
+        } else if (percentage >= 70) {
+            resultClass = 'good';
+            resultEmoji = '🎓';
+            resultText = 'Хороший результат! Вы хорошо знаете анатомию!';
+        } else if (percentage >= 50) {
+            resultClass = 'average';
+            resultEmoji = '📚';
+            resultText = 'Неплохо! Но есть над чем поработать.';
         } else {
-            console.error("Не удалось найти функцию showResults для улучшения");
+            resultClass = 'needs-improvement';
+            resultEmoji = '🔍';
+            resultText = 'Стоит подучить анатомию, но вы уже на пути к знаниям!';
+        }
+        
+        // Формируем HTML для отображения результатов
+        const difficultyText = difficulty === 'hard' ? 
+            '<div class="difficulty-badge hard">Сложный уровень</div>' : 
+            '<div class="difficulty-badge">Обычный уровень</div>';
+        
+        scoreElement.innerHTML = `
+            ${difficultyText}
+            <div class="result-emoji">${resultEmoji}</div>
+            <div class="result-percentage ${resultClass}">${percentage}%</div>
+            <p class="correct-answers">Вы ответили правильно на ${score} из ${totalQuestions} вопросов</p>
+            <p class="result-message">${resultText}</p>
+        `;
+        
+        // Добавляем дополнительные эффекты
+        addResultsEffects(resultsContainer, scoreElement, percentage);
+        
+        // Воспроизводим звук завершения
+        if (window.playCompleteSound) {
+            window.playCompleteSound();
+        }
+        
+        // Отправляем статистику (если приложение работает в ВК)
+        sendStatistics(percentage, difficulty);
+        
+        console.log(`Квиз завершен. Результат: ${percentage}%, сложность: ${difficulty}`);
+    }
+    
+    // Функция для добавления визуальных эффектов к результатам
+    function addResultsEffects(container, scoreElement, percentage) {
+        // Показываем танцующий скелет при хорошем результате
+        if (percentage >= 70) {
+            const dancingSkeleton = document.getElementById('dancing-skeleton');
+            if (dancingSkeleton) {
+                dancingSkeleton.innerHTML = '<div class="skeleton-emoji">💀</div>';
+                dancingSkeleton.style.display = 'block';
+            }
+        }
+        
+        // Анимируем появление результатов
+        if (window.QuizAnimations && window.QuizAnimations.animateElement) {
+            const resultElements = scoreElement.querySelectorAll('div, p');
+            resultElements.forEach((element, index) => {
+                setTimeout(() => {
+                    window.QuizAnimations.animateElement(element, 'fadeIn');
+                }, index * 300); // Показываем элементы с небольшой задержкой
+            });
+        }
+        
+        // Добавляем стили для результатов
+        addResultsStyles();
+    }
+    
+    // Добавляем стили для улучшенного отображения результатов
+    function addResultsStyles() {
+        if (document.getElementById('enhanced-results-styles')) return;
+        
+        const style = document.createElement('style');
+        style.id = 'enhanced-results-styles';
+        style.textContent = `
+            .result-emoji {
+                font-size: 64px;
+                margin: 15px 0;
+                animation: bounce 2s infinite;
+            }
+            
+            .result-percentage {
+                font-size: 48px;
+                font-weight: 700;
+                margin: 15px 0;
+                color: var(--btn-primary-bg);
+            }
+            
+            .result-percentage.excellent {
+                color: #4CAF50;
+            }
+            
+            .result-percentage.good {
+                color: #8BC34A;
+            }
+            
+            .result-percentage.average {
+                color: #FFC107;
+            }
+            
+            .result-percentage.needs-improvement {
+                color: #FF9800;
+            }
+            
+            .correct-answers {
+                font-size: 18px;
+                margin: 15px 0;
+                color: var(--secondary-text);
+            }
+            
+            .result-message {
+                font-size: 20px;
+                font-weight: 600;
+                margin: 15px 0;
+                color: var(--text-color);
+            }
+            
+            .skeleton-emoji {
+                font-size: 50px;
+                animation: dance 2s infinite;
+            }
+            
+            @keyframes bounce {
+                0%, 100% {
+                    transform: translateY(0);
+                }
+                50% {
+                    transform: translateY(-15px);
+                }
+            }
+            
+            @keyframes dance {
+                0%, 100% {
+                    transform: rotate(0deg);
+                }
+                25% {
+                    transform: rotate(20deg) translateY(-10px);
+                }
+                50% {
+                    transform: rotate(0deg);
+                }
+                75% {
+                    transform: rotate(-20deg) translateY(-10px);
+                }
+            }
+        `;
+        document.head.appendChild(style);
+    }
+    
+    // Вспомогательная функция для отправки статистики
+    function sendStatistics(result, difficulty) {
+        let bridge = null;
+        if (window.vkBridgeInstance) {
+            bridge = window.vkBridgeInstance;
+        } else if (window.vkBridge) {
+            bridge = window.vkBridge;
+        } else if (typeof vkBridge !== 'undefined') {
+            bridge = vkBridge;
+        }
+        
+        if (bridge) {
+            try {
+                bridge.send('VKWebAppStorageSet', {
+                    key: `last_quiz_result_${difficulty}`,
+                    value: String(result)
+                })
+                .then(() => {
+                    console.log('Результат сохранен в хранилище VK');
+                })
+                .catch(error => {
+                    console.warn('Не удалось сохранить результат в хранилище VK:', error);
+                });
+            } catch (e) {
+                console.warn('Ошибка при отправке статистики:', e);
+            }
         }
     }
     
-    // Расширение возможностей кнопки "Поделиться результатами"
-    function enhanceShareFunction() {
-        // Находим кнопку "Поделиться результатами"
-        const shareButton = document.getElementById('share-results');
-        if (shareButton) {
-            // Сохраняем оригинальный обработчик клика
-            const originalClickHandler = shareButton.onclick;
-            
-            // Устанавливаем новый обработчик клика
-            shareButton.onclick = function(event) {
-                // Получаем актуальный счет и общее количество вопросов
-                const score = window.score || 0;
-                const totalQuestions = window.questionsForQuiz ? window.questionsForQuiz.length : 25;
-                
-                // Рассчитываем процент
-                let percentage = 0;
-                if (totalQuestions > 0) {
-                    percentage = Math.round((score / totalQuestions) * 100);
-                }
-                
-                // Проверяем на NaN
-                if (isNaN(percentage)) {
-                    percentage = 0;
-                }
-                
-                // Формируем сообщение для шаринга
-                let shareMessage = '';
-                if (percentage >= 90) {
-                    shareMessage = `Я эксперт в анатомии! Набрал ${percentage}% в анатомическом квизе!`;
-                } else if (percentage >= 70) {
-                    shareMessage = `Хорошо знаю анатомию! Мой результат ${percentage}% в анатомическом квизе!`;
-                } else if (percentage >= 50) {
-                    shareMessage = `Неплохой результат в анатомическом квизе - ${percentage}%. Сможешь лучше?`;
-                } else {
-                    shareMessage = `Я прошел анатомический квиз и набрал ${percentage}%. Попробуй и ты!`;
-                }
-                
-                // Проверяем доступность VK Bridge
-                if (window.vkBridgeInstance) {
-                    console.log("Используем VK Bridge для шаринга");
-                    
-                    // Делимся через VK Bridge
-                    window.vkBridgeInstance.send('VKWebAppShare', {
-                        message: shareMessage
-                    })
-                    .then(data => {
-                        console.log('Поделились результатом через VK:', data);
-                    })
-                    .catch(error => {
-                        console.error('Ошибка при шеринге через VK:', error);
-                        // Запасной вариант - показать сообщение в алерте
-                        alert(shareMessage);
-                    });
-                } else {
-                    // Запасной вариант без VK Bridge
-                    console.log("VK Bridge не найден, используем запасной вариант");
-                    alert(shareMessage);
-                }
-                
-                // Предотвращаем вызов оригинального обработчика
-                event.preventDefault();
-            };
-            
-            console.log("Функция поделиться успешно улучшена");
-        } else {
-            console.error("Не найдена кнопка #share-results");
-        }
-    }
-    
-    // Запускаем улучшения после загрузки DOM
-    document.addEventListener('DOMContentLoaded', function() {
-        enhanceResults();
-        enhanceShareFunction();
-    });
+    // Экспортируем функции для использования в основном приложении
+    window.EnhancedResults = {
+        showResults: showEnhancedResults
+    };
 })();
