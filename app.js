@@ -32,7 +32,7 @@ let selectedOption = null;
 let questionsForQuiz = []; // Массив для хранения выбранных вопросов
 const totalQuestionsToShow = 25; // Количество вопросов для показа в одном тесте
 let currentUserData = null; // Данные текущего пользователя
-let vkBridgeInstance = null; // Экземпляр VK Bridge для использования в функциях
+// Переменная vkBridgeInstance уже объявлена выше, поэтому второе объявление удалено
 
 // Получение базового URL для правильного построения путей к файлам
 function getBaseUrl() {
