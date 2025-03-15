@@ -226,6 +226,37 @@
             });
         }
         
+        // Функция для получения корректного процента результата
+        function getResultPercentage() {
+            // Пробуем получить процент из видимого элемента 
+            const percentElement = document.querySelector('#score p:nth-child(2)');
+            if (percentElement) {
+                const percentMatch = percentElement.textContent.match(/(\d+)/);
+                if (percentMatch) {
+                    return parseInt(percentMatch[1], 10);
+                }
+            }
+            
+            // Если не удалось получить из элемента, вычисляем по счету
+            const scoreText = document.querySelector('#score p:first-child');
+            if (scoreText) {
+                const match = scoreText.textContent.match(/на (\d+) из (\d+)/);
+                if (match && match.length >= 3) {
+                    const score = parseInt(match[1], 10);
+                    const totalQuestions = parseInt(match[2], 10);
+                    if (totalQuestions > 0) {
+                        return Math.round((score / totalQuestions) * 100);
+                    }
+                }
+            }
+            
+            // Запасной вариант - используем текущий счет
+            const score = window.score || 0;
+            const totalQuestions = window.questionsForQuiz ? window.questionsForQuiz.length : 25;
+            
+            return totalQuestions > 0 ? Math.round((score / totalQuestions) * 100) : 0;
+        }
+        
         // Переопределяем стандартную кнопку "Поделиться"
         const shareButton = document.getElementById('share-results');
         if (shareButton) {
@@ -235,15 +266,22 @@
                 // Предотвращаем стандартное поведение
                 event.preventDefault();
                 
-                // Получаем результаты
-                const score = window.score || 0;
-                const totalQuestions = window.questionsForQuiz ? window.questionsForQuiz.length : 25;
-                const percentage = Math.round((score / totalQuestions) * 100);
+                // Получаем актуальный процент
+                let percentage = getResultPercentage();
+                
+                // Проверяем на корректность
+                if (isNaN(percentage) || percentage < 0 || percentage > 100) {
+                    console.error("Некорректный процент:", percentage);
+                    percentage = 0;
+                }
+                
+                console.log("Подготовка шеринга с процентом:", percentage + "%");
                 
                 // Обновляем данные в модальном окне
                 const modalScore = document.getElementById('modal-score');
-                const shareText = document.getElementById('share-text');
-                if (modalScore) modalScore.textContent = percentage + '%';
+                if (modalScore) {
+                    modalScore.textContent = percentage + "%";
+                }
                 
                 // Создаем сообщение для шеринга
                 let shareMessage = '';
@@ -257,16 +295,13 @@
                     shareMessage = `Я прошел анатомический квиз и набрал ${percentage}%. Попробуй и ты!`;
                 }
                 
-                if (shareText) shareText.textContent = shareMessage;
+                const shareText = document.getElementById('share-text');
+                if (shareText) {
+                    shareText.textContent = shareMessage;
+                }
                 
                 // Показываем модальное окно
                 modal.style.display = 'flex';
-                
-                // Вызываем оригинальный обработчик, если он был
-                if (originalClickHandler) {
-                    // Но не в этом случае, так как он сразу отправляет в ВК
-                    // originalClickHandler.call(this, event);
-                }
             };
         }
     }
