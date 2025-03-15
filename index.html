@@ -5,9 +5,405 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Анатомический квиз</title>
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="STYLES.CSS">
-    <!-- ВАЖНО: Подключение VK Bridge SDK перед другими скриптами -->
+    <!-- VK Bridge должен быть загружен первым -->
     <script src="https://unpkg.com/@vkontakte/vk-bridge/dist/browser.min.js"></script>
+    <!-- Встроенные стили вместо внешнего файла -->
+    <style>
+        /* Определение переменных для светлой темы (по умолчанию) */
+        :root {
+            --bg-color: #f5f7fa;
+            --bg-gradient: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            --main-bg: #ffffff;
+            --text-color: #333333;
+            --secondary-text: #666666;
+            --btn-primary-bg: #4a76a8;
+            --btn-primary-bg-hover: #3d6798;
+            --btn-secondary-bg: #f2f2f2;
+            --btn-secondary-bg-hover: #e0e0e0;
+            --border-color: #dddddd;
+            --option-bg: #f5f5f5;
+            --option-bg-hover: #e8e8e8;
+            --option-selected-bg: #e3f2fd;
+            --option-correct-bg: #c8e6c9;
+            --option-wrong-bg: #ffcdd2;
+            --card-bg: #f5f5f5;
+            --card-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            --header-border: #dddddd;
+            --stats-row-border: #e7e8ec;
+            --progress-bg: #e0e0e0;
+        }
+
+        /* Базовые стили */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Roboto', sans-serif;
+        }
+
+        body {
+            background: var(--bg-gradient);
+            min-height: 100vh;
+            color: var(--text-color);
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        /* Стили заголовка */
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid var(--header-border);
+        }
+
+        .header h1 {
+            color: var(--btn-primary-bg);
+            font-size: 24px;
+        }
+
+        .user-info {
+            display: flex;
+            align-items: center;
+        }
+
+        .user-info img {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            margin-right: 10px;
+        }
+
+        /* Основной контейнер */
+        .main {
+            background-color: var(--main-bg);
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: var(--card-shadow);
+            margin-bottom: 30px;
+        }
+
+        /* Стили кнопок */
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 500;
+            transition: all 0.3s ease;
+        }
+
+        .btn-primary {
+            background-color: var(--btn-primary-bg);
+            color: #fff;
+        }
+
+        .btn-primary:hover {
+            background-color: var(--btn-primary-bg-hover);
+        }
+
+        .btn-secondary {
+            background-color: var(--btn-secondary-bg);
+            color: var(--text-color);
+        }
+
+        .btn-secondary:hover {
+            background-color: var(--btn-secondary-bg-hover);
+        }
+
+        .btn:disabled {
+            background-color: #ccc;
+            cursor: not-allowed;
+        }
+
+        /* Стили начального экрана */
+        .start-screen {
+            text-align: center;
+            padding: 40px 20px;
+        }
+
+        .start-screen h2 {
+            margin-bottom: 20px;
+            color: var(--btn-primary-bg);
+        }
+
+        .start-screen p {
+            margin-bottom: 30px;
+            line-height: 1.6;
+        }
+
+        /* Стили контейнера викторины */
+        .quiz-container {
+            padding: 20px;
+        }
+
+        .progress-bar-container {
+            height: 8px;
+            background-color: var(--progress-bg);
+            border-radius: 4px;
+            margin-bottom: 20px;
+        }
+
+        .progress-bar {
+            height: 100%;
+            background-color: var(--btn-primary-bg);
+            border-radius: 4px;
+            width: 0%;
+            transition: width 0.3s ease;
+        }
+
+        .question-counter {
+            text-align: right;
+            margin-bottom: 10px;
+            font-size: 14px;
+            color: var(--secondary-text);
+        }
+
+        .question {
+            margin-bottom: 20px;
+            font-size: 18px;
+            font-weight: 500;
+        }
+
+        .options {
+            display: grid;
+            grid-gap: 15px;
+            margin-bottom: 30px;
+        }
+
+        .option {
+            background-color: var(--option-bg);
+            padding: 15px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .option:hover {
+            background-color: var(--option-bg-hover);
+        }
+
+        .option.selected {
+            background-color: var(--option-selected-bg);
+            border: 1px solid var(--btn-primary-bg);
+        }
+
+        .option.correct {
+            background-color: var(--option-correct-bg);
+        }
+
+        .option.wrong {
+            background-color: var(--option-wrong-bg);
+        }
+
+        /* Стили контейнера результатов */
+        .results-container {
+            text-align: center;
+            padding: 40px 20px;
+        }
+
+        .score {
+            font-size: 24px;
+            margin: 20px 0 30px;
+        }
+
+        .share-container {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            flex-wrap: wrap;
+        }
+
+        .footer {
+            text-align: center;
+            color: var(--secondary-text);
+            font-size: 14px;
+        }
+
+        /* Стили для страницы статистики */
+        .statistics-container {
+            text-align: center;
+            padding: 40px 20px;
+        }
+
+        .statistics-container h2 {
+            color: var(--btn-primary-bg);
+            margin-bottom: 20px;
+        }
+
+        .statistics-container h3 {
+            color: var(--btn-primary-bg);
+            margin: 20px 0 10px;
+        }
+
+        .user-stats-container, 
+        .top-users-container {
+            margin-bottom: 30px;
+        }
+
+        .stats-card {
+            background-color: var(--card-bg);
+            border-radius: 8px;
+            padding: 16px;
+            margin: 16px 0;
+            box-shadow: var(--card-shadow);
+        }
+
+        .stats-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 12px 0;
+            border-bottom: 1px solid var(--stats-row-border);
+        }
+
+        .stats-row:last-child {
+            border-bottom: none;
+        }
+
+        .stats-row span:first-child {
+            font-weight: 500;
+            color: var(--text-color);
+        }
+
+        .stats-row span:last-child {
+            font-weight: 600;
+            color: var(--btn-primary-bg);
+        }
+
+        .top-users-list {
+            margin-top: 16px;
+        }
+
+        .top-user-item {
+            display: flex;
+            align-items: center;
+            background-color: var(--card-bg);
+            border-radius: 8px;
+            padding: 12px 16px;
+            margin-bottom: 8px;
+            text-align: left;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+        }
+
+        .user-rank {
+            width: 24px;
+            font-weight: bold;
+            margin-right: 12px;
+            text-align: center;
+        }
+
+        .top-1 .user-rank {
+            color: #FFD700; /* Золото */
+        }
+
+        .top-2 .user-rank {
+            color: #C0C0C0; /* Серебро */
+        }
+
+        .top-3 .user-rank {
+            color: #CD7F32; /* Бронза */
+        }
+
+        .user-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            margin-right: 12px;
+            object-fit: cover;
+        }
+
+        .user-info {
+            flex-grow: 1;
+        }
+
+        .top-user-item .user-info {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .user-name {
+            font-weight: 500;
+        }
+
+        .user-score {
+            color: var(--secondary-text);
+            font-size: 14px;
+        }
+
+        .user-indicator {
+            padding: 2px 8px;
+            background-color: var(--btn-primary-bg);
+            color: white;
+            border-radius: 4px;
+            font-size: 12px;
+        }
+
+        .current-user {
+            background-color: var(--option-selected-bg);
+            border: 1px solid var(--btn-primary-bg);
+        }
+
+        .no-data {
+            padding: 20px;
+            text-align: center;
+            color: var(--secondary-text);
+            background-color: var(--card-bg);
+            border-radius: 8px;
+        }
+
+        /* Темная тема для VK Mini Apps */
+        .vk-dark-theme {
+            --bg-color: #19191a;
+            --bg-gradient: linear-gradient(135deg, #1a1a1a 0%, #2d2d2e 100%);
+            --main-bg: #2d2d2e;
+            --text-color: #e1e3e6;
+            --secondary-text: #aaaeb3;
+            --btn-primary-bg: #5181b8;
+            --btn-primary-bg-hover: #5b88bd;
+            --btn-secondary-bg: #303030;
+            --btn-secondary-bg-hover: #3a3a3a;
+            --border-color: #424242;
+            --option-bg: #303030;
+            --option-bg-hover: #3a3a3a;
+            --option-selected-bg: #34495e;
+            --option-correct-bg: #2d5739;
+            --option-wrong-bg: #843a39;
+            --card-bg: #303030;
+            --card-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+            --header-border: #424242;
+            --stats-row-border: #424242;
+            --progress-bg: #404040;
+        }
+
+        /* Адаптивность для мобильных устройств */
+        @media (max-width: 480px) {
+            .share-container {
+                flex-direction: column;
+                gap: 10px;
+            }
+            
+            .top-user-item {
+                padding: 8px 12px;
+            }
+            
+            .user-avatar {
+                width: 32px;
+                height: 32px;
+                margin-right: 8px;
+            }
+            
+            .statistics-container {
+                padding: 20px 10px;
+            }
+        }
+    </style>
 </head>
 <body>
     <div class="container">
@@ -91,9 +487,222 @@
             &copy; 2025 Анатомический квиз
         </div>
     </div>
+
+    <!-- Вопросы квиза -->
+    <script>
+    // Массив с вопросами для квиза 
+    const questions = [ 
+        // РАЗДЕЛ: КОСТНАЯ СИСТЕМА 
+        { 
+            question: "Какая кость является самой длинной в человеческом теле?", 
+            options: [ 
+                "Плечевая кость", 
+                "Бедренная кость", 
+                "Большеберцовая кость", 
+                "Малоберцовая кость" 
+            ], 
+            correct: 1 
+        }, 
+        { 
+            question: "Сколько костей в человеческом теле у взрослого человека?", 
+            options: [ 
+                "106", 
+                "206", 
+                "306", 
+                "406" 
+            ], 
+            correct: 1 
+        }, 
+        { 
+            question: "Какая кость является самой маленькой в человеческом теле?", 
+            options: [ 
+                "Стремечко", 
+                "Наковальня", 
+                "Молоточек", 
+                "Фаланга мизинца" 
+            ], 
+            correct: 0 
+        }, 
+        { 
+            question: "Какие кости образуют свод черепа?", 
+            options: [ 
+                "Височная, теменная, лобная, затылочная", 
+                "Лобная, решетчатая, затылочная, скуловая", 
+                "Теменная, клиновидная, височная, скуловая", 
+                "Затылочная, клиновидная, решетчатая, сошник" 
+            ], 
+            correct: 0 
+        }, 
+        // РАЗДЕЛ: МЫШЕЧНАЯ СИСТЕМА 
+        { 
+            question: "Какая мышца является самой крупной в человеческом теле?", 
+            options: [ 
+                "Большая ягодичная мышца", 
+                "Четырехглавая мышца бедра", 
+                "Широчайшая мышца спины", 
+                "Большая грудная мышца" 
+            ], 
+            correct: 0 
+        }, 
+        { 
+            question: "Сколько приблизительно скелетных мышц в теле человека?", 
+            options: [ 
+                "Около 200", 
+                "Около 400", 
+                "Около 600", 
+                "Около 800" 
+            ], 
+            correct: 2 
+        }, 
+        { 
+            question: "Какая мышца отвечает за разгибание руки в локтевом суставе?", 
+            options: [ 
+                "Бицепс", 
+                "Трицепс", 
+                "Дельтовидная мышца", 
+                "Плечевая мышца" 
+            ], 
+            correct: 1 
+        }, 
+        // РАЗДЕЛ: НЕРВНАЯ СИСТЕМА 
+        { 
+            question: "Какой отдел нервной системы контролирует непроизвольные функции организма?", 
+            options: [ 
+                "Центральная нервная система", 
+                "Периферическая нервная система", 
+                "Соматическая нервная система", 
+                "Вегетативная нервная система" 
+            ], 
+            correct: 3 
+        }, 
+        { 
+            question: "Сколько пар черепных нервов у человека?", 
+            options: [ 
+                "8 пар", 
+                "10 пар", 
+                "12 пар", 
+                "14 пар" 
+            ], 
+            correct: 2 
+        }, 
+        { 
+            question: "Какая структура защищает головной мозг?", 
+            options: [ 
+                "Только черепные кости", 
+                "Черепные кости и мозговые оболочки", 
+                "Только мозговые оболочки", 
+                "Ликвор и диафрагма" 
+            ], 
+            correct: 1 
+        }, 
+        // РАЗДЕЛ: СЕРДЕЧНО-СОСУДИСТАЯ СИСТЕМА 
+        { 
+            question: "Сколько камер в сердце человека?", 
+            options: [ 
+                "2 камеры", 
+                "3 камеры", 
+                "4 камеры", 
+                "5 камер" 
+            ], 
+            correct: 2 
+        }, 
+        { 
+            question: "Какой клапан находится между левым предсердием и левым желудочком?", 
+            options: [ 
+                "Трикуспидальный клапан", 
+                "Митральный клапан", 
+                "Аортальный клапан", 
+                "Клапан легочной артерии" 
+            ], 
+            correct: 1 
+        }, 
+        { 
+            question: "Какой сосуд несет кровь от сердца к легким?", 
+            options: [ 
+                "Аорта", 
+                "Легочная артерия", 
+                "Легочная вена", 
+                "Верхняя полая вена" 
+            ], 
+            correct: 1 
+        }, 
+        // РАЗДЕЛ: ПИЩЕВАРИТЕЛЬНАЯ СИСТЕМА 
+        { 
+            question: "Какой орган производит желчь?", 
+            options: [ 
+                "Печень", 
+                "Поджелудочная железа", 
+                "Желчный пузырь", 
+                "Желудок" 
+            ], 
+            correct: 0 
+        }, 
+        { 
+            question: "Какова приблизительная длина тонкого кишечника взрослого человека?", 
+            options: [ 
+                "1-2 метра", 
+                "3-4 метра", 
+                "6-7 метров", 
+                "9-10 метров" 
+            ], 
+            correct: 2 
+        }, 
+        { 
+            question: "Какой фермент начинает переваривание углеводов во рту?", 
+            options: [ 
+                "Пепсин", 
+                "Липаза", 
+                "Трипсин", 
+                "Амилаза" 
+            ], 
+            correct: 3 
+        }, 
+        // РАЗДЕЛ: ДЫХАТЕЛЬНАЯ СИСТЕМА 
+        { 
+            question: "Сколько долей в правом легком человека?", 
+            options: [ 
+                "1 доля", 
+                "2 доли", 
+                "3 доли", 
+                "4 доли" 
+            ], 
+            correct: 2 
+        }, 
+        { 
+            question: "Какая структура соединяет глотку с легкими?", 
+            options: [ 
+                "Пищевод", 
+                "Трахея", 
+                "Гортань", 
+                "Бронхи" 
+            ], 
+            correct: 1 
+        }, 
+        { 
+            question: "Какой газообмен происходит в легких?", 
+            options: [ 
+                "Кислород превращается в углекислый газ", 
+                "Кислород переходит в кровь, а углекислый газ выводится", 
+                "Углекислый газ переходит в кровь, а кислород выводится", 
+                "Легкие фильтруют вредные вещества из воздуха" 
+            ], 
+            correct: 1 
+        }, 
+        // РАЗДЕЛ: ВЫДЕЛИТЕЛЬНАЯ СИСТЕМА 
+        { 
+            question: "Какой орган является основным в выделительной системе?", 
+            options: [ 
+                "Печень", 
+                "Почки", 
+                "Мочевой пузырь", 
+                "Толстый кишечник" 
+            ], 
+            correct: 1 
+        } 
+    ];
+    </script>
     
-    <!-- ВАЖНО: Подключение скриптов после загрузки DOM -->
-    <script src="questions.js"></script>
+    <!-- Скрипт приложения -->
     <script src="app.js"></script>
 </body>
 </html>
