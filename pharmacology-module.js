@@ -1,55 +1,121 @@
-// pharmacology-module.js - Модуль для тестов по фармакологии
+// Модуль фармакологического теста
 (function() {
-    // Модуль для тестов по фармакологии
+    // Основной объект модуля
     const PharmacologyModule = {
-        // Константы для состояний и режимов
-        STATES: {
-            IDLE: 'idle',
-            IN_PROGRESS: 'in_progress',
-            COMPLETED: 'completed'
-        },
-
-        // Внутренние состояния модуля
+        // Состояние модуля
         state: {
-            currentState: 'idle',
-            currentTest: null,
-            userAnswers: [],
+            currentQuestionIndex: 0,
             score: 0,
-            moduleInitialized: false
+            totalQuestions: 10,
+            isTestActive: false
         },
 
-        // База фармакологических вопросов
+        // Базовый набор вопросов
         questions: [
             {
-                id: 'ph001',
-                question: 'Какой препарат из группы бета-блокаторов?',
+                question: "Какой препарат относится к группе бета-блокаторов?",
                 options: [
-                    { text: 'Бисопролол', isCorrect: true },
-                    { text: 'Амлодипин', isCorrect: false },
-                    { text: 'Эналаприл', isCorrect: false },
-                    { text: 'Фуросемид', isCorrect: false }
+                    "Амлодипин",
+                    "Бисопролол",
+                    "Панкреатин",
+                    "Парацетамол"
                 ],
-                explanation: 'Бисопролол - селективный β1-адреноблокатор, применяемый при артериальной гипертензии и сердечной недостаточности.'
+                correctAnswer: 1
             },
             {
-                id: 'ph002',
-                question: 'Какой орган метаболизирует большинство лекарственных препаратов?',
+                question: "Какой орган метаболизирует большинство лекарств?",
                 options: [
-                    { text: 'Почки', isCorrect: false },
-                    { text: 'Печень', isCorrect: true },
-                    { text: 'Желудок', isCorrect: false },
-                    { text: 'Легкие', isCorrect: false }
+                    "Почки",
+                    "Желудок",
+                    "Печень", 
+                    "Легкие"
                 ],
-                explanation: 'Печень является основным органом метаболизма лекарственных препаратов благодаря наличию ферментных систем цитохрома P450.'
+                correctAnswer: 2
             },
-            // Добавьте больше вопросов сюда
+            {
+                question: "Какой препарат используется для снижения холестерина?",
+                options: [
+                    "Метформин",
+                    "Аторвастатин",
+                    "Инсулин",
+                    "Нитроглицерин"
+                ],
+                correctAnswer: 1
+            },
+            {
+                question: "Что такое антибиотик?",
+                options: [
+                    "Препарат для снижения давления",
+                    "Средство против воспаления",
+                    "Лекарство для уничтожения бактерий",
+                    "Болеутоляющее средство"
+                ],
+                correctAnswer: 2
+            },
+            {
+                question: "Какой препарат используется при диабете?",
+                options: [
+                    "Инсулин",
+                    "Аспирин",
+                    "Анальгин",
+                    "Преднизолон"
+                ],
+                correctAnswer: 0
+            },
+            {
+                question: "Что такое антигистаминный препарат?",
+                options: [
+                    "Средство от боли",
+                    "Лекарство от аллергии",
+                    "Препарат для снижения давления",
+                    "Антибиотик"
+                ],
+                correctAnswer: 1
+            },
+            {
+                question: "Какой препарат снижает давление?",
+                options: [
+                    "Парацетамол",
+                    "Но-шпа",
+                    "Каптоприл",
+                    "Панкреатин"
+                ],
+                correctAnswer: 2
+            },
+            {
+                question: "Что такое противовоспалительный препарат?",
+                options: [
+                    "Лекарство, уменьшающее воспаление",
+                    "Антибиотик",
+                    "Средство от аллергии",
+                    "Препарат для сна"
+                ],
+                correctAnswer: 0
+            },
+            {
+                question: "Какой препарат используется при болях?",
+                options: [
+                    "Инсулин",
+                    "Ибупрофен",
+                    "Антибиотик",
+                    "Препарат от давления"
+                ],
+                correctAnswer: 1
+            },
+            {
+                question: "Что такое диуретик?",
+                options: [
+                    "Препарат от боли",
+                    "Средство для похудения",
+                    "Лекарство, усиливающее мочеотделение",
+                    "Антибиотик"
+                ],
+                correctAnswer: 2
+            }
         ],
 
         // Инициализация модуля
-        init: function() {
-            if (this.state.moduleInitialized) return;
-
-            // Создаем контейнер, если он не существует
+        init() {
             this.container = document.getElementById('pharmacology-container');
             if (!this.container) {
                 this.container = document.createElement('div');
@@ -57,345 +123,190 @@
                 this.container.className = 'module-container';
                 document.body.appendChild(this.container);
             }
-
-            // Добавляем стили
-            this.addStyles();
-
-            // Создаем базовую структуру модуля
-            this.createModuleStructure();
-
-            this.state.moduleInitialized = true;
+            this.container.style.display = 'none';
+            
+            this.createUI();
         },
 
-        // Добавление стилей
-        addStyles: function() {
-            if (document.getElementById('pharma-module-styles')) return;
-
-            const style = document.createElement('style');
-            style.id = 'pharma-module-styles';
-            style.textContent = `
-                .pharma-module {
-                    background-color: #ffffff;
-                    border-radius: 16px;
-                    box-shadow: 0 10px 25px rgba(0,0,0,0.1);
-                    max-width: 600px;
-                    margin: 30px auto;
-                    padding: 30px;
-                    position: relative;
-                }
-
-                .pharma-module-title {
-                    font-size: 24px;
-                    color: #2c3e50;
-                    text-align: center;
-                    margin-bottom: 25px;
-                    font-weight: 700;
-                }
-
-                .pharma-question {
-                    background-color: #f7f9fc;
-                    border-left: 4px solid #3498db;
-                    padding: 20px;
-                    margin-bottom: 20px;
-                    border-radius: 8px;
-                }
-
-                .pharma-question-text {
-                    font-size: 18px;
-                    color: #2c3e50;
-                    margin-bottom: 15px;
-                    font-weight: 600;
-                }
-
-                .pharma-options {
-                    display: grid;
-                    gap: 10px;
-                }
-
-                .pharma-option {
-                    background-color: #ecf0f1;
-                    border: 2px solid transparent;
-                    border-radius: 8px;
-                    padding: 15px;
-                    cursor: pointer;
-                    transition: all 0.3s ease;
-                    color: #2c3e50;
-                    font-weight: 500;
-                }
-
-                .pharma-option:hover {
-                    background-color: #e0e6ea;
-                    border-color: #3498db;
-                }
-
-                .pharma-option.selected {
-                    background-color: #3498db;
-                    color: white;
-                }
-
-                .pharma-option.correct {
-                    background-color: #2ecc71;
-                    color: white;
-                }
-
-                .pharma-option.incorrect {
-                    background-color: #e74c3c;
-                    color: white;
-                }
-
-                .pharma-explanation {
-                    background-color: #f1f8ff;
-                    border-left: 4px solid #3498db;
-                    padding: 15px;
-                    margin-top: 15px;
-                    border-radius: 8px;
-                    font-size: 16px;
-                    color: #2c3e50;
-                }
-
-                .pharma-progress {
-                    width: 100%;
-                    height: 10px;
-                    background-color: #ecf0f1;
-                    border-radius: 5px;
-                    margin-bottom: 20px;
-                    overflow: hidden;
-                }
-
-                .pharma-progress-bar {
-                    height: 100%;
-                    background-color: #3498db;
-                    width: 0%;
-                    transition: width 0.5s ease;
-                }
-
-                .pharma-controls {
-                    display: flex;
-                    justify-content: center;
-                    margin-top: 20px;
-                }
-
-                .pharma-btn {
-                    background-color: #3498db;
-                    color: white;
-                    border: none;
-                    padding: 12px 25px;
-                    border-radius: 8px;
-                    cursor: pointer;
-                    transition: background-color 0.3s ease;
-                }
-
-                .pharma-btn:hover {
-                    background-color: #2980b9;
-                }
-
-                .pharma-btn:disabled {
-                    background-color: #bdc3c7;
-                    cursor: not-allowed;
-                }
-            `;
-            document.head.appendChild(style);
-        },
-
-        // Создание структуры модуля
-        createModuleStructure: function() {
+        // Создание пользовательского интерфейса
+        createUI() {
             this.container.innerHTML = `
                 <div class="pharma-module">
-                    <div class="pharma-module-title">Тест по Фармакологии</div>
-                    <div class="pharma-progress">
-                        <div class="pharma-progress-bar"></div>
+                    <div class="pharma-header">
+                        <h2>Тест по Фармакологии</h2>
+                        <div class="pharma-progress">
+                            <div class="pharma-progress-bar"></div>
+                        </div>
                     </div>
-                    <div id="pharma-test-container"></div>
+                    <div id="pharma-question-container" class="pharma-question-container"></div>
                     <div class="pharma-controls">
                         <button id="pharma-next-btn" class="pharma-btn" disabled>Далее</button>
                     </div>
                 </div>
             `;
+
+            this.questionContainer = document.getElementById('pharma-question-container');
+            this.nextButton = document.getElementById('pharma-next-btn');
+            this.progressBar = document.querySelector('.pharma-progress-bar');
+
+            this.nextButton.addEventListener('click', () => this.nextQuestion());
+        },
+
+        // Перемешивание вопросов
+        shuffleQuestions() {
+            const shuffled = [...this.questions];
+            for (let i = shuffled.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+            }
+            return shuffled.slice(0, this.state.totalQuestions);
         },
 
         // Запуск теста
-        start: function() {
+        start() {
             // Сбрасываем состояние
-            this.state.userAnswers = [];
+            this.state.currentQuestionIndex = 0;
             this.state.score = 0;
-            this.state.currentState = this.STATES.IN_PROGRESS;
+            this.state.isTestActive = true;
 
-            // Перемешиваем вопросы
-            const shuffledQuestions = this.shuffleArray(this.questions).slice(0, 5);
-            this.state.currentTest = shuffledQuestions;
+            // Перемешиваем и выбираем вопросы
+            this.currentQuestions = this.shuffleQuestions();
 
             // Показываем первый вопрос
-            this.renderQuestion(0);
+            this.showQuestion();
         },
 
-        // Рендер вопроса
-        renderQuestion: function(questionIndex) {
-            const testContainer = document.getElementById('pharma-test-container');
-            const progressBar = document.querySelector('.pharma-progress-bar');
-            const nextButton = document.getElementById('pharma-next-btn');
-
+        // Показ вопроса
+        showQuestion() {
+            const question = this.currentQuestions[this.state.currentQuestionIndex];
+            
             // Обновляем прогресс-бар
-            progressBar.style.width = `${(questionIndex / this.state.currentTest.length) * 100}%`;
+            this.progressBar.style.width = 
+                `${(this.state.currentQuestionIndex / this.state.totalQuestions) * 100}%`;
 
-            // Если все вопросы пройдены
-            if (questionIndex >= this.state.currentTest.length) {
-                this.showResults();
-                return;
-            }
-
-            const currentQuestion = this.state.currentTest[questionIndex];
-
-            // Очищаем контейнер
-            testContainer.innerHTML = `
+            // Очищаем предыдущий вопрос
+            this.questionContainer.innerHTML = `
                 <div class="pharma-question">
-                    <div class="pharma-question-text">${currentQuestion.question}</div>
+                    <p>${question.question}</p>
                     <div class="pharma-options">
-                        ${currentQuestion.options.map((option, idx) => `
-                            <div class="pharma-option" data-index="${idx}">
-                                ${option.text}
+                        ${question.options.map((option, index) => `
+                            <div class="pharma-option" data-index="${index}">
+                                ${option}
                             </div>
                         `).join('')}
                     </div>
                 </div>
             `;
 
-            // Сбрасываем кнопку "Далее"
-            nextButton.disabled = true;
-
-            // Навешиваем обработчики на варианты ответов
-            const options = testContainer.querySelectorAll('.pharma-option');
+            // Добавляем обработчики для вариантов ответа
+            const options = this.questionContainer.querySelectorAll('.pharma-option');
             options.forEach(option => {
-                option.addEventListener('click', () => this.selectOption(option, questionIndex));
+                option.addEventListener('click', (e) => this.selectAnswer(e));
             });
 
-            // Обработчик кнопки "Далее"
-            nextButton.onclick = () => this.renderQuestion(questionIndex + 1);
+            // Сбрасываем кнопку "Далее"
+            this.nextButton.disabled = true;
         },
 
-        // Выбор варианта ответа
-        selectOption: function(optionElement, questionIndex) {
-            const options = document.querySelectorAll('.pharma-option');
-            const nextButton = document.getElementById('pharma-next-btn');
-            const currentQuestion = this.state.currentTest[questionIndex];
+        // Выбор ответа
+        selectAnswer(event) {
+            const selectedIndex = parseInt(event.target.dataset.index);
+            const question = this.currentQuestions[this.state.currentQuestionIndex];
+            const options = this.questionContainer.querySelectorAll('.pharma-option');
 
-            // Сбрасываем предыдущие выделения
-            options.forEach(opt => opt.classList.remove('selected'));
-
-            // Выделяем текущий вариант
-            optionElement.classList.add('selected');
-
-            // Проверяем правильность ответа
-            const selectedIndex = parseInt(optionElement.dataset.index);
-            const isCorrect = currentQuestion.options[selectedIndex].isCorrect;
-
-            // Сохраняем результат
-            this.state.userAnswers.push({
-                questionId: currentQuestion.id,
-                isCorrect: isCorrect
+            // Очищаем предыдущие выделения
+            options.forEach(opt => {
+                opt.classList.remove('selected', 'correct', 'incorrect');
             });
 
-            // Обновляем счет
-            if (isCorrect) this.state.score++;
+            // Выделяем выбранный ответ
+            event.target.classList.add('selected');
 
-            // Разблокируем кнопку "Далее"
-            nextButton.disabled = false;
-
-            // Показываем правильный ответ
-            if (isCorrect) {
-                optionElement.classList.add('correct');
+            // Проверяем правильность
+            if (selectedIndex === question.correctAnswer) {
+                event.target.classList.add('correct');
+                this.state.score++;
             } else {
-                optionElement.classList.add('incorrect');
-                // Находим и подсвечиваем правильный ответ
-                options.forEach((opt, idx) => {
-                    if (currentQuestion.options[idx].isCorrect) {
-                        opt.classList.add('correct');
-                    }
-                });
+                event.target.classList.add('incorrect');
+                // Подсвечиваем правильный ответ
+                options[question.correctAnswer].classList.add('correct');
             }
+
+            // Активируем кнопку "Далее"
+            this.nextButton.disabled = false;
+        },
+
+        // Переход к следующему вопросу
+        nextQuestion() {
+            this.state.currentQuestionIndex++;
+
+            // Проверяем, закончились ли вопросы
+            if (this.state.currentQuestionIndex >= this.state.totalQuestions) {
+                this.showResults();
+                return;
+            }
+
+            // Показываем следующий вопрос
+            this.showQuestion();
         },
 
         // Показ результатов
-        showResults: function() {
-            const testContainer = document.getElementById('pharma-test-container');
-            const progressBar = document.querySelector('.pharma-progress-bar');
-            const nextButton = document.getElementById('pharma-next-btn');
+        showResults() {
+            this.state.isTestActive = false;
 
-            // Заполняем прогресс-бар
-            progressBar.style.width = '100%';
+            // Полностью заполняем прогресс-бар
+            this.progressBar.style.width = '100%';
 
-            // Скрываем кнопку "Далее"
-            nextButton.style.display = 'none';
+            const percentage = Math.round((this.state.score / this.state.totalQuestions) * 100);
 
-            // Рассчитываем процент правильных ответов
-            const totalQuestions = this.state.currentTest.length;
-            const correctAnswers = this.state.score;
-            const percentageScore = Math.round((correctAnswers / totalQuestions) * 100);
-
-            // Формируем текст результата
             let resultText = '';
-            if (percentageScore >= 90) {
+            if (percentage >= 90) {
                 resultText = 'Отлично! Вы настоящий эксперт в фармакологии!';
-            } else if (percentageScore >= 70) {
+            } else if (percentage >= 70) {
                 resultText = 'Хороший результат! Вы хорошо знаете фармакологию.';
-            } else if (percentageScore >= 50) {
+            } else if (percentage >= 50) {
                 resultText = 'Неплохо, но есть над чем поработать.';
             } else {
-                resultText = 'Рекомендуем повторить материал по фармакологии.';
+                resultText = 'Рекомендуем изучить материал по фармакологии.';
             }
 
-            // Отображаем результаты
-            testContainer.innerHTML = `
+            // Показываем результаты
+            this.questionContainer.innerHTML = `
                 <div class="pharma-results">
                     <h2>Ваш результат</h2>
-                    <p>Правильных ответов: ${correctAnswers} из ${totalQuestions}</p>
-                    <p>Процент: ${percentageScore}%</p>
+                    <p>Правильных ответов: ${this.state.score} из ${this.state.totalQuestions}</p>
+                    <p>Процент: ${percentage}%</p>
                     <p>${resultText}</p>
-                    <div class="pharma-controls">
-                        <button id="pharma-restart-btn" class="pharma-btn">Пройти снова</button>
-                    </div>
+                    <button id="pharma-restart-btn" class="pharma-btn">Пройти снова</button>
                 </div>
             `;
 
-            // Обработчик перезапуска теста
-            const restartButton = document.getElementById('pharma-restart-btn');
-            restartButton.addEventListener('click', () => this.start());
+            // Обработчик перезапуска
+            const restartBtn = document.getElementById('pharma-restart-btn');
+            restartBtn.addEventListener('click', () => this.start());
         },
 
-        // Вспомогательный метод перемешивания массива
-        shuffleArray: function(array) {
-            const shuffled = [...array];
-            for (let i = shuffled.length - 1; i > 0; i--) {
-                const j = Math.floor(Math.random() * (i + 1));
-                [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
-            }
-            return shuffled;
-        },
-
-        // Показать модуль
-        show: function() {
-            // Инициализируем модуль, если нужно
-            if (!this.state.moduleInitialized) {
+        // Показ модуля
+        showModule() {
+            if (!this.container) {
                 this.init();
             }
-
-            // Показываем контейнер
+            
             this.container.style.display = 'block';
-
-            // Запускаем тест
             this.start();
         },
 
-        // Скрыть модуль
-        hide: function() {
+        // Скрытие модуля
+        hideModule() {
             this.container.style.display = 'none';
         }
     };
 
-    // Добавляем модуль в глобальную область видимости
+    // Регистрация модуля глобально
     window.PharmacologyModule = PharmacologyModule;
 
     // Инициализация при загрузке DOM
     document.addEventListener('DOMContentLoaded', () => {
-        console.log('Модуль фармакологических тестов загружен');
+        PharmacologyModule.init();
     });
 })();
