@@ -169,6 +169,7 @@
                     overflow-y: auto;
                     padding: 20px;
                     box-sizing: border-box;
+                    -webkit-overflow-scrolling: touch;
                 }
                 
                 .clinical-module {
@@ -194,12 +195,19 @@
                     border-radius: 8px;
                     border-left: 4px solid #FF1493;
                     margin-bottom: 15px;
+                    white-space: normal;
+                    overflow: visible;
+                    word-wrap: break-word;
+                    height: auto;
+                    max-height: none;
+                    min-height: 80px;
+                    color: #333333; /* Темный цвет текста для хорошей читаемости */
                 }
                 
                 .case-question {
                     font-weight: bold;
                     margin: 15px 0 10px;
-                    color: #333;
+                    color: #333333;
                 }
                 
                 .case-options {
@@ -215,6 +223,11 @@
                     cursor: pointer;
                     transition: all 0.2s;
                     border: 2px solid transparent;
+                    white-space: normal;
+                    word-wrap: break-word;
+                    overflow: visible;
+                    text-align: left;
+                    color: #333333; /* Темный цвет текста для вариантов ответа */
                 }
                 
                 .case-option:hover {
@@ -244,6 +257,9 @@
                     margin: 15px 0;
                     border-left: 4px solid #FF1493;
                     display: none;
+                    white-space: normal;
+                    word-wrap: break-word;
+                    color: #333333; /* Темный цвет текста для объяснений */
                 }
                 
                 .case-navigation {
@@ -282,6 +298,9 @@
                     border-radius: 8px;
                     margin: 15px 0;
                     border-left: 4px solid #4CAF50;
+                    white-space: normal;
+                    word-wrap: break-word;
+                    color: #333333; /* Темный цвет текста для заключений */
                 }
                 
                 .module-content {
@@ -386,6 +405,10 @@
                 @media (max-width: 600px) {
                     .clinical-module {
                         padding: 15px;
+                    }
+                    
+                    .case-option {
+                        padding: 10px;
                     }
                 }
             `;
