@@ -30,8 +30,17 @@
                     "Легкие"
                 ],
                 correctAnswer: 2
+            },
+            {
+                question: "Какой тип препаратов снижает воспаление?",
+                options: [
+                    "Антибиотики",
+                    "Антигистаминные",
+                    "Нестероидные противовоспалительные", 
+                    "Гормональные"
+                ],
+                correctAnswer: 2
             }
-            // Можно добавить больше вопросов
         ],
 
         // Инициализация модуля
@@ -46,10 +55,90 @@
                 return false;
             }
 
+            // Добавляем стили
+            this.addStyles();
+
             // Создаем пользовательский интерфейс
             this.createUI();
             
             return true;
+        },
+
+        // Добавление стилей
+        addStyles: function() {
+            const style = document.createElement('style');
+            style.textContent = `
+                .pharma-module {
+                    background-color: white;
+                    border-radius: 15px;
+                    box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+                    padding: 30px;
+                    max-width: 500px;
+                    margin: 0 auto;
+                    text-align: center;
+                }
+
+                .pharma-question {
+                    margin-bottom: 20px;
+                }
+
+                .pharma-question p {
+                    font-size: 20px;
+                    margin-bottom: 20px;
+                }
+
+                .pharma-options {
+                    display: grid;
+                    grid-template-columns: 1fr 1fr;
+                    gap: 15px;
+                }
+
+                .pharma-option {
+                    background-color: #f0f0f0;
+                    padding: 15px;
+                    border-radius: 10px;
+                    cursor: pointer;
+                    transition: background-color 0.3s;
+                }
+
+                .pharma-option:hover {
+                    background-color: #e0e0e0;
+                }
+
+                .pharma-option.selected {
+                    background-color: #4a89dc;
+                    color: white;
+                }
+
+                .pharma-option.correct {
+                    background-color: #37bc9b;
+                    color: white;
+                }
+
+                .pharma-option.incorrect {
+                    background-color: #e9573f;
+                    color: white;
+                }
+
+                .pharma-controls {
+                    margin-top: 20px;
+                }
+
+                #pharma-next-btn {
+                    background-color: #4a89dc;
+                    color: white;
+                    border: none;
+                    padding: 10px 20px;
+                    border-radius: 8px;
+                    cursor: pointer;
+                }
+
+                #pharma-next-btn:disabled {
+                    background-color: #cccccc;
+                    cursor: not-allowed;
+                }
+            `;
+            document.head.appendChild(style);
         },
 
         // Создание пользовательского интерфейса
@@ -59,7 +148,7 @@
                     <h2>Тест по Фармакологии</h2>
                     <div id="pharma-question-container"></div>
                     <div class="pharma-controls">
-                        <button id="pharma-next-btn">Далее</button>
+                        <button id="pharma-next-btn" disabled>Далее</button>
                     </div>
                 </div>
             `;
@@ -69,7 +158,7 @@
             this.nextButton.addEventListener('click', () => this.nextQuestion());
         },
 
-        // Показать модуль (ВАЖНЫЙ МЕТОД)
+        // Показать модуль
         showModule: function() {
             console.log('Вызван метод showModule для фармакологического модуля');
             
@@ -117,6 +206,9 @@
             options.forEach(option => {
                 option.addEventListener('click', (e) => this.selectAnswer(e));
             });
+
+            // Сбрасываем кнопку "Далее"
+            this.nextButton.disabled = true;
         },
 
         // Выбор ответа
@@ -125,10 +217,13 @@
             const currentQuestion = this.questions[this.state.currentQuestionIndex];
             const options = this.questionContainer.querySelectorAll('.pharma-option');
 
+            // Сбрасываем предыдущие состояния
             options.forEach(opt => opt.classList.remove('selected', 'correct', 'incorrect'));
 
+            // Отмечаем выбранный ответ
             event.target.classList.add('selected');
 
+            // Проверяем правильность ответа
             if (selectedIndex === currentQuestion.correctAnswer) {
                 event.target.classList.add('correct');
                 this.state.score++;
@@ -137,6 +232,7 @@
                 options[currentQuestion.correctAnswer].classList.add('correct');
             }
 
+            // Активируем кнопку "Далее"
             this.nextButton.disabled = false;
         },
 
@@ -144,11 +240,13 @@
         nextQuestion: function() {
             this.state.currentQuestionIndex++;
 
+            // Проверяем, закончились ли вопросы
             if (this.state.currentQuestionIndex >= this.state.totalQuestions) {
                 this.showResults();
                 return;
             }
 
+            // Показываем следующий вопрос
             this.showQuestion();
         },
 
@@ -177,6 +275,10 @@
                 </div>
             `;
 
+            // Убираем кнопку "Далее"
+            this.nextButton.style.display = 'none';
+
+            // Обработчик перезапуска теста
             const restartBtn = document.getElementById('pharma-restart-btn');
             restartBtn.addEventListener('click', () => this.startTest());
         }
