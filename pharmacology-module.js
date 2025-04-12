@@ -1,6 +1,5 @@
 // Модуль фармакологического теста
 (function() {
-    // Основной объект модуля
     const PharmacologyModule = {
         // Состояние модуля
         state: {
@@ -10,14 +9,14 @@
             isTestActive: false
         },
 
-        // Базовый набор вопросов
+        // Базовый набор вопросов по фармакологии
         questions: [
             {
                 question: "Какой препарат относится к группе бета-блокаторов?",
                 options: [
                     "Амлодипин",
                     "Бисопролол",
-                    "Панкреатин",
+                    "Панкреатин", 
                     "Парацетамол"
                 ],
                 correctAnswer: 1
@@ -31,13 +30,15 @@
                     "Легкие"
                 ],
                 correctAnswer: 2
-            },
-            // Добавить еще вопросов
+            }
+            // Можно добавить больше вопросов
         ],
 
         // Инициализация модуля
         init: function() {
             console.log('Инициализация модуля фармакологии');
+            
+            // Получаем контейнер
             this.container = document.getElementById('pharmacology-container');
             
             if (!this.container) {
@@ -45,7 +46,9 @@
                 return false;
             }
 
+            // Создаем пользовательский интерфейс
             this.createUI();
+            
             return true;
         },
 
@@ -178,11 +181,11 @@
             restartBtn.addEventListener('click', () => this.startTest());
         }
     };
-
-    // Регистрация модуля глобально
+    
+    // Добавление модуля в глобальную область видимости
     window.PharmacologyModule = PharmacologyModule;
-
-    // Инициализация при загрузке DOM
+    
+    // Инициализация модуля при загрузке DOM
     document.addEventListener('DOMContentLoaded', () => {
         console.log('Модуль фармакологии загружен');
     });
