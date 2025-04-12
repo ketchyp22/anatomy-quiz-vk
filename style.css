@@ -745,3 +745,190 @@ p {
         width: 80%;
     }
 }
+/* Дополнения к style.css для новых модулей */
+
+/* Общие стили для модульных контейнеров */
+.module-container {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(33, 33, 33, 0.95);
+    z-index: 1000;
+    overflow-y: auto;
+    padding: 20px;
+    box-sizing: border-box;
+}
+
+/* Стили для селектора режимов */
+.quiz-mode-selector {
+    margin: 20px auto;
+    text-align: center;
+    max-width: 600px;
+}
+
+.quiz-mode-buttons {
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+    margin-top: 10px;
+}
+
+.quiz-mode-btn {
+    padding: 10px 15px;
+    background: linear-gradient(135deg, #4a76a8, #7BA7D7);
+    color: white;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 16px;
+    font-weight: bold;
+    transition: all 0.3s;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+    flex: 1;
+    max-width: 180px;
+}
+
+.quiz-mode-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+}
+
+.quiz-mode-btn.active {
+    background: linear-gradient(135deg, #FF1493, #ff4db8);
+    transform: translateY(1px);
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+}
+
+/* Кнопка закрытия для модулей */
+.close-module {
+    position: absolute;
+    top: 15px;
+    right: 15px;
+    width: 36px;
+    height: 36px;
+    background: #fff;
+    border-radius: 50%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    cursor: pointer;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+    z-index: 1100;
+    transition: all 0.3s;
+}
+
+.close-module:hover {
+    transform: rotate(90deg);
+    background: #ff4db8;
+    color: white;
+}
+
+.close-module::before,
+.close-module::after {
+    content: '';
+    position: absolute;
+    width: 18px;
+    height: 2px;
+    background: #333;
+}
+
+.close-module:hover::before,
+.close-module:hover::after {
+    background: #fff;
+}
+
+.close-module::before {
+    transform: rotate(45deg);
+}
+
+.close-module::after {
+    transform: rotate(-45deg);
+}
+
+/* Общие стили для клинических случаев и фармакологии */
+.clinical-module,
+.pharma-module {
+    background-color: rgba(255, 255, 255, 0.9);
+    border-radius: 12px;
+    padding: 20px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+    margin-bottom: 20px;
+    max-width: 800px;
+    margin: 0 auto 20px;
+}
+
+.case-title,
+.pharma-title {
+    font-size: 1.5em;
+    color: #FF1493;
+    margin-bottom: 10px;
+    text-align: center;
+}
+
+/* Анимации */
+@keyframes pulse-button {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.05); }
+    100% { transform: scale(1); }
+}
+
+.pulse-animation {
+    animation: pulse-button 1.5s infinite;
+}
+
+.heart-beat {
+    animation: heartbeat 1.2s infinite;
+}
+
+@keyframes heartbeat {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.1); }
+}
+
+.fade-in {
+    animation: fadein 0.5s;
+}
+
+@keyframes fadein {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+/* Медиа-запросы для мобильных устройств */
+@media (max-width: 600px) {
+    .quiz-mode-buttons {
+        flex-direction: column;
+        align-items: center;
+    }
+    
+    .quiz-mode-btn {
+        width: 90%;
+        max-width: none;
+        margin-bottom: 8px;
+    }
+    
+    .clinical-module,
+    .pharma-module {
+        padding: 15px;
+    }
+}
+
+/* Стили для новой кнопки в блоке результатов */
+#switch-mode {
+    background: linear-gradient(135deg, #FF1493, #ff4db8);
+    color: white;
+    padding: 10px 20px;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: bold;
+    transition: all 0.3s;
+    margin-top: 10px;
+}
+
+#switch-mode:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
