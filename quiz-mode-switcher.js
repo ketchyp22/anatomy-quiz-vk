@@ -1,225 +1,254 @@
-// quiz-mode-switcher.js - Модуль переключения режимов квиза
+// quiz-mode-switcher.js
 (function() {
-    // Константы режимов
-    const MODES = {
-        ANATOMY: {
-            id: 'anatomy', 
-            name: 'Анатомия', 
-            description: 'Проверьте свои знания анатомии человека с вопросами разной сложности',
-            hasDifficulty: true
-        },
-        CLINICAL: {
-            id: 'clinical', 
-            name: 'Клиническое мышление', 
-            description: 'Развивайте клиническое мышление, анализируя сложные медицинские случаи',
-            isNew: true
-        },
-        PHARMA: {
-            id: 'pharma', 
-            name: 'Фармакология', 
-            description: 'Изучайте и проверяйте знания лекарственных препаратов и их действия',
-            isNew: true
-        }
+    // Режимы квиза
+    const QUIZ_MODES = {
+        ANATOMY: 'anatomy',
+        CLINICAL: 'clinical',
+        PHARMA: 'pharma'
     };
-
-    // Состояние приложения
-    let currentMode = MODES.ANATOMY;
-    let currentDifficulty = 'normal';
-
-    // Инициализация модуля
+    
+    // Текущий режим квиза
+    let currentMode = QUIZ_MODES.ANATOMY;
+    
+    // Инициализация переключателя режимов
     function initModeSwitcher() {
-        const startScreen = document.getElementById('start-screen');
-        if (!startScreen) return;
-
-        // Создаем и настраиваем контейнеры
-        createDifficultySelector(startScreen);
-        createModeSelector(startScreen);
+        console.log('Инициализация переключателя режимов квиза...');
         
-        // Настройка обработчиков событий
-        setupEventHandlers();
-    }
-
-    // Создание селектора сложности
-    function createDifficultySelector(startScreen) {
-        // Заголовок
-        const difficultyTitle = document.createElement('h3');
-        difficultyTitle.textContent = 'Выберите уровень сложности:';
-
-        // Контейнер для кнопок
-        const difficultyButtons = document.createElement('div');
-        difficultyButtons.className = 'difficulty-buttons';
-
-        // Кнопки сложности
-        const normalButton = createDifficultyButton('normal', 'Обычный', true);
-        const hardButton = createDifficultyButton('hard', 'Сложный');
-
-        difficultyButtons.appendChild(normalButton);
-        difficultyButtons.appendChild(hardButton);
-
-        // Вставляем после информации о пользователе
-        const userInfo = document.getElementById('user-info');
-        if (userInfo && userInfo.nextSibling) {
-            startScreen.insertBefore(difficultyTitle, userInfo.nextSibling);
-            startScreen.insertBefore(difficultyButtons, difficultyTitle.nextSibling);
-        } else {
-            startScreen.appendChild(difficultyTitle);
-            startScreen.appendChild(difficultyButtons);
-        }
-    }
-
-    // Создание кнопки сложности
-    function createDifficultyButton(level, text, isActive = false) {
-        const button = document.createElement('button');
-        button.id = `${level}-difficulty`;
-        button.className = `difficulty-btn ${isActive ? 'active' : ''}`;
-        button.textContent = text;
-        return button;
-    }
-
-    // Создание селектора режимов
-    function createModeSelector(startScreen) {
-        // Заголовок
-        const modeTitle = document.createElement('h3');
-        modeTitle.textContent = 'Выберите режим:';
-
-        // Контейнер для кнопок
-        const modeButtons = document.createElement('div');
-        modeButtons.className = 'mode-buttons';
-
-        // Создаем кнопки для каждого режима
-        Object.values(MODES).forEach(mode => {
-            const button = createModeButton(mode);
-            modeButtons.appendChild(button);
-        });
-
-        // Кнопка старта
-        const startButton = document.createElement('button');
-        startButton.id = 'start-quiz';
-        startButton.className = 'btn-start';
-        startButton.textContent = 'Начать тест';
-
-        // Вставляем в DOM
-        startScreen.appendChild(modeTitle);
-        startScreen.appendChild(modeButtons);
-        startScreen.appendChild(startButton);
-    }
-
-    // Создание кнопки режима
-    function createModeButton(mode) {
-        const button = document.createElement('button');
-        button.className = `mode-btn ${mode.id === currentMode.id ? 'active' : ''}`;
-        button.textContent = mode.name;
-        button.dataset.mode = mode.id;
-
-        // Добавляем бейдж "New" для новых режимов
-        if (mode.isNew) {
-            const newBadge = document.createElement('span');
-            newBadge.className = 'new-badge';
-            newBadge.textContent = 'NEW';
-            button.appendChild(newBadge);
-        }
-
-        return button;
-    }
-
-    // Настройка обработчиков событий
-    function setupEventHandlers() {
-        // Обработчики для кнопок сложности
-        const difficultyButtons = document.querySelectorAll('.difficulty-btn');
-        difficultyButtons.forEach(button => {
-            button.addEventListener('click', function() {
-                // Убираем активный класс со всех кнопок
-                difficultyButtons.forEach(btn => btn.classList.remove('active'));
-                
-                // Добавляем активный класс текущей кнопке
-                this.classList.add('active');
-                
-                // Обновляем текущую сложность
-                currentDifficulty = this.id.replace('-difficulty', '');
+        // Добавляем стили для кнопок режима
+        addModeSwitcherStyles();
+        
+        // Настраиваем обработчики событий для кнопок режима
+        setupModeButtons();
+        
+        // Настраиваем кнопку переключения режима на странице результатов
+        const switchModeButton = document.getElementById('switch-mode');
+        if (switchModeButton) {
+            switchModeButton.addEventListener('click', function() {
+                // Скрываем экран результатов
+                document.getElementById('results-container').style.display = 'none';
+                // Показываем стартовый экран
+                document.getElementById('start-screen').style.display = 'block';
             });
-        });
-
-        // Обработчики для кнопок режимов
-        const modeButtons = document.querySelectorAll('.mode-btn');
-        modeButtons.forEach(button => {
-            button.addEventListener('click', function() {
-                const modeId = this.dataset.mode;
-                
-                // Обновляем активные кнопки режимов
-                modeButtons.forEach(btn => btn.classList.remove('active'));
-                this.classList.add('active');
-
-                // Обновляем текущий режим
-                currentMode = MODES[modeId.toUpperCase()];
-
-                // Обновляем текст кнопки старта
-                updateStartButton();
-            });
-        });
-
-        // Обработчик кнопки старта
-        const startButton = document.getElementById('start-quiz');
-        if (startButton) {
-            startButton.addEventListener('click', startQuiz);
         }
     }
-
+    
+    // Добавляем стили для кнопок режимов
+    function addModeSwitcherStyles() {
+        const style = document.createElement('style');
+        style.textContent = `
+            .quiz-mode-selector {
+                margin: 20px auto;
+                text-align: center;
+                max-width: 600px;
+            }
+            
+            .quiz-mode-buttons {
+                display: flex;
+                justify-content: center;
+                gap: 10px;
+                margin-top: 10px;
+            }
+            
+            .quiz-mode-btn {
+                padding: 10px 15px;
+                background: linear-gradient(135deg, #4a76a8, #7BA7D7);
+                color: white;
+                border: none;
+                border-radius: 8px;
+                cursor: pointer;
+                font-size: 16px;
+                font-weight: bold;
+                transition: all 0.3s;
+                box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+                flex: 1;
+                max-width: 180px;
+            }
+            
+            .quiz-mode-btn:hover {
+                transform: translateY(-2px);
+                box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+            }
+            
+            .quiz-mode-btn.active {
+                background: linear-gradient(135deg, #FF1493, #ff4db8);
+                transform: translateY(1px);
+                box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+            }
+            
+            /* Анимация для кнопок режима */
+            @keyframes pulse-button {
+                0% { transform: scale(1); }
+                50% { transform: scale(1.05); }
+                100% { transform: scale(1); }
+            }
+            
+            .pulse-animation {
+                animation: pulse-button 1.5s infinite;
+            }
+        `;
+        document.head.appendChild(style);
+    }
+    
+    // Настраиваем обработчики событий для кнопок режима
+    function setupModeButtons() {
+        const anatomyModeBtn = document.getElementById('anatomy-mode');
+        const clinicalModeBtn = document.getElementById('clinical-mode');
+        const pharmaModeBtn = document.getElementById('pharma-mode');
+        
+        if (!anatomyModeBtn || !clinicalModeBtn || !pharmaModeBtn) {
+            console.error('Не удалось найти кнопки переключения режима');
+            return;
+        }
+        
+        // Устанавливаем обработчики событий
+        anatomyModeBtn.addEventListener('click', function() {
+            setActiveMode(QUIZ_MODES.ANATOMY, this);
+        });
+        
+        clinicalModeBtn.addEventListener('click', function() {
+            setActiveMode(QUIZ_MODES.CLINICAL, this);
+        });
+        
+        pharmaModeBtn.addEventListener('click', function() {
+            setActiveMode(QUIZ_MODES.PHARMA, this);
+        });
+        
+        // Добавляем анимацию пульсации для новых режимов
+        clinicalModeBtn.classList.add('pulse-animation');
+        pharmaModeBtn.classList.add('pulse-animation');
+    }
+    
+    // Установка активного режима
+    function setActiveMode(mode, button) {
+        currentMode = mode;
+        
+        // Обновляем активную кнопку
+        const modeButtons = document.querySelectorAll('.quiz-mode-btn');
+        modeButtons.forEach(btn => {
+            btn.classList.remove('active');
+            // Удаляем анимацию пульсации при клике
+            btn.classList.remove('pulse-animation');
+        });
+        
+        if (button) {
+            button.classList.add('active');
+        }
+        
+        console.log('Выбран режим:', mode);
+        
+        // Обновляем текст кнопки старта в зависимости от режима
+        updateStartButton();
+        
+        // Обновляем описание квиза
+        updateQuizDescription();
+    }
+    
     // Обновление текста кнопки старта
     function updateStartButton() {
         const startButton = document.getElementById('start-quiz');
         if (!startButton) return;
-
-        const buttonTextMap = {
-            'anatomy': 'Начать тест по анатомии',
-            'clinical': 'Начать клинический случай',
-            'pharma': 'Начать тест по фармакологии'
-        };
-
-        startButton.textContent = buttonTextMap[currentMode.id] || 'Начать тест';
+        
+        switch (currentMode) {
+            case QUIZ_MODES.CLINICAL:
+                startButton.textContent = 'Начать клинический случай';
+                break;
+            case QUIZ_MODES.PHARMA:
+                startButton.textContent = 'Начать тест по фармакологии';
+                break;
+            default:
+                startButton.textContent = 'Начать тест';
+        }
     }
-
+    
+    // Обновление описания квиза
+    function updateQuizDescription() {
+        const descriptionElement = document.querySelector('#start-screen p');
+        if (!descriptionElement) return;
+        
+        switch (currentMode) {
+            case QUIZ_MODES.CLINICAL:
+                descriptionElement.textContent = 'Развивайте клиническое мышление, анализируя сложные случаи из практики!';
+                break;
+            case QUIZ_MODES.PHARMA:
+                descriptionElement.textContent = 'Проверьте свои знания в области фармакологии и лекарственных препаратов!';
+                break;
+            default:
+                descriptionElement.textContent = 'Проверьте свои знания анатомии человека!';
+        }
+    }
+    
     // Запуск квиза
     function startQuiz() {
-        const startScreen = document.getElementById('start-screen');
+        const clinicalPharmaContainer = document.getElementById('clinical-pharma-container');
         const quizContainer = document.getElementById('quiz-container');
+        const startScreen = document.getElementById('start-screen');
         
-        // Скрываем стартовый экран
-        if (startScreen) startScreen.style.display = 'none';
-
-        // Запуск в зависимости от выбранного режима
-        switch (currentMode.id) {
-            case 'clinical':
-                if (window.ClinicalThinkingModule) {
-                    window.ClinicalThinkingModule.showModule();
-                } else {
-                    console.error('Модуль клинического мышления не загружен');
+        startScreen.style.display = 'none';
+        
+        // В зависимости от выбранного режима
+        switch (currentMode) {
+            case QUIZ_MODES.CLINICAL:
+                // Запускаем клинический случай
+                if (clinicalPharmaContainer) {
+                    clinicalPharmaContainer.style.display = 'block';
+                    
+                    // Вызываем функцию из модуля клинического мышления
+                    if (window.ClinicalPharmaModule) {
+                        window.ClinicalPharmaModule.init(clinicalPharmaContainer);
+                        window.ClinicalPharmaModule.switchModule('clinical-case');
+                    }
                 }
                 break;
-
-            case 'pharma':
-                if (window.PharmacologyModule) {
-                    window.PharmacologyModule.showModule();
-                } else {
-                    console.error('Модуль фармакологии не загружен');
+                
+            case QUIZ_MODES.PHARMA:
+                // Запускаем тест по фармакологии
+                if (clinicalPharmaContainer) {
+                    clinicalPharmaContainer.style.display = 'block';
+                    
+                    // Вызываем функцию из модуля фармакологии
+                    if (window.ClinicalPharmaModule) {
+                        window.ClinicalPharmaModule.init(clinicalPharmaContainer);
+                        window.ClinicalPharmaModule.switchModule('pharma-quiz');
+                    }
                 }
                 break;
-
-            default: // anatomy
+                
+            default:
+                // Запускаем обычный анатомический квиз
                 if (quizContainer) {
                     quizContainer.style.display = 'block';
-                    if (window.startQuiz) {
+                    
+                    // Вызываем оригинальную функцию запуска квиза, если она доступна
+                    if (window.startQuiz && typeof window.startQuiz === 'function') {
                         window.startQuiz();
                     }
                 }
         }
     }
-
-    // Инициализация при загрузке DOM
-    document.addEventListener('DOMContentLoaded', initModeSwitcher);
-
-    // Экспорт API
+    
+    // Экспортируем функции для использования в основном приложении
     window.QuizModeSwitcher = {
-        getCurrentMode: () => currentMode,
-        getCurrentDifficulty: () => currentDifficulty
+        init: initModeSwitcher,
+        startQuiz: startQuiz,
+        getCurrentMode: function() { return currentMode; }
     };
+    
+    // Инициализация при загрузке DOM
+    document.addEventListener('DOMContentLoaded', function() {
+        // Инициализируем переключатель режимов
+        initModeSwitcher();
+        
+        // Перехватываем клик по кнопке запуска
+        const startButton = document.getElementById('start-quiz');
+        if (startButton) {
+            startButton.addEventListener('click', function(event) {
+                // Предотвращаем действие по умолчанию, чтобы наш обработчик работал вместо оригинального
+                event.preventDefault();
+                event.stopPropagation();
+                
+                // Запускаем квиз в выбранном режиме
+                startQuiz();
+            });
+        }
+    });
 })();
