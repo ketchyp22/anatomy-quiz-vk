@@ -932,3 +932,89 @@ p {
     transform: translateY(-2px);
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
 }
+.quiz-modes-container {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 20px;
+}
+
+.mode-panel {
+    background: white;
+    border-radius: 16px;
+    border: 2px solid transparent;
+    transition: all 0.3s ease;
+    overflow: hidden;
+    position: relative;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+}
+
+.mode-panel::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 5px;
+    background: linear-gradient(90deg, #4a76a8, #7BA7D7);
+    transform: scaleX(0);
+    transform-origin: right;
+    transition: transform 0.3s ease;
+}
+
+.mode-panel.active::before {
+    transform: scaleX(1);
+    transform-origin: left;
+}
+
+.mode-panel.active {
+    border-color: #4a76a8;
+    box-shadow: 0 6px 20px rgba(74, 118, 168, 0.15);
+}
+
+.mode-panel .mode-title {
+    color: #4a76a8;
+    transition: color 0.3s ease;
+}
+
+.mode-panel:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+}
+
+.mode-panel.active .mode-title {
+    color: #FF1493;
+    font-weight: 700;
+}
+
+.mode-panel.active .mode-description {
+    color: #333;
+}
+
+.mode-panel .mode-description {
+    color: #666;
+    transition: color 0.3s ease;
+}
+
+.new-badge {
+    background-color: #FF1493;
+    color: white;
+    padding: 3px 6px;
+    border-radius: 12px;
+    font-size: 10px;
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    text-transform: uppercase;
+    animation: pulse-badge 2s infinite;
+}
+
+@keyframes pulse-badge {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.1); }
+}
+
+@media (min-width: 600px) {
+    .quiz-modes-container {
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    }
+}
