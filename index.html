@@ -29,6 +29,9 @@
     <script src="enhanced-results.js"></script>
     <script src="enhanced-sharing.js"></script>
     
+    <!-- Новые модули клинического мышления и фармакологии -->
+    <script src="clinical-pharma-module.js"></script>
+    
     <!-- Основные скрипты -->
     <script src="vk-difficulty.js"></script>
     <script src="app.js" defer></script>
@@ -40,7 +43,7 @@
     <!-- Стартовый экран -->
     <div id="start-screen">
         <h1>Анатомический квиз</h1>
-        <p>Проверьте свои знания анатомии человека!</p>
+        <p>Проверьте свои знания анатомии человека, развивайте клиническое мышление и изучайте фармакологию!</p>
         
         <!-- Информация о пользователе -->
         <div id="user-info"></div>
@@ -53,6 +56,16 @@
             <div class="difficulty-buttons">
                 <button id="normal-difficulty" class="difficulty-btn active">Обычный</button>
                 <button id="hard-difficulty" class="difficulty-btn">Сложный</button>
+            </div>
+        </div>
+        
+        <!-- Переключатель режимов квиза -->
+        <div class="quiz-mode-selector">
+            <h3>Выберите режим:</h3>
+            <div class="quiz-mode-buttons">
+                <button id="anatomy-mode" class="quiz-mode-btn active">Анатомия</button>
+                <button id="clinical-mode" class="quiz-mode-btn">Клиническое мышление</button>
+                <button id="pharma-mode" class="quiz-mode-btn">Фармакология</button>
             </div>
         </div>
         
@@ -75,6 +88,11 @@
         <button id="next-question" disabled>Далее</button>
     </div>
     
+    <!-- Контейнер для клинических случаев и фармакологии -->
+    <div id="clinical-pharma-container" style="display: none;">
+        <!-- Содержимое будет добавлено через JavaScript -->
+    </div>
+    
     <!-- Экран результатов -->
     <div id="results-container" style="display: none;">
         <h2>Ваш результат</h2>
@@ -84,6 +102,7 @@
         <div class="result-buttons">
             <button id="share-results">Поделиться</button>
             <button id="restart-quiz">Пройти еще раз</button>
+            <button id="switch-mode">Сменить режим</button>
         </div>
     </div>
     
