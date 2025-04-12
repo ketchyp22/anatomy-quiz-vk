@@ -1,5 +1,5 @@
 // pharmacology-module.js - Полностью переписанный модуль фармакологии
-// Модуль фармакологического теста с улучшенной надежностью и обработкой ошибок
+// с исправленной функциональностью выбора ответов
 
 (function() {
     try {
@@ -256,7 +256,7 @@
                         font-size: 16px;
                     }
                     
-                    #pharma-restart-btn {
+                    #pharma-restart-btn, #pharma-main-menu-btn {
                         background-color: #37bc9b;
                         color: white;
                         border: none;
@@ -269,8 +269,12 @@
                         margin-top: 20px;
                     }
                     
-                    #pharma-restart-btn:hover {
-                        background-color: #2fa985;
+                    #pharma-main-menu-btn {
+                        background-color: #4a89dc;
+                        margin-left: 10px;
+                    }
+                    
+                    #pharma-restart-btn:hover, #pharma-main-menu-btn:hover {
                         transform: translateY(-2px);
                         box-shadow: 0 4px 8px rgba(0,0,0,0.2);
                     }
@@ -334,6 +338,12 @@
                         #pharma-next-btn {
                             padding: 10px 20px;
                             font-size: 14px;
+                        }
+                        
+                        #pharma-restart-btn, #pharma-main-menu-btn {
+                            display: block;
+                            width: 100%;
+                            margin: 10px 0 0 0;
                         }
                     }
                 `;
@@ -511,11 +521,12 @@
             // Выбор ответа
             selectAnswer: function(event) {
                 try {
-                    // Если ответ уже проверен (кнопка "Далее" активна), игнорируем клики
-                    if (!this.nextButton || !this.nextButton.disabled) {
+                    // Если модуль находится в режиме отображения результатов, игнорируем клики
+                    if (!this.nextButton || this.nextButton.style.display === 'none') {
                         return;
                     }
                     
+                    // Получаем выбранный вариант
                     const selectedIndex = parseInt(event.target.dataset.index);
                     const options = this.questionContainer.querySelectorAll('.pharma-option');
 
@@ -546,10 +557,16 @@
             // Переход к следующему вопросу
             nextQuestion: function() {
                 try {
+                    // Сначала блокируем возможность менять выбор варианта
+                    const options = this.questionContainer.querySelectorAll('.pharma-option');
+                    options.forEach(option => {
+                        // Убираем возможность кликать по вариантам ответа
+                        option.style.pointerEvents = 'none';
+                    });
+                    
                     // Проверяем правильность ответа перед переходом к следующему вопросу
                     if (typeof this.selectedAnswerIndex !== 'undefined') {
                         const currentQuestion = this.questions[this.state.currentQuestionIndex];
-                        const options = this.questionContainer.querySelectorAll('.pharma-option');
                         
                         // Проверяем наличие индекса правильного ответа
                         if (currentQuestion && typeof currentQuestion.correctAnswer !== 'undefined' && 
@@ -650,8 +667,10 @@
                             <p>Правильных ответов: ${this.state.score} из ${totalQuestions}</p>
                             <p>Процент: ${percentage}%</p>
                             <p>${resultText}</p>
-                            <button id="pharma-restart-btn">Пройти снова</button>
-                            <button id="pharma-main-menu-btn" style="margin-top: 10px; background-color: #4a89dc;">В главное меню</button>
+                            <div style="margin-top: 20px">
+                                <button id="pharma-restart-btn">Пройти снова</button>
+                                <button id="pharma-main-menu-btn">В главное меню</button>
+                            </div>
                         </div>
                     `;
 
