@@ -1,172 +1,170 @@
-// quiz-mode-switcher.js - Улучшенный модуль переключения режимов квиза
+// quiz-mode-switcher.js - Модуль переключения режимов квиза
 (function() {
     // Константы режимов
-    const QUIZ_MODES = {
+    const MODES = {
         ANATOMY: {
-            id: 'anatomy',
-            title: 'Анатомия',
+            id: 'anatomy', 
+            name: 'Анатомия', 
             description: 'Проверьте свои знания анатомии человека с вопросами разной сложности',
-            icon: '🦴',
-            isActive: true
+            hasDifficulty: true
         },
         CLINICAL: {
-            id: 'clinical',
-            title: 'Клиническое мышление',
+            id: 'clinical', 
+            name: 'Клиническое мышление', 
             description: 'Развивайте клиническое мышление, анализируя сложные медицинские случаи',
-            icon: '🩺',
             isNew: true
         },
         PHARMA: {
-            id: 'pharma',
-            title: 'Фармакология',
+            id: 'pharma', 
+            name: 'Фармакология', 
             description: 'Изучайте и проверяйте знания лекарственных препаратов и их действия',
-            icon: '💊',
             isNew: true
         }
     };
 
-    // Текущий активный режим
-    let currentMode = QUIZ_MODES.ANATOMY;
+    // Состояние приложения
+    let currentMode = MODES.ANATOMY;
+    let currentDifficulty = 'normal';
 
-    // Создание контейнера режимов
-    function createModesContainer() {
-        const container = document.createElement('div');
-        container.className = 'main-menu-container';
+    // Инициализация модуля
+    function initModeSwitcher() {
+        const startScreen = document.getElementById('start-screen');
+        if (!startScreen) return;
 
-        const title = document.createElement('h3');
-        title.className = 'menu-section-title';
-        title.textContent = 'Выберите режим';
-
-        const modesContainer = document.createElement('div');
-        modesContainer.className = 'quiz-modes-container';
-
-        // Создаем панели для каждого режима
-        Object.values(QUIZ_MODES).forEach(mode => {
-            const modePanel = createModePanel(mode);
-            modesContainer.appendChild(modePanel);
-        });
-
-        container.appendChild(title);
-        container.appendChild(modesContainer);
-
-        return container;
+        // Создаем и настраиваем контейнеры
+        createDifficultySelector(startScreen);
+        createModeSelector(startScreen);
+        
+        // Настройка обработчиков событий
+        setupEventHandlers();
     }
 
-    // Создание панели режима
-    function createModePanel(mode) {
-        const panel = document.createElement('div');
-        panel.className = `mode-panel ${mode.id === currentMode.id ? 'active' : ''}`;
-        panel.dataset.mode = mode.id;
-
+    // Создание селектора сложности
+    function createDifficultySelector(startScreen) {
         // Заголовок
-        const titleElement = document.createElement('div');
-        titleElement.className = 'mode-title';
-        
-        // Иконка
-        const iconSpan = document.createElement('span');
-        iconSpan.textContent = mode.icon;
-        iconSpan.style.marginRight = '10px';
+        const difficultyTitle = document.createElement('h3');
+        difficultyTitle.textContent = 'Выберите уровень сложности:';
 
-        // Текст заголовка
-        const titleText = document.createElement('span');
-        titleText.textContent = mode.title;
+        // Контейнер для кнопок
+        const difficultyButtons = document.createElement('div');
+        difficultyButtons.className = 'difficulty-buttons';
 
-        titleElement.appendChild(iconSpan);
-        titleElement.appendChild(titleText);
+        // Кнопки сложности
+        const normalButton = createDifficultyButton('normal', 'Обычный', true);
+        const hardButton = createDifficultyButton('hard', 'Сложный');
 
-        // Новый бейдж
+        difficultyButtons.appendChild(normalButton);
+        difficultyButtons.appendChild(hardButton);
+
+        // Вставляем после информации о пользователе
+        const userInfo = document.getElementById('user-info');
+        if (userInfo && userInfo.nextSibling) {
+            startScreen.insertBefore(difficultyTitle, userInfo.nextSibling);
+            startScreen.insertBefore(difficultyButtons, difficultyTitle.nextSibling);
+        } else {
+            startScreen.appendChild(difficultyTitle);
+            startScreen.appendChild(difficultyButtons);
+        }
+    }
+
+    // Создание кнопки сложности
+    function createDifficultyButton(level, text, isActive = false) {
+        const button = document.createElement('button');
+        button.id = `${level}-difficulty`;
+        button.className = `difficulty-btn ${isActive ? 'active' : ''}`;
+        button.textContent = text;
+        return button;
+    }
+
+    // Создание селектора режимов
+    function createModeSelector(startScreen) {
+        // Заголовок
+        const modeTitle = document.createElement('h3');
+        modeTitle.textContent = 'Выберите режим:';
+
+        // Контейнер для кнопок
+        const modeButtons = document.createElement('div');
+        modeButtons.className = 'mode-buttons';
+
+        // Создаем кнопки для каждого режима
+        Object.values(MODES).forEach(mode => {
+            const button = createModeButton(mode);
+            modeButtons.appendChild(button);
+        });
+
+        // Кнопка старта
+        const startButton = document.createElement('button');
+        startButton.id = 'start-quiz';
+        startButton.className = 'btn-start';
+        startButton.textContent = 'Начать тест';
+
+        // Вставляем в DOM
+        startScreen.appendChild(modeTitle);
+        startScreen.appendChild(modeButtons);
+        startScreen.appendChild(startButton);
+    }
+
+    // Создание кнопки режима
+    function createModeButton(mode) {
+        const button = document.createElement('button');
+        button.className = `mode-btn ${mode.id === currentMode.id ? 'active' : ''}`;
+        button.textContent = mode.name;
+        button.dataset.mode = mode.id;
+
+        // Добавляем бейдж "New" для новых режимов
         if (mode.isNew) {
             const newBadge = document.createElement('span');
             newBadge.className = 'new-badge';
-            newBadge.textContent = 'New';
-            titleElement.appendChild(newBadge);
+            newBadge.textContent = 'NEW';
+            button.appendChild(newBadge);
         }
 
-        // Описание
-        const descElement = document.createElement('div');
-        descElement.className = 'mode-description';
-        descElement.textContent = mode.description;
+        return button;
+    }
 
-        // Опции для анатомии (переключатель сложности)
-        const optionsContainer = document.createElement('div');
-        optionsContainer.className = 'mode-options';
+    // Настройка обработчиков событий
+    function setupEventHandlers() {
+        // Обработчики для кнопок сложности
+        const difficultyButtons = document.querySelectorAll('.difficulty-btn');
+        difficultyButtons.forEach(button => {
+            button.addEventListener('click', function() {
+                // Убираем активный класс со всех кнопок
+                difficultyButtons.forEach(btn => btn.classList.remove('active'));
+                
+                // Добавляем активный класс текущей кнопке
+                this.classList.add('active');
+                
+                // Обновляем текущую сложность
+                currentDifficulty = this.id.replace('-difficulty', '');
+            });
+        });
 
-        if (mode.id === 'anatomy') {
-            optionsContainer.appendChild(createDifficultyToggle());
+        // Обработчики для кнопок режимов
+        const modeButtons = document.querySelectorAll('.mode-btn');
+        modeButtons.forEach(button => {
+            button.addEventListener('click', function() {
+                const modeId = this.dataset.mode;
+                
+                // Обновляем активные кнопки режимов
+                modeButtons.forEach(btn => btn.classList.remove('active'));
+                this.classList.add('active');
+
+                // Обновляем текущий режим
+                currentMode = MODES[modeId.toUpperCase()];
+
+                // Обновляем текст кнопки старта
+                updateStartButton();
+            });
+        });
+
+        // Обработчик кнопки старта
+        const startButton = document.getElementById('start-quiz');
+        if (startButton) {
+            startButton.addEventListener('click', startQuiz);
         }
-
-        // Сборка панели
-        panel.appendChild(titleElement);
-        panel.appendChild(descElement);
-        panel.appendChild(optionsContainer);
-
-        // Обработчик клика
-        panel.addEventListener('click', () => setActiveMode(mode.id));
-
-        return panel;
     }
 
-    // Создание переключателя сложности
-    function createDifficultyToggle() {
-        const toggleContainer = document.createElement('div');
-        toggleContainer.className = 'difficulty-toggle';
-        toggleContainer.dataset.level = 'normal';
-
-        const normalOption = document.createElement('div');
-        normalOption.className = 'difficulty-option';
-        normalOption.textContent = 'Обычный';
-
-        const hardOption = document.createElement('div');
-        hardOption.className = 'difficulty-option';
-        hardOption.textContent = 'Сложный';
-
-        const slider = document.createElement('div');
-        slider.className = 'difficulty-slider';
-
-        toggleContainer.appendChild(normalOption);
-        toggleContainer.appendChild(hardOption);
-        toggleContainer.appendChild(slider);
-
-        // Обработчик переключения сложности
-        toggleContainer.addEventListener('click', function(e) {
-            e.stopPropagation();
-            const currentLevel = this.dataset.level;
-            const newLevel = currentLevel === 'normal' ? 'hard' : 'normal';
-            this.dataset.level = newLevel;
-
-            // Обновляем сложность в менеджере сложности
-            if (window.difficultyManager) {
-                window.difficultyManager.setLevel(newLevel);
-            }
-        });
-
-        return toggleContainer;
-    }
-
-    // Установка активного режима
-    function setActiveMode(modeId) {
-        // Находим выбранный режим
-        const selectedMode = Object.values(QUIZ_MODES).find(mode => mode.id === modeId);
-        if (!selectedMode) return;
-
-        // Обновляем панели
-        const panels = document.querySelectorAll('.mode-panel');
-        panels.forEach(panel => {
-            if (panel.dataset.mode === modeId) {
-                panel.classList.add('active');
-            } else {
-                panel.classList.remove('active');
-            }
-        });
-
-        // Обновляем текущий режим
-        currentMode = selectedMode;
-
-        // Обновляем кнопку старта
-        updateStartButton();
-    }
-
-    // Обновление кнопки старта
+    // Обновление текста кнопки старта
     function updateStartButton() {
         const startButton = document.getElementById('start-quiz');
         if (!startButton) return;
@@ -184,9 +182,7 @@
     function startQuiz() {
         const startScreen = document.getElementById('start-screen');
         const quizContainer = document.getElementById('quiz-container');
-        const clinicalContainer = document.getElementById('clinical-thinking-container');
-        const pharmaContainer = document.getElementById('pharmacology-container');
-
+        
         // Скрываем стартовый экран
         if (startScreen) startScreen.style.display = 'none';
 
@@ -218,38 +214,12 @@
         }
     }
 
-    // Инициализация модуля
-    function init() {
-        const startScreen = document.getElementById('start-screen');
-        if (!startScreen) {
-            console.error('Стартовый экран не найден');
-            return;
-        }
-
-        // Создаем и вставляем контейнер режимов
-        const modesContainer = createModesContainer();
-        const userInfo = document.getElementById('user-info');
-
-        if (userInfo && userInfo.nextSibling) {
-            startScreen.insertBefore(modesContainer, userInfo.nextSibling);
-        } else {
-            startScreen.appendChild(modesContainer);
-        }
-
-        // Настройка кнопки старта
-        const startButton = document.getElementById('start-quiz');
-        if (startButton) {
-            startButton.addEventListener('click', startQuiz);
-        }
-    }
+    // Инициализация при загрузке DOM
+    document.addEventListener('DOMContentLoaded', initModeSwitcher);
 
     // Экспорт API
     window.QuizModeSwitcher = {
-        init,
         getCurrentMode: () => currentMode,
-        startQuiz
+        getCurrentDifficulty: () => currentDifficulty
     };
-
-    // Инициализация при загрузке DOM
-    document.addEventListener('DOMContentLoaded', init);
 })();
