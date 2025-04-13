@@ -1,118 +1,77 @@
 <!DOCTYPE html>
 <html lang="ru">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <meta name="format-detection" content="telephone=no">
-    <meta name="mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="theme-color" content="#4a76a8">
-    <title>Медицинский квиз</title>
-    
-    <!-- Стили -->
-    <link rel="stylesheet" href="style.css">
-    
-    <!-- VK Bridge должен загружаться первым -->
-    <script src="https://unpkg.com/@vkontakte/vk-bridge@2.10.0/dist/browser.min.js"></script>
-    
-    <!-- Основные вопросы -->
-    <script src="questions.js"></script>
-    
-    <!-- Обработчик сложных вопросов -->
-    <script src="difficult-questions-handler.js"></script>
-    
-    <!-- Анимационные файлы и звуки -->
-    <script src="animations.js"></script>
-    <script src="animated-background.js"></script>
-    <script src="animated-pulse-line.js"></script>
-    <script src="sound-effects.js"></script>
-    <script src="enhanced-results.js"></script>
-    <script src="enhanced-sharing.js"></script>
-    
-    <!-- Новые модули для клинического мышления и фармакологии -->
-    <script src="clinical-thinking-module.js"></script>
-    <script src="pharmacology-module.js"></script>
-    <script src="quiz-mode-switcher.js"></script>
-    
-    <!-- Основные скрипты -->
-    <script src="vk-difficulty.js"></script>
-    <script src="app.js" defer></script>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Медицинский квиз</title>
+  <!-- Подключение шрифта Roboto -->
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+  <!-- Подключение стилей -->
+  <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
-    <!-- Анимированный фон -->
-    <div id="animated-background" class="anatomy-background-wrapper"></div>
-    
+  <div class="container">
     <!-- Стартовый экран -->
     <div id="start-screen">
+      <header class="header">
         <h1>Медицинский квиз</h1>
         <p>Проверьте свои знания анатомии человека!</p>
-        
-        <!-- Информация о пользователе -->
-        <div id="user-info"></div>
-        
-        <!-- Анимированная линия пульса добавляется через JavaScript -->
-        
-        <!-- Селектор сложности -->
+        <div class="user-info" id="user-info">
+          <!-- Информация о пользователе будет добавлена через JS -->
+        </div>
+      </header>
+
+      <div class="image-container">
+        <img src="images/doctor.png" alt="Доктор Рик" class="header-image">
+      </div>
+
+      <div class="mode-difficulty-wrapper">
         <div class="difficulty-selector">
-            <h3>Выберите уровень сложности:</h3>
-            <div class="difficulty-buttons">
-                <button id="normal-difficulty" class="difficulty-btn active">Обычный</button>
-                <button id="hard-difficulty" class="difficulty-btn">Сложный</button>
-            </div>
+          <button class="difficulty-btn" data-difficulty="easy">Общий</button>
+          <button class="difficulty-btn" data-difficulty="hard">Сложный</button>
         </div>
-        
-        <!-- Селектор режима (добавляется динамически через quiz-mode-switcher.js) -->
         <div class="quiz-mode-selector">
-            <h3>Выберите режим:</h3>
-            <div class="quiz-mode-buttons">
-                <button id="anatomy-mode" class="quiz-mode-btn active">Анатомия</button>
-                <button id="clinical-mode" class="quiz-mode-btn">Клиническое мышление</button>
-                <button id="pharma-mode" class="quiz-mode-btn">Фармакология</button>
-            </div>
+          <button class="quiz-mode-btn" data-mode="anatomy">Анатомия</button>
+          <button class="quiz-mode-btn" data-mode="clinical">Клиническое мышление</button>
+          <button class="quiz-mode-btn" data-mode="pharmacology">Фармакология</button>
         </div>
-        
-        <!-- Кнопка старта -->
-        <button id="start-quiz" class="btn-start">Начать тест</button>
+      </div>
+
+      <button class="btn-start" id="start-quiz">Начать тест</button>
     </div>
-    
-    <!-- Контейнер с вопросами по анатомии -->
+
+    <!-- Экран квиза -->
     <div id="quiz-container" style="display: none;">
-        <div class="progress-container">
-            <div id="progress-bar"></div>
+      <header class="header">
+        <h1>Медицинский квиз</h1>
+        <div class="user-info" id="user-info-quiz">
+          <!-- Информация о пользователе будет добавлена через JS -->
         </div>
-        
-        <div id="question-counter">Вопрос 1 из 25</div>
-        
-        <div id="question"></div>
-        
-        <div id="options"></div>
-        
-        <button id="next-question" disabled>Далее</button>
+      </header>
+
+      <div class="progress-container">
+        <div id="progress-bar"></div>
+      </div>
+      <div id="question-counter"></div>
+      <div id="question"></div>
+      <div id="options"></div>
+      <button id="next-question" disabled>Далее</button>
     </div>
-    
-    <!-- Контейнер для модуля клинического мышления (добавляется динамически) -->
-    <div id="clinical-thinking-container" class="module-container" style="display: none;"></div>
-    
-    <!-- Контейнер для модуля фармакологии (добавляется динамически) -->
-    <div id="pharmacology-container" class="module-container" style="display: none;"></div>
-    
+
     <!-- Экран результатов -->
     <div id="results-container" style="display: none;">
-        <h2>Ваш результат</h2>
-        
-        <div id="score"></div>
-        
-        <div class="result-buttons">
-            <button id="share-results">Поделиться</button>
-            <button id="restart-quiz">Пройти еще раз</button>
-            <button id="switch-mode">Сменить режим</button>
-        </div>
+      <header class="header">
+        <h1>Результаты</h1>
+      </header>
+      <div id="score"></div>
+      <button id="share-results">Поделиться</button>
+      <button id="restart-quiz">Пройти заново</button>
     </div>
-    
-    <!-- Контейнер для звуковых эффектов -->
-    <div id="sound-container" style="display: none;"></div>
-    
-    <!-- Контейнер для анимаций счета -->
-    <div id="animations-container"></div>
+  </div>
+
+  <!-- Подключение VK Bridge -->
+  <script src="https://unpkg.com/@vkontakte/vk-bridge/dist/browser.min.js"></script>
+  <!-- Подключение скриптов -->
+  <script src="js/app.js"></script>
 </body>
 </html>
