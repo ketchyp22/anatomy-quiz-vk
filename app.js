@@ -196,19 +196,34 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     // Обработчик кнопки "Выйти"
-    if (exitQuizButton) {
-        exitQuizButton.addEventListener('click', function() {
-            // Показываем диалоговое окно подтверждения
-            const confirmExit = confirm('Вы уверены, что хотите выйти? Прогресс теста будет потерян.');
-            
-            // Если пользователь подтвердил выход
-            if (confirmExit) {
-                returnToStartScreen();
-            }
-        });
-    } else {
-        console.error('Кнопка выхода не найдена');
-    }
+if (exitQuizButton) {
+    exitQuizButton.addEventListener('click', function() {
+        console.log('Клик по кнопке "Выйти"');
+        // Показываем диалоговое окно подтверждения
+        const confirmExit = confirm('Вы уверены, что хотите выйти? Прогресс теста будет потерян.');
+        
+        // Если пользователь подтвердил выход
+        if (confirmExit) {
+            returnToStartScreen();
+        }
+    });
+} else {
+    console.error('Кнопка выхода не найдена');
+}
+
+    // Функция для возврата на стартовый экран
+    function returnToStartScreen() {
+        console.log('Возврат на стартовый экран');
+        if (quizContainer) quizContainer.style.display = 'none';
+        if (resultsContainer) resultsContainer.style.display = 'none';
+        if (startScreen) startScreen.style.display = 'block';
+    
+    // Сброс глобальных переменных
+    currentQuestion = 0;
+    score = 0;
+    selectedOption = null;
+    questionsForQuiz = [];
+}
     
     // Инициализация приложения будет вызвана в любом случае
     setTimeout(initializeApp, 500);
