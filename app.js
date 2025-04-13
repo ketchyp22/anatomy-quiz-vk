@@ -1,52 +1,4 @@
-// Глобальные переменные
-let currentQuestion = 0;
-let score = 0;
-let selectedOption = null;
-let questionsForQuiz = []; // Массив для хранения выбранных вопросов
-const totalQuestionsToShow = 10; // Количество вопросов для показа в одном тесте
-let currentUserData = null; // Данные текущего пользователя
-let currentQuizMode = 'anatomy'; // Текущий режим квиза: anatomy, clinical, pharmacology
-let currentDifficulty = 'easy'; // Текущий уровень сложности: easy, hard
-let vkBridgeInstance = null; // Будем хранить инициализированный VK Bridge
-
-// Функция для перемешивания массива (алгоритм Фишера-Йейтса)
-function shuffleArray(array) {
-    if (!Array.isArray(array) || array.length === 0) {
-        console.error('Ошибка: shuffleArray получил неверный массив');
-        return [];
-    }
-    const newArray = [...array]; // Создаем копию массива
-    for (let i = newArray.length - 1; i > 0; i--) {
-        const j = Math.floor(Math.random() * (i + 1));
-        [newArray[i], newArray[j]] = [newArray[j], newArray[i]];
-    }
-    return newArray;
-}
-
-// Функция для получения базовых вопросов, если нет файла questions.js
-function getDefaultQuestions() {
-    return [
-        {
-            id: 1,
-            text: "Какой орган отвечает за производство инсулина?",
-            options: ["Печень", "Поджелудочная железа", "Почки", "Селезенка"],
-            correctOptionIndex: 1,
-            mode: "anatomy",
-            difficulty: "easy"
-        },
-        {
-            id: 2,
-            text: "Какая кость является самой длинной в человеческом теле?",
-            options: ["Плечевая", "Бедренная", "Большеберцовая", "Локтевая"],
-            correctOptionIndex: 1,
-            mode: "anatomy",
-            difficulty: "easy"
-        },
-        // Добавьте остальные вопросы здесь...
-    ];
-}
-
-// Функция для показа гостевого режима
+// Глобальная функция для показа гостевого режима
 function showGuestMode() {
     const userInfoElement = document.getElementById('user-info');
     if (!userInfoElement) return;
@@ -71,44 +23,67 @@ function showGuestMode() {
     console.log('Запущен гостевой режим с ID:', currentUserData.id);
 }
 
-// Применение темы VK
+// Обработка темы VK
 function applyVKTheme(scheme) {
     console.log('Применяется тема:', scheme);
     const isDarkTheme = ['space_gray', 'vkcom_dark'].includes(scheme);
     document.documentElement.classList.toggle('vk-dark-theme', isDarkTheme);
 }
 
+// Функция для перемешивания массива (алгоритм Фишера-Йейтса)
+function shuffleArray(array) {
+    if (!Array.isArray(array) || array.length === 0) {
+        console.error('Ошибка: shuffleArray получил неверный массив');
+        return [];
+    }
+    const newArray = [...array];
+    for (let i = newArray.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [newArray[i], newArray[j]] = [newArray[j], newArray[i]];
+    }
+    return newArray;
+}
+
+// Функция для получения базовых вопросов, если нет файла questions.js
+function getDefaultQuestions() {
+    return [
+        {
+            id: 1,
+            text: "Какой орган отвечает за производство инсулина?",
+            options: ["Печень", "Поджелудочная железа", "Почки", "Селезенка"],
+            correctOptionIndex: 1,
+            mode: "anatomy",
+            difficulty: "easy"
+        },
+        // Добавьте остальные вопросы здесь...
+    ];
+}
+
 // Инициализация VK Bridge
 function initVKBridge() {
     let bridge = null;
 
-    // Определяем доступный экземпляр VK Bridge
     if (typeof vkBridge !== 'undefined') {
-        console.log('Используем глобальный vkBridge');
         bridge = vkBridge;
     } else if (typeof window.vkBridge !== 'undefined') {
-        console.log('Используем window.vkBridge');
         bridge = window.vkBridge;
     } else {
-        console.warn('VK Bridge не найден');
+        console.warn('VK Bridge не найден. Переключение в гостевой режим.');
         showGuestMode();
         return null;
     }
 
     try {
-        // Корректная инициализация VK Bridge
         bridge.send('VKWebAppInit')
-            .then(data => {
-                console.log('VK Bridge успешно инициализирован:', data);
+            .then(() => {
+                console.log('VK Bridge успешно инициализирован');
                 window.vkBridgeInstance = bridge; // Сохраняем экземпляр глобально
-                // Получаем данные пользователя
                 return bridge.send('VKWebAppGetUserInfo');
             })
-            .then(userData => {
+            .then((userData) => {
                 console.log('Данные пользователя получены:', userData);
                 currentUserData = userData;
 
-                // Отображаем информацию о пользователе
                 const userInfoElement = document.getElementById('user-info');
                 if (userInfoElement) {
                     userInfoElement.innerHTML = `
@@ -117,22 +92,20 @@ function initVKBridge() {
                     `;
                 }
 
-                // Получаем конфигурацию
                 return bridge.send('VKWebAppGetConfig');
             })
-            .then(config => {
+            .then((config) => {
                 console.log('Получена конфигурация приложения:', config);
                 if (config && config.scheme) {
                     applyVKTheme(config.scheme);
                 }
             })
-            .catch(error => {
+            .catch((error) => {
                 console.error('Ошибка при работе с VK Bridge:', error);
                 showGuestMode();
             });
 
-        // Подписка на события VK Bridge
-        bridge.subscribe(event => {
+        bridge.subscribe((event) => {
             if (event.detail && event.detail.type === 'VKWebAppUpdateConfig') {
                 applyVKTheme(event.detail.data.scheme);
             }
@@ -146,6 +119,17 @@ function initVKBridge() {
     }
 }
 
+// Глобальные переменные
+let currentQuestion = 0;
+let score = 0;
+let selectedOption = null;
+let questionsForQuiz = []; // Массив для хранения выбранных вопросов
+const totalQuestionsToShow = 10; // Количество вопросов для показа в одном тесте
+let currentUserData = null; // Данные текущего пользователя
+let currentQuizMode = 'anatomy'; // Текущий режим квиза: anatomy, clinical, pharmacology
+let currentDifficulty = 'easy'; // Текущий уровень сложности: easy, hard
+let vkBridgeInstance = null; // Будем хранить инициализированный VK Bridge
+
 // Ждем полную загрузку страницы
 document.addEventListener('DOMContentLoaded', function () {
     console.log('DOM полностью загружен');
@@ -156,6 +140,10 @@ document.addEventListener('DOMContentLoaded', function () {
         console.log('Загружены дефолтные вопросы:', window.questions.length);
     }
 
+    // Инициализируем VK Bridge
+    vkBridgeInstance = initVKBridge();
+
+    // Инициализация приложения
     initializeApp();
 });
 
@@ -377,7 +365,7 @@ function initializeApp() {
                 } else {
                     showResults();
                 }
-            }, 1500);  // 1.5 секунды, чтобы увидеть правильный ответ
+            }, 1500); // 1.5 секунды, чтобы увидеть правильный ответ
         });
     }
 
@@ -470,9 +458,7 @@ function initializeApp() {
             // Получаем текущий экземпляр VK Bridge
             let bridge = vkBridgeInstance || window.vkBridgeInstance;
             if (bridge) {
-                bridge.send('VKWebAppShare', {
-                    message: message
-                })
+                bridge.send('VKWebAppShare', { message })
                     .then(data => {
                         console.log('Поделились результатом:', data);
                     })
