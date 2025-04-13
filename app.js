@@ -1,28 +1,221 @@
-// Инициализация VK Bridge сразу в начале
-let vkBridgeInstance = null;
-if (typeof vkBridge !== 'undefined') {
-    console.log('Пытаемся инициализировать VK Bridge (глобальный)');
-    vkBridge.send('VKWebAppInit')
-        .then(data => {
-            console.log('VK Bridge успешно инициализирован (глобальный)', data);
-            vkBridgeInstance = vkBridge;
-        })
-        .catch(error => {
-            console.error('Ошибка инициализации VK Bridge (глобальный):', error);
+// Оптимизированная инициализация VK Bridge
+// Глобальная функция для показа гостевого режима
+function showGuestMode() {
+    const userInfoElement = document.getElementById('user-info');
+    if (!userInfoElement) return;
+    
+    currentUserData = {
+        id: 'guest' + Math.floor(Math.random() * 10000),
+        first_name: 'Гость',
+        last_name: '',
+        photo_100: 'https://vk.com/images/camera_100.png'
+    }
+
+// Обработка темы VK
+function applyVKTheme(scheme) {
+    console.log('Применяется тема:', scheme);
+    const isDarkTheme = ['space_gray', 'vkcom_dark'].includes(scheme);
+    document.documentElement.classList.toggle('vk-dark-theme', isDarkTheme);
+}
+
+// Функция для перемешивания массива (алгоритм Фишера-Йейтса)
+function shuffleArray(array) {
+    if (!Array.isArray(array) || array.length === 0) {
+        console.error('Ошибка: shuffleArray получил неверный массив');
+        return [];
+    }
+    
+    const newArray = [...array]; // Создаем копию массива
+    for (let i = newArray.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [newArray[i], newArray[j]] = [newArray[j], newArray[i]];
+    }
+    
+    return newArray;
+}
+
+// Функция для получения базовых вопросов, если нет файла questions.js
+function getDefaultQuestions() {
+    return [
+        {
+            id: 1,
+            text: "Какой орган отвечает за производство инсулина?",
+            options: ["Печень", "Поджелудочная железа", "Почки", "Селезенка"],
+            correctOptionIndex: 1,
+            mode: "anatomy",
+            difficulty: "easy"
+        },
+        {
+            id: 2,
+            text: "Какая кость является самой длинной в человеческом теле?",
+            options: ["Плечевая", "Бедренная", "Большеберцовая", "Локтевая"],
+            correctOptionIndex: 1,
+            mode: "anatomy",
+            difficulty: "easy"
+        },
+        {
+            id: 3,
+            text: "Какой орган играет важнейшую роль в детоксикации организма?",
+            options: ["Почки", "Легкие", "Печень", "Сердце"],
+            correctOptionIndex: 2,
+            mode: "anatomy",
+            difficulty: "easy"
+        },
+        {
+            id: 4,
+            text: "Где располагается гипофиз?",
+            options: ["В основании головного мозга", "В грудной полости", "В брюшной полости", "В спинном мозге"],
+            correctOptionIndex: 0,
+            mode: "anatomy",
+            difficulty: "hard"
+        },
+        {
+            id: 5,
+            text: "Какой симптом НЕ характерен для острого аппендицита?",
+            options: ["Боль в правой подвздошной области", "Тошнота и рвота", "Повышение температуры", "Отек нижних конечностей"],
+            correctOptionIndex: 3,
+            mode: "clinical",
+            difficulty: "easy"
+        },
+        {
+            id: 6,
+            text: "Какая лекарственная группа используется для снижения артериального давления?",
+            options: ["Антибиотики", "Антигистаминные", "Ингибиторы АПФ", "Анальгетики"],
+            correctOptionIndex: 2,
+            mode: "pharmacology",
+            difficulty: "easy"
+        },
+        {
+            id: 7,
+            text: "Какой препарат является антикоагулянтом?",
+            options: ["Аспирин", "Парацетамол", "Ибупрофен", "Омепразол"],
+            correctOptionIndex: 0,
+            mode: "pharmacology",
+            difficulty: "easy"
+        },
+        {
+            id: 8,
+            text: "Какие клапаны находятся между предсердиями и желудочками?",
+            options: ["Аортальный и легочный", "Митральный и трикуспидальный", "Полулунные", "Створчатые"],
+            correctOptionIndex: 1,
+            mode: "anatomy",
+            difficulty: "hard"
+        },
+        {
+            id: 9,
+            text: "При сердечной недостаточности наиболее часто назначают:",
+            options: ["Бета-блокаторы", "Антибиотики", "Глюкокортикоиды", "Цитостатики"],
+            correctOptionIndex: 0,
+            mode: "clinical",
+            difficulty: "hard"
+        },
+        {
+            id: 10,
+            text: "У пациента с болью в грудной клетке на ЭКГ обнаружен подъем сегмента ST. Наиболее вероятный диагноз?",
+            options: ["Стенокардия", "Инфаркт миокарда", "Миокардит", "Перикардит"],
+            correctOptionIndex: 1,
+            mode: "clinical",
+            difficulty: "hard"
+        },
+        {
+            id: 11,
+            text: "Какой антибиотик относится к группе макролидов?",
+            options: ["Ампициллин", "Ципрофлоксацин", "Азитромицин", "Цефтриаксон"],
+            correctOptionIndex: 2,
+            mode: "pharmacology",
+            difficulty: "hard"
+        },
+        {
+            id: 12,
+            text: "Какие структуры образуют гематоэнцефалический барьер?",
+            options: ["Эндотелий капилляров и астроциты", "Нейроны и олигодендроциты", "Эпендима и сосудистое сплетение", "Мягкая и твердая мозговые оболочки"],
+            correctOptionIndex: 0,
+            mode: "anatomy",
+            difficulty: "hard"
+        }
+    ];
+};
+    
+    userInfoElement.innerHTML = `
+        <img src="${currentUserData.photo_100}" alt="${currentUserData.first_name}">
+        <span>${currentUserData.first_name}</span>
+    `;
+    
+    const userInfoQuizElement = document.getElementById('user-info-quiz');
+    if (userInfoQuizElement) {
+        userInfoQuizElement.innerHTML = userInfoElement.innerHTML;
+    }
+    
+    console.log('Запущен гостевой режим с ID:', currentUserData.id);
+}
+
+// Оптимизированная функция для инициализации VK Bridge
+function initVKBridge() {
+    let bridge = null;
+    
+    // Определяем доступный экземпляр VK Bridge
+    if (typeof vkBridge !== 'undefined') {
+        console.log('Используем глобальный vkBridge');
+        bridge = vkBridge;
+    } else if (typeof window.vkBridge !== 'undefined') {
+        console.log('Используем window.vkBridge');
+        bridge = window.vkBridge;
+    } else {
+        console.warn('VK Bridge не найден');
+        showGuestMode();
+        return null;
+    }
+    
+    try {
+        // Корректная инициализация VK Bridge
+        bridge.send('VKWebAppInit')
+            .then(data => {
+                console.log('VK Bridge успешно инициализирован:', data);
+                window.vkBridgeInstance = bridge; // Сохраняем экземпляр глобально
+                
+                // Получаем данные пользователя
+                return bridge.send('VKWebAppGetUserInfo');
+            })
+            .then(userData => {
+                console.log('Данные пользователя получены:', userData);
+                currentUserData = userData;
+                
+                // Отображаем информацию о пользователе
+                const userInfoElement = document.getElementById('user-info');
+                if (userInfoElement) {
+                    userInfoElement.innerHTML = `
+                        <img src="${userData.photo_100}" alt="${userData.first_name}">
+                        <span>${userData.first_name} ${userData.last_name || ''}</span>
+                    `;
+                }
+                
+                // Получаем конфигурацию
+                return bridge.send('VKWebAppGetConfig');
+            })
+            .then(config => {
+                console.log('Получена конфигурация приложения:', config);
+                if (config && config.scheme) {
+                    applyVKTheme(config.scheme);
+                }
+            })
+            .catch(error => {
+                console.error('Ошибка при работе с VK Bridge:', error);
+                showGuestMode();
+            });
+        
+        // Подписка на события VK Bridge
+        bridge.subscribe(event => {
+            if (event.detail && event.detail.type === 'VKWebAppUpdateConfig') {
+                applyVKTheme(event.detail.data.scheme);
+            }
         });
-} else if (typeof window.vkBridge !== 'undefined') {
-    console.log('Пытаемся инициализировать VK Bridge (window)');
-    window.vkBridge.send('VKWebAppInit')
-        .then(data => {
-            console.log('VK Bridge успешно инициализирован (window)', data);
-            vkBridgeInstance = window.vkBridge;
-            window.vkBridgeInstance = vkBridgeInstance;
-        })
-        .catch(error => {
-            console.error('Ошибка инициализации VK Bridge (window):', error);
-        });
-} else {
-    console.warn('VK Bridge не найден при загрузке скрипта');
+        
+        return bridge;
+    } catch (e) {
+        console.error('Критическая ошибка при работе с VK Bridge:', e);
+        showGuestMode();
+        return null;
+    }
 }
 
 // Глобальные переменные
@@ -34,6 +227,10 @@ const totalQuestionsToShow = 10; // Количество вопросов для
 let currentUserData = null; // Данные текущего пользователя
 let currentQuizMode = 'anatomy'; // Текущий режим квиза: anatomy, clinical, pharmacology
 let currentDifficulty = 'easy'; // Текущий уровень сложности: easy, hard
+let vkBridgeInstance = null; // Будем хранить инициализированный VK Bridge
+
+// Инициализируем VK Bridge при загрузке скрипта
+vkBridgeInstance = initVKBridge();
 
 // Ждем полную загрузку страницы
 document.addEventListener('DOMContentLoaded', function() {
@@ -75,47 +272,10 @@ function initializeApp() {
         console.error('Ошибка: Некоторые необходимые элементы не найдены в DOM');
     }
 
-    // Проверяем доступность VK Bridge
-    let bridge = null;
-    if (window.vkBridgeInstance) {
-        console.log('VK Bridge найден через window.vkBridgeInstance');
-        bridge = window.vkBridgeInstance;
-    } else if (window.vkBridge) {
-        console.log('VK Bridge найден через window.vkBridge');
-        bridge = window.vkBridge;
-    } else if (typeof vkBridge !== 'undefined') {
-        console.log('VK Bridge найден через глобальную переменную vkBridge');
-        bridge = vkBridge;
-    }
-    
-    if (bridge) {
-        initVKBridge(bridge);
-    } else {
+    // Если VK Bridge не был инициализирован, показываем гостевой режим
+    if (!vkBridgeInstance && !window.vkBridgeInstance) {
         console.warn('VK Bridge не определен. Переключение в гостевой режим.');
         showGuestMode();
-    }
-
-    // Гостевой режим для тестирования (если VK API недоступен)
-    function showGuestMode() {
-        if (!userInfoElement) return;
-        
-        currentUserData = {
-            id: 'guest' + Math.floor(Math.random() * 10000),
-            first_name: 'Гость',
-            last_name: '',
-            photo_100: 'https://vk.com/images/camera_100.png'
-        };
-        
-        userInfoElement.innerHTML = `
-            <img src="${currentUserData.photo_100}" alt="${currentUserData.first_name}">
-            <span>${currentUserData.first_name}</span>
-        `;
-        
-        if (userInfoQuizElement) {
-            userInfoQuizElement.innerHTML = userInfoElement.innerHTML;
-        }
-        
-        console.log('Запущен гостевой режим с ID:', currentUserData.id);
     }
 
     // Выбор уровня сложности
@@ -410,14 +570,8 @@ function initializeApp() {
             const difficultyText = currentDifficulty === 'hard' ? 'сложный уровень' : 'обычный уровень';
             const message = `Я прошел Медицинский квиз (${modeText}, ${difficultyText}) и набрал ${percentage}%! Попробуй и ты!`;
             
-            let bridge = null;
-            if (window.vkBridgeInstance) {
-                bridge = window.vkBridgeInstance;
-            } else if (window.vkBridge) {
-                bridge = window.vkBridge;
-            } else if (typeof vkBridge !== 'undefined') {
-                bridge = vkBridge;
-            }
+            // Получаем текущий экземпляр VK Bridge
+            let bridge = vkBridgeInstance || window.vkBridgeInstance;
             
             if (bridge) {
                 bridge.send('VKWebAppShare', {
@@ -454,177 +608,4 @@ function initializeApp() {
             if (startScreen) startScreen.style.display = 'block';
         });
     }
-}
-
-// Функция для инициализации VK Bridge
-function initVKBridge(bridge) {
-    try {
-        // Инициализация VK Bridge и цепочка промисов
-        bridge.send('VKWebAppInit')
-            .then(data => {
-                console.log('VK Bridge успешно инициализирован:', data);
-                // Сразу после успешной инициализации получаем данные пользователя
-                return bridge.send('VKWebAppGetUserInfo');
-            })
-            .then(userData => {
-                console.log('Данные пользователя получены:', userData);
-                // Немедленно отображаем информацию о пользователе
-                const userInfoElement = document.getElementById('user-info');
-                if (userInfoElement) {
-                    userInfoElement.innerHTML = `
-                        <img src="${userData.photo_100}" alt="${userData.first_name}">
-                        <span>${userData.first_name} ${userData.last_name || ''}</span>
-                    `;
-                    console.log('Информация о пользователе добавлена в DOM');
-                }
-                currentUserData = userData;
-                // Затем получаем конфигурацию
-                return bridge.send('VKWebAppGetConfig');
-            })
-            .then(config => {
-                console.log('Получена конфигурация приложения:', config);
-                if (config && config.scheme) {
-                    applyVKTheme(config.scheme);
-                }
-            })
-            .catch(error => {
-                console.error('Ошибка при работе с VK Bridge:', error);
-                showGuestMode();
-            });
-        
-        // Подписка на события VK Bridge
-        bridge.subscribe(event => {
-            if (event.detail && event.detail.type === 'VKWebAppUpdateConfig') {
-                applyVKTheme(event.detail.data.scheme);
-            }
-        });
-    } catch (e) {
-        console.error('Критическая ошибка при работе с VK Bridge:', e);
-        showGuestMode();
-    }
-}
-
-// Обработка темы VK
-function applyVKTheme(scheme) {
-    console.log('Применяется тема:', scheme);
-    const isDarkTheme = ['space_gray', 'vkcom_dark'].includes(scheme);
-    document.documentElement.classList.toggle('vk-dark-theme', isDarkTheme);
-}
-
-// Функция для перемешивания массива (алгоритм Фишера-Йейтса)
-function shuffleArray(array) {
-    if (!Array.isArray(array) || array.length === 0) {
-        console.error('Ошибка: shuffleArray получил неверный массив');
-        return [];
-    }
-    
-    const newArray = [...array]; // Создаем копию массива
-    for (let i = newArray.length - 1; i > 0; i--) {
-        const j = Math.floor(Math.random() * (i + 1));
-        [newArray[i], newArray[j]] = [newArray[j], newArray[i]];
-    }
-    
-    return newArray;
-}
-
-// Функция для получения базовых вопросов, если нет файла questions.js
-function getDefaultQuestions() {
-    return [
-        {
-            id: 1,
-            text: "Какой орган отвечает за производство инсулина?",
-            options: ["Печень", "Поджелудочная железа", "Почки", "Селезенка"],
-            correctOptionIndex: 1,
-            mode: "anatomy",
-            difficulty: "easy"
-        },
-        {
-            id: 2,
-            text: "Какая кость является самой длинной в человеческом теле?",
-            options: ["Плечевая", "Бедренная", "Большеберцовая", "Локтевая"],
-            correctOptionIndex: 1,
-            mode: "anatomy",
-            difficulty: "easy"
-        },
-        {
-            id: 3,
-            text: "Какой орган играет важнейшую роль в детоксикации организма?",
-            options: ["Почки", "Легкие", "Печень", "Сердце"],
-            correctOptionIndex: 2,
-            mode: "anatomy",
-            difficulty: "easy"
-        },
-        {
-            id: 4,
-            text: "Где располагается гипофиз?",
-            options: ["В основании головного мозга", "В грудной полости", "В брюшной полости", "В спинном мозге"],
-            correctOptionIndex: 0,
-            mode: "anatomy",
-            difficulty: "hard"
-        },
-        {
-            id: 5,
-            text: "Какой симптом НЕ характерен для острого аппендицита?",
-            options: ["Боль в правой подвздошной области", "Тошнота и рвота", "Повышение температуры", "Отек нижних конечностей"],
-            correctOptionIndex: 3,
-            mode: "clinical",
-            difficulty: "easy"
-        },
-        {
-            id: 6,
-            text: "Какая лекарственная группа используется для снижения артериального давления?",
-            options: ["Антибиотики", "Антигистаминные", "Ингибиторы АПФ", "Анальгетики"],
-            correctOptionIndex: 2,
-            mode: "pharmacology",
-            difficulty: "easy"
-        },
-        {
-            id: 7,
-            text: "Какой препарат является антикоагулянтом?",
-            options: ["Аспирин", "Парацетамол", "Ибупрофен", "Омепразол"],
-            correctOptionIndex: 0,
-            mode: "pharmacology",
-            difficulty: "easy"
-        },
-        {
-            id: 8,
-            text: "Какие клапаны находятся между предсердиями и желудочками?",
-            options: ["Аортальный и легочный", "Митральный и трикуспидальный", "Полулунные", "Створчатые"],
-            correctOptionIndex: 1,
-            mode: "anatomy",
-            difficulty: "hard"
-        },
-        {
-            id: 9,
-            text: "При сердечной недостаточности наиболее часто назначают:",
-            options: ["Бета-блокаторы", "Антибиотики", "Глюкокортикоиды", "Цитостатики"],
-            correctOptionIndex: 0,
-            mode: "clinical",
-            difficulty: "hard"
-        },
-        {
-            id: 10,
-            text: "У пациента с болью в грудной клетке на ЭКГ обнаружен подъем сегмента ST. Наиболее вероятный диагноз?",
-            options: ["Стенокардия", "Инфаркт миокарда", "Миокардит", "Перикардит"],
-            correctOptionIndex: 1,
-            mode: "clinical",
-            difficulty: "hard"
-        },
-        {
-            id: 11,
-            text: "Какой антибиотик относится к группе макролидов?",
-            options: ["Ампициллин", "Ципрофлоксацин", "Азитромицин", "Цефтриаксон"],
-            correctOptionIndex: 2,
-            mode: "pharmacology",
-            difficulty: "hard"
-        },
-        {
-            id: 12,
-            text: "Какие структуры образуют гематоэнцефалический барьер?",
-            options: ["Эндотелий капилляров и астроциты", "Нейроны и олигодендроциты", "Эпендима и сосудистое сплетение", "Мягкая и твердая мозговые оболочки"],
-            correctOptionIndex: 0,
-            mode: "anatomy",
-            difficulty: "hard"
-        }
-    ];
 }
