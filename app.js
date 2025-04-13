@@ -1,22 +1,13 @@
-// Оптимизированная инициализация VK Bridge
-// Глобальная функция для показа гостевого режима
-function showGuestMode() {
-    const userInfoElement = document.getElementById('user-info');
-    if (!userInfoElement) return;
-    
-    currentUserData = {
-        id: 'guest' + Math.floor(Math.random() * 10000),
-        first_name: 'Гость',
-        last_name: '',
-        photo_100: 'https://vk.com/images/camera_100.png'
-    }
-
-// Обработка темы VK
-function applyVKTheme(scheme) {
-    console.log('Применяется тема:', scheme);
-    const isDarkTheme = ['space_gray', 'vkcom_dark'].includes(scheme);
-    document.documentElement.classList.toggle('vk-dark-theme', isDarkTheme);
-}
+// Глобальные переменные
+let currentQuestion = 0;
+let score = 0;
+let selectedOption = null;
+let questionsForQuiz = []; // Массив для хранения выбранных вопросов
+const totalQuestionsToShow = 10; // Количество вопросов для показа в одном тесте
+let currentUserData = null; // Данные текущего пользователя
+let currentQuizMode = 'anatomy'; // Текущий режим квиза: anatomy, clinical, pharmacology
+let currentDifficulty = 'easy'; // Текущий уровень сложности: easy, hard
+let vkBridgeInstance = null; // Будем хранить инициализированный VK Bridge
 
 // Функция для перемешивания массива (алгоритм Фишера-Йейтса)
 function shuffleArray(array) {
@@ -134,7 +125,26 @@ function getDefaultQuestions() {
             difficulty: "hard"
         }
     ];
-};
+}
+
+// Обработка темы VK
+function applyVKTheme(scheme) {
+    console.log('Применяется тема:', scheme);
+    const isDarkTheme = ['space_gray', 'vkcom_dark'].includes(scheme);
+    document.documentElement.classList.toggle('vk-dark-theme', isDarkTheme);
+}
+
+// Глобальная функция для показа гостевого режима
+function showGuestMode() {
+    const userInfoElement = document.getElementById('user-info');
+    if (!userInfoElement) return;
+    
+    currentUserData = {
+        id: 'guest' + Math.floor(Math.random() * 10000),
+        first_name: 'Гость',
+        last_name: '',
+        photo_100: 'https://vk.com/images/camera_100.png'
+    };
     
     userInfoElement.innerHTML = `
         <img src="${currentUserData.photo_100}" alt="${currentUserData.first_name}">
@@ -218,21 +228,7 @@ function initVKBridge() {
     }
 }
 
-// Глобальные переменные
-let currentQuestion = 0;
-let score = 0;
-let selectedOption = null;
-let questionsForQuiz = []; // Массив для хранения выбранных вопросов
-const totalQuestionsToShow = 10; // Количество вопросов для показа в одном тесте
-let currentUserData = null; // Данные текущего пользователя
-let currentQuizMode = 'anatomy'; // Текущий режим квиза: anatomy, clinical, pharmacology
-let currentDifficulty = 'easy'; // Текущий уровень сложности: easy, hard
-let vkBridgeInstance = null; // Будем хранить инициализированный VK Bridge
-
 // Инициализируем VK Bridge при загрузке скрипта
-vkBridgeInstance = initVKBridge();
-
-// Ждем полную загрузку страницы
 document.addEventListener('DOMContentLoaded', function() {
     console.log('DOM полностью загружен');
     
@@ -241,6 +237,9 @@ document.addEventListener('DOMContentLoaded', function() {
         window.questions = getDefaultQuestions();
         console.log('Загружены дефолтные вопросы:', window.questions.length);
     }
+    
+    // Инициализируем VK Bridge перед инициализацией приложения
+    vkBridgeInstance = initVKBridge();
     
     initializeApp();
 });
