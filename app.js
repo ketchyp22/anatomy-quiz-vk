@@ -44,29 +44,6 @@ function shuffleArray(array) {
     return newArray;
 }
 
-// Функция для получения базовых вопросов
-function getDefaultQuestions() {
-    return [
-        {
-            id: 1,
-            text: "Какой орган отвечает за производство инсулина?",
-            options: ["Печень", "Поджелудочная железа", "Почки", "Селезенка"],
-            correctOptionIndex: 1,
-            mode: "anatomy",
-            difficulty: "easy"
-        },
-        {
-            id: 2,
-            text: "Какая кость является самой длинной в человеческом теле?",
-            options: ["Плечевая", "Бедренная", "Большеберцовая", "Локтевая"],
-            correctOptionIndex: 1,
-            mode: "anatomy",
-            difficulty: "easy"
-        },
-        // Добавьте остальные вопросы здесь...
-    ];
-}
-
 // Инициализация VK Bridge
 function initVKBridge() {
     let bridge = null;
@@ -144,8 +121,9 @@ document.addEventListener('DOMContentLoaded', function () {
 
     // Проверяем есть ли вопросы
     if (!window.questions) {
-        window.questions = getDefaultQuestions();
-        console.log('Загружены дефолтные вопросы:', window.questions.length);
+        console.error('Ошибка: переменная window.questions не определена. Убедитесь, что questions.js подключен.');
+        alert('Не удалось загрузить вопросы. Пожалуйста, проверьте файл questions.js.');
+        return;
     }
 
     // Инициализируем VK Bridge
@@ -217,18 +195,12 @@ function initializeApp() {
 
     // Выход из квиза
     if (exitQuizButton) {
-        exitQuizButton.addEventListener('click', () => {
-            if (confirm('Вы уверены, что хотите выйти? Прогресс будет потерян!')) {
-                resetQuiz();
-            }
-        });
+        exitQuizButton.addEventListener('click', resetQuiz);
     }
 
     // Перезапуск квиза
     if (restartQuizButton) {
-        restartQuizButton.addEventListener('click', () => {
-            resetQuiz();
-        });
+        restartQuizButton.addEventListener('click', resetQuiz);
     }
 
     // Сброс квиза
