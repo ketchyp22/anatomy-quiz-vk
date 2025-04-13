@@ -5,7 +5,10 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Медицинский Квиз</title>
     <link rel="stylesheet" href="style.css">
-    <!-- questions.js и difficult-questions.json загружаются динамически в app.js -->
+    <!-- Добавляем VK Bridge перед остальными скриптами -->
+    <script src="https://unpkg.com/@vkontakte/vk-bridge/dist/browser.min.js"></script>
+    <!-- Предзагрузка иконок -->
+    <link rel="preload" as="image" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%235a67d8' opacity='0.05'%3E%3Cpath d='M19 3H5c-1.1 0-1.99.9-1.99 2L3 19c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-1 11h-4v4h-4v-4H6v-4h4V6h4v4h4v4z'/%3E%3C/svg%3E">
 </head>
 <body>
     <!-- Анимированный фон -->
@@ -47,30 +50,6 @@
         </div>
     </div>
 
-    <!-- Экран квиза -->
-    <div id="quiz-container" style="display: none;">
-        <div id="user-info-quiz" class="user-info"></div>
-        <div id="question-counter" class="question-counter"></div>
-        <div id="progress-bar-container">
-            <div id="progress-bar"></div>
-        </div>
-        <div id="timer" class="timer"></div>
-        <div id="question" class="question"></div>
-        <div id="options" class="options"></div>
-        <div class="quiz-buttons">
-            <button id="next-question" class="btn-primary" disabled>Далее</button>
-            <button id="exit-quiz" class="btn-secondary">Выйти</button>
-        </div>
-        
-        <!-- Интегрированная пульсовая линия в карточках -->
-        <div class="card-pulse">
-            <svg class="pulse-line-svg" viewBox="0 0 150 40" preserveAspectRatio="none">
-                <path class="pulse-line-path" d="M0,20 L10,20 L15,20 L20,10 L25,30 L30,20 L35,20 L40,20 L45,20 L50,20 L55,10 L60,30 L65,20 L70,20 L75,20 L80,20 L85,20 L90,10 L95,30 L100,20 L105,20 L110,20 L115,20 L120,20 L125,10 L130,30 L135,20 L140,20 L150,20">
-                </path>
-            </svg>
-        </div>
-    </div>
-
     <!-- Экран результатов -->
     <div id="results-container" style="display: none;">
         <h1>Результаты теста</h1>
@@ -93,8 +72,41 @@
             </svg>
         </div>
     </div>
-
+    
+    <!-- Загрузка скриптов -->
     <script src="questions.js"></script>
     <script src="app.js"></script>
+    
+    <!-- Скрипт для обнаружения и перехвата ошибок -->
+    <script>
+    window.addEventListener('error', function(event) {
+        console.log('Перехвачена ошибка:', event.message);
+        // Предотвращаем критические сбои при ошибках
+        if (event.message && event.message.includes('mediaWidth')) {
+            event.preventDefault();
+            console.log('Предотвращена ошибка mediaWidth');
+        }
+    });
+    </script>
 </body>
 </html>
+
+    <!-- Экран квиза -->
+    <div id="quiz-container" style="display: none;">
+        <div id="user-info-quiz" class="user-info"></div>
+        <div id="question-counter" class="question-counter"></div>
+        <div id="progress-bar-container">
+            <div id="progress-bar"></div>
+        </div>
+        <div id="timer" class="timer"></div>
+        <div id="question" class="question"></div>
+        <div id="options" class="options"></div>
+        <div class="quiz-buttons">
+            <button id="next-question" class="btn-primary" disabled>Далее</button>
+            <button id="exit-quiz" class="btn-secondary">Выйти</button>
+        </div>
+        
+        <!-- Интегрированная пульсовая линия в карточках -->
+        <div class="card-pulse">
+            <svg class="pulse-line-svg" viewBox="0 0 150 40" preserveAspectRatio="none">
+                <path class="pulse-line-path" d="M0,20 L10,20 L15,20 L20,10 L25,30 L30,20 L35,20 L40,20 L45,20 L50,20 L55,10 L60,30 L65,20 L70,20 L75,20 L80,20 L85,20 L90,10 L95,30 L100,20 L105,20 L110,20 L115,20 L120,20 L125
