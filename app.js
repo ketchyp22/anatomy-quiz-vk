@@ -25,108 +25,6 @@ function shuffleArray(array) {
     return newArray;
 }
 
-// Функция для получения базовых вопросов, если нет файла questions.js
-function getDefaultQuestions() {
-    return [
-        {
-            id: 1,
-            text: "Какой орган отвечает за производство инсулина?",
-            options: ["Печень", "Поджелудочная железа", "Почки", "Селезенка"],
-            correctOptionIndex: 1,
-            mode: "anatomy",
-            difficulty: "easy"
-        },
-        {
-            id: 2,
-            text: "Какая кость является самой длинной в человеческом теле?",
-            options: ["Плечевая", "Бедренная", "Большеберцовая", "Локтевая"],
-            correctOptionIndex: 1,
-            mode: "anatomy",
-            difficulty: "easy"
-        },
-        {
-            id: 3,
-            text: "Какой орган играет важнейшую роль в детоксикации организма?",
-            options: ["Почки", "Легкие", "Печень", "Сердце"],
-            correctOptionIndex: 2,
-            mode: "anatomy",
-            difficulty: "easy"
-        },
-        {
-            id: 4,
-            text: "Где располагается гипофиз?",
-            options: ["В основании головного мозга", "В грудной полости", "В брюшной полости", "В спинном мозге"],
-            correctOptionIndex: 0,
-            mode: "anatomy",
-            difficulty: "hard"
-        },
-        {
-            id: 5,
-            text: "Какой симптом НЕ характерен для острого аппендицита?",
-            options: ["Боль в правой подвздошной области", "Тошнота и рвота", "Повышение температуры", "Отек нижних конечностей"],
-            correctOptionIndex: 3,
-            mode: "clinical",
-            difficulty: "easy"
-        },
-        {
-            id: 6,
-            text: "Какая лекарственная группа используется для снижения артериального давления?",
-            options: ["Антибиотики", "Антигистаминные", "Ингибиторы АПФ", "Анальгетики"],
-            correctOptionIndex: 2,
-            mode: "pharmacology",
-            difficulty: "easy"
-        },
-        {
-            id: 7,
-            text: "Какой препарат является антикоагулянтом?",
-            options: ["Аспирин", "Парацетамол", "Ибупрофен", "Омепразол"],
-            correctOptionIndex: 0,
-            mode: "pharmacology",
-            difficulty: "easy"
-        },
-        {
-            id: 8,
-            text: "Какие клапаны находятся между предсердиями и желудочками?",
-            options: ["Аортальный и легочный", "Митральный и трикуспидальный", "Полулунные", "Створчатые"],
-            correctOptionIndex: 1,
-            mode: "anatomy",
-            difficulty: "hard"
-        },
-        {
-            id: 9,
-            text: "При сердечной недостаточности наиболее часто назначают:",
-            options: ["Бета-блокаторы", "Антибиотики", "Глюкокортикоиды", "Цитостатики"],
-            correctOptionIndex: 0,
-            mode: "clinical",
-            difficulty: "hard"
-        },
-        {
-            id: 10,
-            text: "У пациента с болью в грудной клетке на ЭКГ обнаружен подъем сегмента ST. Наиболее вероятный диагноз?",
-            options: ["Стенокардия", "Инфаркт миокарда", "Миокардит", "Перикардит"],
-            correctOptionIndex: 1,
-            mode: "clinical",
-            difficulty: "hard"
-        },
-        {
-            id: 11,
-            text: "Какой антибиотик относится к группе макролидов?",
-            options: ["Ампициллин", "Ципрофлоксацин", "Азитромицин", "Цефтриаксон"],
-            correctOptionIndex: 2,
-            mode: "pharmacology",
-            difficulty: "hard"
-        },
-        {
-            id: 12,
-            text: "Какие структуры образуют гематоэнцефалический барьер?",
-            options: ["Эндотелий капилляров и астроциты", "Нейроны и олигодендроциты", "Эпендима и сосудистое сплетение", "Мягкая и твердая мозговые оболочки"],
-            correctOptionIndex: 0,
-            mode: "anatomy",
-            difficulty: "hard"
-        }
-    ];
-}
-
 // Обработка темы VK
 function applyVKTheme(scheme) {
     console.log('Применяется тема:', scheme);
@@ -161,66 +59,94 @@ function showGuestMode() {
 
 // Оптимизированная функция для инициализации VK Bridge
 function initVKBridge() {
-    let bridge = null;
-    
-    // Определяем доступный экземпляр VK Bridge
-    if (typeof vkBridge !== 'undefined') {
-        console.log('Используем глобальный vkBridge');
-        bridge = vkBridge;
-    } else if (typeof window.vkBridge !== 'undefined') {
-        console.log('Используем window.vkBridge');
-        bridge = window.vkBridge;
-    } else {
-        console.warn('VK Bridge не найден');
-        showGuestMode();
-        return null;
+    // Проверяем доступность vkBridge в глобальном контексте
+    if (typeof window.vkBridge === 'undefined') {
+        console.warn('VK Bridge не найден в глобальном контексте');
+        
+        // Попытка загрузить из window.parent (если iframe)
+        try {
+            if (window.parent && window.parent.vkBridge) {
+                window.vkBridge = window.parent.vkBridge;
+                console.log('Используем vkBridge из родительского окна');
+            }
+        } catch (e) {
+            console.error('Ошибка при получении vkBridge из родительского окна:', e);
+        }
+        
+        // Если все еще нет vkBridge, переключаемся на гостевой режим
+        if (typeof window.vkBridge === 'undefined') {
+            console.warn('VK Bridge недоступен, переключаемся на гостевой режим');
+            showGuestMode();
+            return null;
+        }
     }
     
     try {
-        // Корректная инициализация VK Bridge
-        bridge.send('VKWebAppInit')
-            .then(data => {
-                console.log('VK Bridge успешно инициализирован:', data);
-                window.vkBridgeInstance = bridge; // Сохраняем экземпляр глобально
+        // Безопасная инициализация
+        window.vkBridge.send('VKWebAppInit')
+            .then(() => {
+                console.log('VK Bridge успешно инициализирован');
+                // Сохраняем экземпляр глобально
+                vkBridgeInstance = window.vkBridge;
                 
                 // Получаем данные пользователя
-                return bridge.send('VKWebAppGetUserInfo');
+                return window.vkBridge.send('VKWebAppGetUserInfo').catch(err => {
+                    console.warn('Не удалось получить данные пользователя:', err);
+                    // Возвращаем null вместо ошибки, чтобы не прерывать цепочку промисов
+                    return null;
+                });
             })
             .then(userData => {
-                console.log('Данные пользователя получены:', userData);
-                currentUserData = userData;
-                
-                // Отображаем информацию о пользователе
-                const userInfoElement = document.getElementById('user-info');
-                if (userInfoElement) {
-                    userInfoElement.innerHTML = `
-                        <img src="${userData.photo_100}" alt="${userData.first_name}">
-                        <span>${userData.first_name} ${userData.last_name || ''}</span>
-                    `;
+                if (userData) {
+                    console.log('Данные пользователя получены:', userData);
+                    currentUserData = userData;
+                    
+                    // Отображаем информацию о пользователе
+                    const userInfoElement = document.getElementById('user-info');
+                    if (userInfoElement) {
+                        userInfoElement.innerHTML = `
+                            <img src="${userData.photo_100}" alt="${userData.first_name}">
+                            <span>${userData.first_name} ${userData.last_name || ''}</span>
+                        `;
+                    }
+                    
+                    const userInfoQuizElement = document.getElementById('user-info-quiz');
+                    if (userInfoQuizElement) {
+                        userInfoQuizElement.innerHTML = userInfoElement ? userInfoElement.innerHTML : '';
+                    }
+                } else {
+                    // Если данные не получены, переключаемся на гостевой режим
+                    showGuestMode();
                 }
                 
                 // Получаем конфигурацию
-                return bridge.send('VKWebAppGetConfig');
+                return window.vkBridge.send('VKWebAppGetConfig').catch(err => {
+                    console.warn('Не удалось получить конфигурацию:', err);
+                    return { scheme: 'bright_light' }; // Возвращаем дефолтную схему
+                });
             })
             .then(config => {
-                console.log('Получена конфигурация приложения:', config);
                 if (config && config.scheme) {
                     applyVKTheme(config.scheme);
                 }
             })
             .catch(error => {
-                console.error('Ошибка при работе с VK Bridge:', error);
+                console.error('Общая ошибка при работе с VK Bridge:', error);
                 showGuestMode();
             });
         
-        // Подписка на события VK Bridge
-        bridge.subscribe(event => {
-            if (event.detail && event.detail.type === 'VKWebAppUpdateConfig') {
-                applyVKTheme(event.detail.data.scheme);
-            }
-        });
+        // Подписка на события VK Bridge с проверкой
+        try {
+            window.vkBridge.subscribe(event => {
+                if (event.detail && event.detail.type === 'VKWebAppUpdateConfig') {
+                    applyVKTheme(event.detail.data.scheme);
+                }
+            });
+        } catch (e) {
+            console.warn('Ошибка при подписке на события VK Bridge:', e);
+        }
         
-        return bridge;
+        return window.vkBridge;
     } catch (e) {
         console.error('Критическая ошибка при работе с VK Bridge:', e);
         showGuestMode();
@@ -228,20 +154,30 @@ function initVKBridge() {
     }
 }
 
-// Инициализируем VK Bridge при загрузке скрипта
+// Инициализируем приложение при загрузке DOM
 document.addEventListener('DOMContentLoaded', function() {
     console.log('DOM полностью загружен');
     
-    // Проверяем есть ли вопросы
-    if (!window.questions) {
-        window.questions = getDefaultQuestions();
-        console.log('Загружены дефолтные вопросы:', window.questions.length);
+    // Проверяем, загрузился ли файл questions.js и определены ли вопросы
+    if (!window.questions || !Array.isArray(window.questions) || window.questions.length === 0) {
+        console.error('Ошибка: вопросы не загружены или формат неверный');
+        alert('Не удалось загрузить вопросы. Пожалуйста, обновите страницу.');
+        return;
+    }
+    
+    console.log('Вопросы успешно загружены:', window.questions.length);
+    
+    // Проверка на iframe и возможные ограничения в безопасности
+    const isIframe = window !== window.parent;
+    if (isIframe) {
+        console.log('Приложение загружено в iframe');
     }
     
     // Инициализируем VK Bridge перед инициализацией приложения
     vkBridgeInstance = initVKBridge();
     
-    initializeApp();
+    // Инициализация приложения будет вызвана в любом случае
+    setTimeout(initializeApp, 500); // Небольшая задержка для гарантии загрузки
 });
 
 // Инициализация приложения
@@ -269,12 +205,7 @@ function initializeApp() {
     if (!startScreen || !quizContainer || !resultsContainer || 
         !questionElement || !optionsElement || !progressBar) {
         console.error('Ошибка: Некоторые необходимые элементы не найдены в DOM');
-    }
-
-    // Если VK Bridge не был инициализирован, показываем гостевой режим
-    if (!vkBridgeInstance && !window.vkBridgeInstance) {
-        console.warn('VK Bridge не определен. Переключение в гостевой режим.');
-        showGuestMode();
+        return; // Прекращаем выполнение, если элементы не найдены
     }
 
     // Выбор уровня сложности
@@ -315,7 +246,7 @@ function initializeApp() {
         
         // Фильтруем вопросы по режиму и сложности
         const filteredQuestions = window.questions.filter(q => 
-            q.mode === currentQuizMode && q.difficulty === currentDifficulty
+            q && q.mode === currentQuizMode && q.difficulty === currentDifficulty
         );
         
         if (filteredQuestions.length === 0) {
@@ -391,6 +322,19 @@ function initializeApp() {
         
         const question = questionsForQuiz[currentQuestion];
         
+        // Проверка корректности объекта вопроса
+        if (!question || !question.text || !Array.isArray(question.options)) {
+            console.error('Ошибка: некорректный формат вопроса', question);
+            // Попытка восстановления - переход к следующему вопросу или показ результатов
+            currentQuestion++;
+            if (currentQuestion < questionsForQuiz.length) {
+                loadQuestion();
+            } else {
+                showResults();
+            }
+            return;
+        }
+        
         // Отображаем текст вопроса
         questionElement.textContent = question.text;
         
@@ -447,7 +391,19 @@ function initializeApp() {
             nextButton.disabled = true;
             
             // Проверка ответа
-            const correct = questionsForQuiz[currentQuestion].correctOptionIndex;
+            const question = questionsForQuiz[currentQuestion];
+            if (!question || typeof question.correctOptionIndex !== 'number') {
+                console.error('Ошибка: некорректный вопрос или отсутствует правильный ответ');
+                currentQuestion++;
+                if (currentQuestion < questionsForQuiz.length) {
+                    loadQuestion();
+                } else {
+                    showResults();
+                }
+                return;
+            }
+            
+            const correct = question.correctOptionIndex;
             if (selectedOption === correct) {
                 score++;
             }
@@ -554,7 +510,7 @@ function initializeApp() {
             } else {
                 resultText = 'Стоит подучить материал, но вы уже на пути к знаниям!';
             }
-            scoreTextElement.innerHTML = `<span class="result-text">${resultText}</span>`;
+            scoreTextElement.innerHTML = `${scoreTextElement.innerHTML} <span class="result-text">${resultText}</span>`;
         }
     }
 
@@ -569,10 +525,10 @@ function initializeApp() {
             const difficultyText = currentDifficulty === 'hard' ? 'сложный уровень' : 'обычный уровень';
             const message = `Я прошел Медицинский квиз (${modeText}, ${difficultyText}) и набрал ${percentage}%! Попробуй и ты!`;
             
-            // Получаем текущий экземпляр VK Bridge
-            let bridge = vkBridgeInstance || window.vkBridgeInstance;
-            
-            if (bridge) {
+            // Используем надежную проверку vkBridge
+            if (vkBridgeInstance || window.vkBridge) {
+                const bridge = vkBridgeInstance || window.vkBridge;
+                
                 bridge.send('VKWebAppShare', {
                     message: message
                 })
