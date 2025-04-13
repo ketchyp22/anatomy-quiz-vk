@@ -1625,7 +1625,390 @@ window.questions = [
         mode: "pharmacology",
         difficulty: "easy"
     },
-    
+    {
+        id: 403,
+        text: "Какой препарат относится к группе нестероидных противовоспалительных средств?",
+        options: ["Преднизолон", "Диклофенак", "Цефтриаксон", "Ранитидин"],
+        correctOptionIndex: 1,
+        mode: "pharmacology",
+        difficulty: "easy"
+    },
+    {
+        id: 404,
+        text: "Какой антибиотик относится к группе пенициллинов?",
+        options: ["Азитромицин", "Ципрофлоксацин", "Амоксициллин", "Доксициклин"],
+        correctOptionIndex: 2,
+        mode: "pharmacology",
+        difficulty: "easy"
+    },
+    {
+        id: 405,
+        text: "Какое лекарственное средство используется для лечения бронхиальной астмы?",
+        options: ["Сальбутамол", "Лизиноприл", "Метформин", "Ципрофлоксацин"],
+        correctOptionIndex: 0,
+        mode: "pharmacology",
+        difficulty: "easy"
+    },
+    {
+        id: 406,
+        text: "Какой препарат относится к группе антигистаминных средств?",
+        options: ["Омепразол", "Лоратадин", "Метопролол", "Диклофенак"],
+        correctOptionIndex: 1,
+        mode: "pharmacology",
+        difficulty: "easy"
+    },
+    {
+        id: 407,
+        text: "Какой препарат используется для снижения артериального давления?",
+        options: ["Фуросемид", "Ибупрофен", "Левотироксин", "Метронидазол"],
+        correctOptionIndex: 0,
+        mode: "pharmacology",
+        difficulty: "easy"
+    },
+    {
+        id: 408,
+        text: "Какой препарат применяется при сахарном диабете 2 типа?",
+        options: ["Метформин", "Атенолол", "Амоксициллин", "Омепразол"],
+        correctOptionIndex: 0,
+        mode: "pharmacology",
+        difficulty: "easy"
+    },
+    {
+        id: 409,
+        text: "Какой препарат используется для лечения язвенной болезни желудка?",
+        options: ["Парацетамол", "Амлодипин", "Омепразол", "Метформин"],
+        correctOptionIndex: 2,
+        mode: "pharmacology",
+        difficulty: "easy"
+    },
+    {
+        id: 410,
+        text: "Какой препарат является антикоагулянтом?",
+        options: ["Аспирин", "Варфарин", "Лозартан", "Ибупрофен"],
+        correctOptionIndex: 1,
+        mode: "pharmacology",
+        difficulty: "easy"
+    },
+    {
+        id: 411,
+        text: "Какой препарат используется для лечения стенокардии?",
+        options: ["Нитроглицерин", "Омепразол", "Азитромицин", "Метформин"],
+        correctOptionIndex: 0,
+        mode: "pharmacology",
+        difficulty: "easy"
+    },
+    {
+        id: 412,
+        text: "Какой препарат относится к группе диуретиков?",
+        options: ["Атенолол", "Гидрохлортиазид", "Метронидазол", "Ранитидин"],
+        correctOptionIndex: 1,
+        mode: "pharmacology",
+        difficulty: "easy"
+    },
+    {
+        id: 413,
+        text: "Какой препарат используется как жаропонижающее средство?",
+        options: ["Парацетамол", "Омепразол", "Метопролол", "Лоратадин"],
+        correctOptionIndex: 0,
+        mode: "pharmacology",
+        difficulty: "easy"
+    },
+    {
+        id: 414,
+        text: "Какой препарат используется для лечения гипотиреоза?",
+        options: ["Инсулин", "Метформин", "Левотироксин", "Преднизолон"],
+        correctOptionIndex: 2,
+        mode: "pharmacology",
+        difficulty: "easy"
+    },
+    {
+        id: 415,
+        text: "Какой препарат относится к группе антибиотиков-макролидов?",
+        options: ["Цефтриаксон", "Ципрофлоксацин", "Амоксициллин", "Азитромицин"],
+        correctOptionIndex: 3,
+        mode: "pharmacology",
+        difficulty: "easy"
+    },
+    {
+        id: 416,
+        text: "Какой препарат используется для лечения депрессии?",
+        options: ["Диазепам", "Флуоксетин", "Амлодипин", "Метопролол"],
+        correctOptionIndex: 1,
+        mode: "pharmacology",
+        difficulty: "easy"
+    },
+    {
+        id: 417,
+        text: "Какой препарат используется для купирования приступа эпилепсии?",
+        options: ["Диазепам", "Оксибутинин", "Левотироксин", "Амоксициллин"],
+        correctOptionIndex: 0,
+        mode: "pharmacology",
+        difficulty: "easy"
+    },
+    {
+        id: 418,
+        text: "Какой препарат используется для лечения грибковых инфекций?",
+        options: ["Ацикловир", "Цефтриаксон", "Флуконазол", "Метронидазол"],
+        correctOptionIndex: 2,
+        mode: "pharmacology",
+        difficulty: "easy"
+    },
+    {
+        id: 419,
+        text: "Какой препарат используется для купирования приступа бронхиальной астмы?",
+        options: ["Амброксол", "Сальбутамол", "Преднизолон", "Амоксициллин"],
+        correctOptionIndex: 1,
+        mode: "pharmacology",
+        difficulty: "easy"
+    },
+    {
+        id: 420,
+        text: "Какой препарат используется для лечения артериальной гипертензии?",
+        options: ["Эналаприл", "Омепразол", "Метформин", "Азитромицин"],
+        correctOptionIndex: 0,
+        mode: "pharmacology",
+        difficulty: "easy"
+    },
+    {
+        id: 421,
+        text: "Какой препарат является антикоагулянтом прямого действия?",
+        options: ["Аспирин", "Гепарин", "Дигоксин", "Фуросемид"],
+        correctOptionIndex: 1,
+        mode: "pharmacology",
+        difficulty: "easy"
+    },
+    {
+        id: 422,
+        text: "Какой препарат используется для нормализации сердечного ритма?",
+        options: ["Атенолол", "Метформин", "Омепразол", "Ибупрофен"],
+        correctOptionIndex: 0,
+        mode: "pharmacology",
+        difficulty: "easy"
+    },
+    {
+        id: 423,
+        text: "Какой препарат относится к группе антибиотиков-фторхинолонов?",
+        options: ["Азитромицин", "Амоксициллин", "Ципрофлоксацин", "Цефтриаксон"],
+        correctOptionIndex: 2,
+        mode: "pharmacology",
+        difficulty: "easy"
+    },
+    {
+        id: 424,
+        text: "Какой препарат используется для снижения кислотности желудочного сока?",
+        options: ["Омепразол", "Метформин", "Лозартан", "Парацетамол"],
+        correctOptionIndex: 0,
+        mode: "pharmacology",
+        difficulty: "easy"
+    },
+    {
+        id: 425,
+        text: "Какой препарат используется для лечения аллергических реакций?",
+        options: ["Диклофенак", "Лоратадин", "Метопролол", "Омепразол"],
+        correctOptionIndex: 1,
+        mode: "pharmacology",
+        difficulty: "easy"
+    },
+    {
+        id: 426,
+        text: "Какой препарат относится к группе ингибиторов АПФ?",
+        options: ["Амлодипин", "Атенолол", "Эналаприл", "Лозартан"],
+        correctOptionIndex: 2,
+        mode: "pharmacology",
+        difficulty: "easy"
+    },
+    {
+        id: 427,
+        text: "Какой препарат используется для лечения гиперкалиемии?",
+        options: ["Фуросемид", "Преднизолон", "Метформин", "Дигоксин"],
+        correctOptionIndex: 0,
+        mode: "pharmacology",
+        difficulty: "easy"
+    },
+    {
+        id: 428,
+        text: "Какой препарат обладает противовирусным действием?",
+        options: ["Амоксициллин", "Флуконазол", "Ацикловир", "Метронидазол"],
+        correctOptionIndex: 2,
+        mode: "pharmacology",
+        difficulty: "easy"
+    },
+    {
+        id: 429,
+        text: "Какой препарат используется для лечения глаукомы?",
+        options: ["Тимолол", "Лоратадин", "Сальбутамол", "Омепразол"],
+        correctOptionIndex: 0,
+        mode: "pharmacology",
+        difficulty: "easy"
+    },
+    {
+        id: 430,
+        text: "Какой препарат относится к группе блокаторов рецепторов ангиотензина II?",
+        options: ["Эналаприл", "Амлодипин", "Лозартан", "Атенолол"],
+        correctOptionIndex: 2,
+        mode: "pharmacology",
+        difficulty: "easy"
+    },
+    {
+        id: 431,
+        text: "Какой препарат используется для купирования приступа мигрени?",
+        options: ["Диклофенак", "Суматриптан", "Парацетамол", "Ибупрофен"],
+        correctOptionIndex: 1,
+        mode: "pharmacology",
+        difficulty: "easy"
+    },
+    {
+        id: 432,
+        text: "Какой препарат используется для профилактики тромбообразования?",
+        options: ["Аспирин", "Преднизолон", "Омепразол", "Метформин"],
+        correctOptionIndex: 0,
+        mode: "pharmacology",
+        difficulty: "easy"
+    },
+    {
+        id: 433,
+        text: "Какой препарат используется для лечения бактериальных инфекций мочевыводящих путей?",
+        options: ["Амоксициллин", "Флуконазол", "Ацикловир", "Ципрофлоксацин"],
+        correctOptionIndex: 3,
+        mode: "pharmacology",
+        difficulty: "easy"
+    },
+    {
+        id: 434,
+        text: "Какой препарат является муколитиком?",
+        options: ["Амброксол", "Сальбутамол", "Лоратадин", "Ранитидин"],
+        correctOptionIndex: 0,
+        mode: "pharmacology",
+        difficulty: "easy"
+    },
+    {
+        id: 435,
+        text: "Какой препарат используется для лечения остеопороза?",
+        options: ["Метформин", "Алендроновая кислота", "Амлодипин", "Левотироксин"],
+        correctOptionIndex: 1,
+        mode: "pharmacology",
+        difficulty: "easy"
+    },
+    {
+        id: 436,
+        text: "Какой препарат используется для облегчения симптомов аллергического ринита?",
+        options: ["Лоратадин", "Амоксициллин", "Омепразол", "Метопролол"],
+        correctOptionIndex: 0,
+        mode: "pharmacology",
+        difficulty: "easy"
+    },
+    {
+        id: 437,
+        text: "Какой препарат используется для лечения хронической сердечной недостаточности?",
+        options: ["Дигоксин", "Метформин", "Омепразол", "Флуконазол"],
+        correctOptionIndex: 0,
+        mode: "pharmacology",
+        difficulty: "easy"
+    },
+    {
+        id: 438,
+        text: "Какой препарат относится к группе бета-блокаторов?",
+        options: ["Эналаприл", "Амлодипин", "Метопролол", "Лозартан"],
+        correctOptionIndex: 2,
+        mode: "pharmacology",
+        difficulty: "easy"
+    },
+    {
+        id: 439,
+        text: "Какой препарат используется для лечения анемии?",
+        options: ["Преднизолон", "Железа сульфат", "Метформин", "Аторвастатин"],
+        correctOptionIndex: 1,
+        mode: "pharmacology",
+        difficulty: "easy"
+    },
+    {
+        id: 440,
+        text: "Какой препарат является антацидом?",
+        options: ["Омепразол", "Альмагель", "Ранитидин", "Фамотидин"],
+        correctOptionIndex: 1,
+        mode: "pharmacology",
+        difficulty: "easy"
+    },
+    {
+        id: 441,
+        text: "Какой препарат используется для лечения дерматомикозов?",
+        options: ["Ацикловир", "Клотримазол", "Ципрофлоксацин", "Диклофенак"],
+        correctOptionIndex: 1,
+        mode: "pharmacology",
+        difficulty: "easy"
+    },
+    {
+        id: 442,
+        text: "Какой препарат является спазмолитиком?",
+        options: ["Папаверин", "Лоратадин", "Метопролол", "Амоксициллин"],
+        correctOptionIndex: 0,
+        mode: "pharmacology",
+        difficulty: "easy"
+    },
+    {
+        id: 443,
+        text: "Какой препарат используется для лечения паркинсонизма?",
+        options: ["Флуоксетин", "Диазепам", "Леводопа", "Ацикловир"],
+        correctOptionIndex: 2,
+        mode: "pharmacology",
+        difficulty: "easy"
+    },
+    {
+        id: 444,
+        text: "Какой препарат относится к группе антагонистов H2-гистаминовых рецепторов?",
+        options: ["Омепразол", "Ранитидин", "Лоратадин", "Метоклопрамид"],
+        correctOptionIndex: 1,
+        mode: "pharmacology",
+        difficulty: "easy"
+    },
+    {
+        id: 445,
+        text: "Какой препарат используется для лечения гипертиреоза?",
+        options: ["Преднизолон", "Левотироксин", "Тиамазол", "Метформин"],
+        correctOptionIndex: 2,
+        mode: "pharmacology",
+        difficulty: "easy"
+    },
+    {
+        id: 446,
+        text: "Какой препарат является антиаритмическим средством?",
+        options: ["Амлодипин", "Амиодарон", "Атенолол", "Аспирин"],
+        correctOptionIndex: 1,
+        mode: "pharmacology",
+        difficulty: "easy"
+    },
+    {
+        id: 447,
+        text: "Какой препарат используется для лечения запоров?",
+        options: ["Лоперамид", "Бисакодил", "Метоклопрамид", "Домперидон"],
+        correctOptionIndex: 1,
+        mode: "pharmacology",
+        difficulty: "easy"
+    },
+    {
+        id: 448,
+        text: "Какой препарат используется для купирования приступа стенокардии?",
+        options: ["Нитроглицерин", "Аторвастатин", "Эналаприл", "Аспирин"],
+        correctOptionIndex: 0,
+        mode: "pharmacology",
+        difficulty: "easy"
+    },
+    {
+        id: 449,
+        text: "Какой препарат используется для лечения диареи?",
+        options: ["Бисакодил", "Лоперамид", "Метоклопрамид", "Омепразол"],
+        correctOptionIndex: 1,
+        mode: "pharmacology",
+        difficulty: "easy"
+    },
+    {
+        id: 450,
+        text: "Какой препарат является противорвотным средством?",
+        options: ["Метоклопрамид", "Лоперамид", "Бисакодил", "Папаверин"],
+        correctOptionIndex: 0,
+        mode: "pharmacology",
+        difficulty: "easy"
+    },   
     // ФАРМАКОЛОГИЯ - СЛОЖНЫЙ УРОВЕНЬ
     {
         id: 501,
