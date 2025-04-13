@@ -23,14 +23,14 @@ function showGuestMode() {
     console.log('Запущен гостевой режим с ID:', currentUserData.id);
 }
 
-// Обработка темы VK
+// Применение темы VK
 function applyVKTheme(scheme) {
     console.log('Применяется тема:', scheme);
     const isDarkTheme = ['space_gray', 'vkcom_dark'].includes(scheme);
     document.documentElement.classList.toggle('vk-dark-theme', isDarkTheme);
 }
 
-// Функция для перемешивания массива (алгоритм Фишера-Йейтса)
+// Функция перемешивания массива (алгоритм Фишера-Йейтса)
 function shuffleArray(array) {
     if (!Array.isArray(array) || array.length === 0) {
         console.error('Ошибка: shuffleArray получил неверный массив');
@@ -51,6 +51,14 @@ function getDefaultQuestions() {
             id: 1,
             text: "Какой орган отвечает за производство инсулина?",
             options: ["Печень", "Поджелудочная железа", "Почки", "Селезенка"],
+            correctOptionIndex: 1,
+            mode: "anatomy",
+            difficulty: "easy"
+        },
+        {
+            id: 2,
+            text: "Какая кость является самой длинной в человеческом теле?",
+            options: ["Плечевая", "Бедренная", "Большеберцовая", "Локтевая"],
             correctOptionIndex: 1,
             mode: "anatomy",
             difficulty: "easy"
@@ -77,7 +85,7 @@ function initVKBridge() {
         bridge.send('VKWebAppInit')
             .then(() => {
                 console.log('VK Bridge успешно инициализирован');
-                window.vkBridgeInstance = bridge; // Сохраняем экземпляр глобально
+                window.vkBridgeInstance = bridge;
                 return bridge.send('VKWebAppGetUserInfo');
             })
             .then((userData) => {
@@ -149,7 +157,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
 // Инициализация приложения
 function initializeApp() {
-    // DOM элементы - проверяем их существование перед использованием
+    // DOM элементы
     const startScreen = document.getElementById('start-screen');
     const quizContainer = document.getElementById('quiz-container');
     const resultsContainer = document.getElementById('results-container');
@@ -200,11 +208,43 @@ function initializeApp() {
         });
     });
 
-    // Начало квиза - проверяем наличие кнопки перед добавлением обработчика
+    // Начало квиза
     if (startQuizButton) {
         startQuizButton.addEventListener('click', startQuiz);
     } else {
         console.error('Ошибка: кнопка startQuizButton не найдена');
+    }
+
+    // Выход из квиза
+    if (exitQuizButton) {
+        exitQuizButton.addEventListener('click', () => {
+            if (confirm('Вы уверены, что хотите выйти? Прогресс будет потерян!')) {
+                resetQuiz();
+            }
+        });
+    }
+
+    // Перезапуск квиза
+    if (restartQuizButton) {
+        restartQuizButton.addEventListener('click', () => {
+            resetQuiz();
+        });
+    }
+
+    // Сброс квиза
+    function resetQuiz() {
+        currentQuestion = 0;
+        score = 0;
+        selectedOption = null;
+        questionsForQuiz = [];
+
+        if (quizContainer) quizContainer.style.display = 'none';
+        if (resultsContainer) resultsContainer.style.display = 'none';
+        if (startScreen) startScreen.style.display = 'block';
+
+        if (progressBar) progressBar.style.width = '0%';
+        if (questionElement) questionElement.textContent = '';
+        if (optionsElement) optionsElement.innerHTML = '';
     }
 
     // Выбор вопросов на основе режима и сложности
@@ -470,24 +510,6 @@ function initializeApp() {
                 alert(message);
                 console.warn('VK Bridge не определен. Используется альтернативное действие для "Поделиться".');
             }
-        });
-    }
-
-    // Выход из квиза в начальный экран
-    if (exitQuizButton) {
-        exitQuizButton.addEventListener('click', () => {
-            if (confirm('Вы уверены, что хотите выйти? Прогресс будет потерян!')) {
-                if (quizContainer) quizContainer.style.display = 'none';
-                if (startScreen) startScreen.style.display = 'block';
-            }
-        });
-    }
-
-    // Перезапуск квиза
-    if (restartQuizButton) {
-        restartQuizButton.addEventListener('click', () => {
-            if (resultsContainer) resultsContainer.style.display = 'none';
-            if (startScreen) startScreen.style.display = 'block';
         });
     }
 }
