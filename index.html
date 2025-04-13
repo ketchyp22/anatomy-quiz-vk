@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="ru">
 <head>
@@ -6,10 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Медицинский Квиз</title>
     <link rel="stylesheet" href="style.css">
-    <!-- Добавляем VK Bridge перед остальными скриптами -->
-    <script src="https://unpkg.com/@vkontakte/vk-bridge/dist/browser.min.js"></script>
-    <!-- Предзагрузка иконок -->
-    <link rel="preload" as="image" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%235a67d8' opacity='0.05'%3E%3Cpath d='M19 3H5c-1.1 0-1.99.9-1.99 2L3 19c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-1 11h-4v4h-4v-4H6v-4h4V6h4v4h4v4z'/%3E%3C/svg%3E">
+    <!-- questions.js и difficult-questions.json загружаются динамически в app.js -->
 </head>
 <body>
     <!-- Анимированный фон -->
@@ -63,6 +59,7 @@
         <div id="options" class="options"></div>
         <div class="quiz-buttons">
             <button id="next-question" class="btn-primary" disabled>Далее</button>
+            <button id="exit-quiz" class="btn-secondary">Выйти</button>
         </div>
         
         <!-- Интегрированная пульсовая линия в карточках -->
@@ -73,9 +70,6 @@
             </svg>
         </div>
     </div>
-
-    <!-- Кнопка "Выйти" перемещена за пределы quiz-container -->
-    <button id="exit-quiz" class="btn-secondary">Выйти</button>
 
     <!-- Экран результатов -->
     <div id="results-container" style="display: none;">
@@ -99,21 +93,8 @@
             </svg>
         </div>
     </div>
-    
-    <!-- Загрузка скриптов -->
+
     <script src="questions.js"></script>
     <script src="app.js"></script>
-    
-    <!-- Скрипт для обнаружения и перехвата ошибок -->
-    <script>
-    window.addEventListener('error', function(event) {
-        console.log('Перехвачена ошибка:', event.message);
-        // Предотвращаем критические сбои при ошибках
-        if (event.message && event.message.includes('mediaWidth')) {
-            event.preventDefault();
-            console.log('Предотвращена ошибка mediaWidth');
-        }
-    });
-    </script>
 </body>
 </html>
