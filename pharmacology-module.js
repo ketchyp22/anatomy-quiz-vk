@@ -1,652 +1,751 @@
-// pharmacology-module.js - Модуль для тестов по фармакологии
+// pharmacology-module.js - Полностью переписанный модуль фармакологии
+// с исправленной функциональностью выбора ответов
+
 (function() {
-    // Модуль для тестов по фармакологии
-    const PharmacologyModule = {
-        // Состояние модуля
-        state: {
-            userAnswers: [],
-            userScore: 0,
-            moduleInitialized: false,
-            moduleVisible: false,
-            testInProgress: false
-        },
-        
-        // База данных вопросов по фармакологии
-        pharmaQuestions: [
-            {
-                id: 'pq-001',
-                question: 'Какой из следующих препаратов относится к группе бета-блокаторов?',
-                options: [
-                    { id: 'a', text: 'Бисопролол', isCorrect: true },
-                    { id: 'b', text: 'Амлодипин', isCorrect: false },
-                    { id: 'c', text: 'Эналаприл', isCorrect: false },
-                    { id: 'd', text: 'Фуросемид', isCorrect: false }
-                ],
-                explanation: 'Бисопролол - селективный бета-1-адреноблокатор, применяемый при артериальной гипертензии, стенокардии и хронической сердечной недостаточности.'
+    try {
+        // Объект модуля фармакологии
+        const PharmacologyModule = {
+            // Состояние модуля
+            state: {
+                currentQuestionIndex: 0,
+                score: 0,
+                isTestActive: false
             },
-            {
-                id: 'pq-002',
-                question: 'Какой основной механизм действия ингибиторов АПФ?',
-                options: [
-                    { id: 'a', text: 'Блокируют превращение ангиотензина I в ангиотензин II', isCorrect: true },
-                    { id: 'b', text: 'Блокируют кальциевые каналы', isCorrect: false },
-                    { id: 'c', text: 'Стимулируют выведение натрия с мочой', isCorrect: false },
-                    { id: 'd', text: 'Блокируют бета-адренорецепторы', isCorrect: false }
-                ],
-                explanation: 'Ингибиторы АПФ блокируют ангиотензин-превращающий фермент, предотвращая образование ангиотензина II - мощного вазоконстриктора.'
+
+            // Переменная для хранения индекса выбранного ответа
+            selectedAnswerIndex: undefined,
+
+            // Базовый набор вопросов по фармакологии
+            questions: [
+                {
+                    question: "Какой препарат относится к группе бета-блокаторов?",
+                    options: [
+                        "Амлодипин",
+                        "Бисопролол",
+                        "Панкреатин", 
+                        "Парацетамол"
+                    ],
+                    correctAnswer: 1
+                },
+                {
+                    question: "Какой орган метаболизирует большинство лекарств?",
+                    options: [
+                        "Почки",
+                        "Желудок",
+                        "Печень", 
+                        "Легкие"
+                    ],
+                    correctAnswer: 2
+                },
+                {
+                    question: "Какой тип препаратов снижает воспаление?",
+                    options: [
+                        "Антибиотики",
+                        "Антигистаминные",
+                        "Нестероидные противовоспалительные", 
+                        "Гормональные"
+                    ],
+                    correctAnswer: 2
+                },
+                {
+                    question: "Какие лекарства применяются для снижения артериального давления?",
+                    options: [
+                        "Антикоагулянты",
+                        "Антигипертензивные",
+                        "Антибиотики", 
+                        "Антацидные"
+                    ],
+                    correctAnswer: 1
+                },
+                {
+                    question: "К какой группе относится препарат Омепразол?",
+                    options: [
+                        "Ингибиторы протонной помпы",
+                        "Антацидные средства",
+                        "Антигистаминные", 
+                        "Спазмолитики"
+                    ],
+                    correctAnswer: 0
+                }
+            ],
+
+            // Инициализация модуля
+            init: function() {
+                console.log('Инициализация модуля фармакологии');
+                
+                // Получаем контейнер
+                this.container = document.getElementById('pharmacology-container');
+                
+                if (!this.container) {
+                    // Если контейнер не найден, создаем его
+                    this.container = document.createElement('div');
+                    this.container.id = 'pharmacology-container';
+                    this.container.className = 'module-container';
+                    document.body.appendChild(this.container);
+                    console.log('Создан новый контейнер для модуля фармакологии');
+                }
+
+                // Добавляем стили
+                this.addStyles();
+
+                // Создаем пользовательский интерфейс
+                this.createUI();
+                
+                return true;
             },
-            {
-                id: 'pq-003',
-                question: 'Какой антибиотик из группы макролидов может вызывать удлинение интервала QT?',
-                options: [
-                    { id: 'a', text: 'Азитромицин', isCorrect: true },
-                    { id: 'b', text: 'Амоксициллин', isCorrect: false },
-                    { id: 'c', text: 'Метронидазол', isCorrect: false },
-                    { id: 'd', text: 'Доксициклин', isCorrect: false }
-                ],
-                explanation: 'Азитромицин может вызывать удлинение интервала QT, что повышает риск аритмий, особенно у пациентов с факторами риска.'
-            },
-            {
-                id: 'pq-004',
-                question: 'Какое из следующих лекарственных средств используется для лечения болезни Паркинсона?',
-                options: [
-                    { id: 'a', text: 'Леводопа', isCorrect: true },
-                    { id: 'b', text: 'Фенитоин', isCorrect: false },
-                    { id: 'c', text: 'Метформин', isCorrect: false },
-                    { id: 'd', text: 'Флуоксетин', isCorrect: false }
-                ],
-                explanation: 'Леводопа - предшественник дофамина, который превращается в дофамин в мозге и восполняет его дефицит при болезни Паркинсона.'
-            },
-            {
-                id: 'pq-005',
-                question: 'Какое побочное действие характерно для глюкокортикостероидов при длительном применении?',
-                options: [
-                    { id: 'a', text: 'Синдром Кушинга', isCorrect: true },
-                    { id: 'b', text: 'Гипогликемия', isCorrect: false },
-                    { id: 'c', text: 'Брадикардия', isCorrect: false },
-                    { id: 'd', text: 'Снижение массы тела', isCorrect: false }
-                ],
-                explanation: 'Длительное применение глюкокортикостероидов может вызвать синдром Кушинга с характерными изменениями внешности, метаболическими нарушениями и другими системными эффектами.'
-            },
-            {
-                id: 'pq-006',
-                question: 'Какой препарат используется для лечения бронхиальной астмы в качестве базисной терапии?',
-                options: [
-                    { id: 'a', text: 'Ингаляционные глюкокортикостероиды', isCorrect: true },
-                    { id: 'b', text: 'Ацетилсалициловая кислота', isCorrect: false },
-                    { id: 'c', text: 'Нифедипин', isCorrect: false },
-                    { id: 'd', text: 'Амиодарон', isCorrect: false }
-                ],
-                explanation: 'Ингаляционные глюкокортикостероиды - основа базисной противовоспалительной терапии бронхиальной астмы, уменьшают воспаление в дыхательных путях.'
-            },
-            {
-                id: 'pq-007',
-                question: 'Какое из следующих лекарственных средств относится к статинам?',
-                options: [
-                    { id: 'a', text: 'Аторвастатин', isCorrect: true },
-                    { id: 'b', text: 'Метопролол', isCorrect: false },
-                    { id: 'c', text: 'Варфарин', isCorrect: false },
-                    { id: 'd', text: 'Дигоксин', isCorrect: false }
-                ],
-                explanation: 'Аторвастатин - препарат из группы статинов, ингибирует ГМГ-КоА-редуктазу, снижает уровень холестерина и применяется для профилактики сердечно-сосудистых заболеваний.'
-            },
-            {
-                id: 'pq-008',
-                question: 'Какой препарат применяется для лечения железодефицитной анемии?',
-                options: [
-                    { id: 'a', text: 'Препараты железа (Fe2+)', isCorrect: true },
-                    { id: 'b', text: 'Цианокобаламин (витамин B12)', isCorrect: false },
-                    { id: 'c', text: 'Эритропоэтин', isCorrect: false },
-                    { id: 'd', text: 'Фолиевая кислота', isCorrect: false }
-                ],
-                explanation: 'Препараты железа (сульфат железа, фумарат железа) применяются для восполнения его дефицита при железодефицитной анемии.'
-            },
-            {
-                id: 'pq-009',
-                question: 'Какой препарат относится к группе нестероидных противовоспалительных средств (НПВС)?',
-                options: [
-                    { id: 'a', text: 'Ибупрофен', isCorrect: true },
-                    { id: 'b', text: 'Омепразол', isCorrect: false },
-                    { id: 'c', text: 'Преднизолон', isCorrect: false },
-                    { id: 'd', text: 'Морфин', isCorrect: false }
-                ],
-                explanation: 'Ибупрофен - нестероидное противовоспалительное средство, обладающее противовоспалительным, жаропонижающим и анальгетическим эффектами.'
-            },
-            {
-                id: 'pq-010',
-                question: 'Какой побочный эффект характерен для НПВС?',
-                options: [
-                    { id: 'a', text: 'Повреждение слизистой желудка', isCorrect: true },
-                    { id: 'b', text: 'Повышение уровня сахара в крови', isCorrect: false },
-                    { id: 'c', text: 'Запор', isCorrect: false },
-                    { id: 'd', text: 'Фотосенсибилизация', isCorrect: false }
-                ],
-                explanation: 'НПВС могут вызывать повреждение слизистой желудка и кишечника из-за подавления синтеза защитных простагландинов, что может приводить к язвенной болезни и кровотечениям.'
-            }
-        ],
-        
-        // Инициализация модуля
-        init: function(container) {
-            // Проверяем, был ли уже инициализирован модуль
-            if (this.state.moduleInitialized) return;
-            
-            console.log('Инициализация модуля тестов по фармакологии...');
-            
-            this.container = container || document.getElementById('pharmacology-container');
-            
-            // Если контейнера нет, создаем его
-            if (!this.container) {
-                this.container = document.createElement('div');
-                this.container.id = 'pharmacology-container';
-                this.container.className = 'module-container';
-                this.container.style.display = 'none';
-                document.body.appendChild(this.container);
-            }
-            
-            this.addCSS();
-            this.createModuleWrapper();
-            
-            this.state.moduleInitialized = true;
-        },
-        
-        // Добавление стилей для модуля
-        addCSS: function() {
-            // Проверяем, есть ли уже стили
-            if (document.getElementById('pharma-module-styles')) return;
-            
-            const style = document.createElement('style');
-            style.id = 'pharma-module-styles';
-            style.textContent = `
-                .module-container {
-                    position: fixed;
-                    top: 0;
-                    left: 0;
-                    width: 100%;
-                    height: 100%;
-                    background-color: rgba(33, 33, 33, 0.95);
-                    z-index: 1000;
-                    overflow-y: auto;
-                    padding: 20px;
-                    box-sizing: border-box;
+
+            // Добавление стилей
+            addStyles: function() {
+                // Проверяем, не добавлены ли уже стили
+                if (document.getElementById('pharma-module-styles')) {
+                    return;
                 }
+
+                const style = document.createElement('style');
+                style.id = 'pharma-module-styles';
+                style.textContent = `
+                    .module-container {
+                        position: fixed;
+                        top: 0;
+                        left: 0;
+                        width: 100%;
+                        height: 100%;
+                        background-color: rgba(33, 33, 33, 0.95);
+                        z-index: 1000;
+                        display: flex;
+                        align-items: center;
+                        justify-content: center;
+                        overflow-y: auto;
+                        padding: 20px;
+                        box-sizing: border-box;
+                    }
                 
-                .pharma-module {
-                    background-color: rgba(255, 255, 255, 0.9);
-                    border-radius: 12px;
-                    padding: 20px;
-                    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
-                    margin-bottom: 20px;
-                    max-width: 800px;
-                    margin: 0 auto 20px;
-                }
-                
-                .pharma-title {
-                    font-size: 1.5em;
-                    color: #FF1493;
-                    margin-bottom: 10px;
-                    text-align: center;
-                }
-                
-                .pharma-question-container {
-                    margin-bottom: 25px;
-                    padding: 15px;
-                    border-radius: 8px;
-                    background-color: #f8f8f8;
-                    border-left: 4px solid #FF1493;
-                }
-                
-                .question-number {
-                    font-size: 0.9em;
-                    color: #666;
-                    margin-bottom: 5px;
-                }
-                
-                .pharma-question {
-                    font-weight: bold;
-                    margin: 15px 0 10px;
-                    color: #333;
-                }
-                
-                .pharma-options {
-                    display: grid;
-                    gap: 10px;
-                    margin-bottom: 20px;
-                }
-                
-                .pharma-option {
-                    padding: 12px 15px;
-                    background-color: #f1f1f1;
-                    border-radius: 8px;
-                    cursor: pointer;
-                    transition: all 0.2s;
-                    border: 2px solid transparent;
-                }
-                
-                .pharma-option:hover {
-                    background-color: #e8e8e8;
-                    transform: translateX(5px);
-                }
-                
-                .pharma-option.selected {
-                    border-color: #FF1493;
-                    background-color: #fff0f7;
-                }
-                
-                .pharma-option.correct {
-                    border-color: #4CAF50;
-                    background-color: #ebffef;
-                }
-                
-                .pharma-option.incorrect {
-                    border-color: #F44336;
-                    background-color: #ffebeb;
-                }
-                
-                .explanation {
-                    background-color: #fff0f7;
-                    padding: 15px;
-                    border-radius: 8px;
-                    margin: 15px 0;
-                    border-left: 4px solid #FF1493;
-                    display: none;
-                }
-                
-                .pharma-navigation {
-                    display: flex;
-                    justify-content: center;
-                    gap: 15px;
-                    margin-top: 20px;
-                }
-                
-                .pharma-btn {
-                    padding: 10px 20px;
-                    background: linear-gradient(135deg, #FF1493, #ff4db8);
-                    color: white;
-                    border: none;
-                    border-radius: 8px;
-                    cursor: pointer;
-                    font-weight: bold;
-                    transition: all 0.3s;
-                }
-                
-                .pharma-btn:hover {
-                    transform: translateY(-2px);
-                    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-                }
-                
-                .pharma-btn:disabled {
-                    background: #cccccc;
-                    cursor: not-allowed;
-                    transform: none;
-                    box-shadow: none;
-                }
-                
-                .pharma-score {
-                    text-align: center;
-                    font-size: 1.2em;
-                    font-weight: bold;
-                    color: #FF1493;
-                    margin: 20px 0;
-                }
-                
-                .module-content {
-                    opacity: 0;
-                    transform: translateY(20px);
-                    transition: all 0.5s;
-                }
-                
-                .module-content.visible {
-                    opacity: 1;
-                    transform: translateY(0);
-                }
-                
-                .close-module {
-                    position: absolute;
-                    top: 15px;
-                    right: 15px;
-                    width: 36px;
-                    height: 36px;
-                    background: #fff;
-                    border-radius: 50%;
-                    display: flex;
-                    justify-content: center;
-                    align-items: center;
-                    cursor: pointer;
-                    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
-                    z-index: 1100;
-                    transition: all 0.3s;
-                }
-                
-                .close-module:hover {
-                    transform: rotate(90deg);
-                    background: #ff4db8;
-                    color: white;
-                }
-                
-                .close-module::before,
-                .close-module::after {
-                    content: '';
-                    position: absolute;
-                    width: 18px;
-                    height: 2px;
-                    background: #333;
-                }
-                
-                .close-module:hover::before,
-                .close-module:hover::after {
-                    background: #fff;
-                }
-                
-                .close-module::before {
-                    transform: rotate(45deg);
-                }
-                
-                .close-module::after {
-                    transform: rotate(-45deg);
-                }
-                
-                .fade-in {
-                    animation: fadein 0.5s;
-                }
-                
-                @keyframes fadein {
-                    from { opacity: 0; }
-                    to { opacity: 1; }
-                }
-                
-                /* Адаптивность для мобильных устройств */
-                @media (max-width: 600px) {
                     .pharma-module {
-                        padding: 15px;
+                        background-color: white;
+                        border-radius: 15px;
+                        box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+                        padding: 30px 20px;
+                        max-width: 500px;
+                        width: 90%;
+                        margin: 0 auto;
+                        text-align: center;
+                        position: relative;
                     }
-                    
+
+                    .pharma-question {
+                        margin-bottom: 20px;
+                    }
+
+                    .pharma-question p {
+                        font-size: 18px;
+                        margin-bottom: 20px;
+                        color: #333333;
+                        font-weight: 500;
+                        line-height: 1.4;
+                        word-wrap: break-word;
+                    }
+
+                    .pharma-options {
+                        display: flex;
+                        flex-direction: column;
+                        gap: 10px;
+                        width: 100%;
+                    }
+
                     .pharma-option {
-                        padding: 10px;
+                        background-color: #f0f0f0;
+                        padding: 15px;
+                        border-radius: 10px;
+                        cursor: pointer;
+                        transition: all 0.3s;
+                        color: #333333;
+                        border: 1px solid #e0e0e0;
+                        font-weight: 500;
+                        width: 100%;
+                        text-align: center;
+                        box-sizing: border-box;
+                        word-break: break-word;
                     }
+
+                    .pharma-option:hover {
+                        background-color: #e0e0e0;
+                        transform: translateY(-2px);
+                        box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+                    }
+
+                    .pharma-option.selected {
+                        background-color: #4a89dc;
+                        color: white;
+                        border-color: #3a6fc7;
+                    }
+
+                    .pharma-option.correct {
+                        background-color: #37bc9b;
+                        color: white;
+                        border-color: #2fa985;
+                    }
+
+                    .pharma-option.incorrect {
+                        background-color: #e9573f;
+                        color: white;
+                        border-color: #d44b30;
+                    }
+
+                    .pharma-controls {
+                        margin-top: 20px;
+                    }
+
+                    #pharma-next-btn {
+                        background-color: #4a89dc;
+                        color: white;
+                        border: none;
+                        padding: 12px 25px;
+                        border-radius: 8px;
+                        cursor: pointer;
+                        font-weight: bold;
+                        font-size: 16px;
+                        transition: all 0.3s ease;
+                        box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+                        min-width: 120px;
+                    }
+
+                    #pharma-next-btn:not(:disabled):hover {
+                        background-color: #3a6fc7;
+                        transform: translateY(-2px);
+                        box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+                    }
+
+                    #pharma-next-btn:disabled {
+                        background-color: #cccccc;
+                        cursor: not-allowed;
+                        color: #999999;
+                    }
+                    
+                    .pharma-module h2 {
+                        color: #4a89dc;
+                        font-size: 24px;
+                        margin-bottom: 25px;
+                        position: relative;
+                        word-break: break-word;
+                    }
+                    
+                    .pharma-module h2::after {
+                        content: '';
+                        position: absolute;
+                        bottom: -8px;
+                        left: 50%;
+                        transform: translateX(-50%);
+                        width: 60px;
+                        height: 3px;
+                        background-color: #37bc9b;
+                        border-radius: 3px;
+                    }
+                    
+                    .pharma-results {
+                        text-align: center;
+                    }
+                    
+                    .pharma-results h2 {
+                        color: #4a89dc;
+                        margin-bottom: 20px;
+                    }
+                    
+                    .pharma-results p {
+                        color: #333333;
+                        margin-bottom: 15px;
+                        font-size: 16px;
+                    }
+                    
+                    #pharma-restart-btn, #pharma-main-menu-btn {
+                        background-color: #37bc9b;
+                        color: white;
+                        border: none;
+                        padding: 12px 25px;
+                        border-radius: 8px;
+                        cursor: pointer;
+                        font-weight: bold;
+                        font-size: 16px;
+                        transition: all 0.3s ease;
+                        margin-top: 20px;
+                    }
+                    
+                    #pharma-main-menu-btn {
+                        background-color: #4a89dc;
+                        margin-left: 10px;
+                    }
+                    
+                    #pharma-restart-btn:hover, #pharma-main-menu-btn:hover {
+                        transform: translateY(-2px);
+                        box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+                    }
+                    
+                    .close-pharma-module {
+                        position: absolute;
+                        top: 10px;
+                        right: 10px;
+                        width: 30px;
+                        height: 30px;
+                        border-radius: 50%;
+                        background-color: #f0f0f0;
+                        cursor: pointer;
+                        display: flex;
+                        align-items: center;
+                        justify-content: center;
+                        transition: all 0.3s;
+                        z-index: 10;
+                    }
+                    
+                    .close-pharma-module:hover {
+                        background-color: #e0e0e0;
+                        transform: rotate(90deg);
+                    }
+                    
+                    .close-pharma-module:before,
+                    .close-pharma-module:after {
+                        content: '';
+                        position: absolute;
+                        width: 15px;
+                        height: 2px;
+                        background-color: #666;
+                    }
+                    
+                    .close-pharma-module:before {
+                        transform: rotate(45deg);
+                    }
+                    
+                    .close-pharma-module:after {
+                        transform: rotate(-45deg);
+                    }
+                    
+                    @media (max-width: 340px) {
+                        .pharma-module {
+                            padding: 20px 15px;
+                        }
+                        
+                        .pharma-option {
+                            padding: 12px 10px;
+                            font-size: 14px;
+                        }
+                        
+                        .pharma-question p {
+                            font-size: 16px;
+                        }
+                        
+                        .pharma-module h2 {
+                            font-size: 20px;
+                        }
+                        
+                        #pharma-next-btn {
+                            padding: 10px 20px;
+                            font-size: 14px;
+                        }
+                        
+                        #pharma-restart-btn, #pharma-main-menu-btn {
+                            display: block;
+                            width: 100%;
+                            margin: 10px 0 0 0;
+                        }
+                    }
+                `;
+                document.head.appendChild(style);
+                console.log('Стили модуля фармакологии добавлены');
+            },
+
+            // Создание пользовательского интерфейса
+            createUI: function() {
+                this.container.innerHTML = `
+                    <div class="pharma-module">
+                        <div class="close-pharma-module" id="close-pharma-module"></div>
+                        <h2>Тест по Фармакологии</h2>
+                        <div id="pharma-question-container"></div>
+                        <div class="pharma-controls">
+                            <button id="pharma-next-btn" disabled>Далее</button>
+                        </div>
+                    </div>
+                `;
+
+                this.questionContainer = document.getElementById('pharma-question-container');
+                this.nextButton = document.getElementById('pharma-next-btn');
+                
+                // Проверка наличия элементов
+                if (!this.questionContainer || !this.nextButton) {
+                    console.error('Не удалось найти необходимые элементы интерфейса');
+                    return false;
                 }
-            `;
-            document.head.appendChild(style);
-        },
-        
-        // Создание обертки для модуля
-        createModuleWrapper: function() {
-            // Создаем обертку для модуля
-            const moduleWrapper = document.createElement('div');
-            moduleWrapper.className = 'pharma-module';
-            moduleWrapper.id = 'pharma-wrapper';
-            
-            // Создаем кнопку закрытия
-            const closeButton = document.createElement('div');
-            closeButton.className = 'close-module';
-            closeButton.addEventListener('click', () => this.hideModule());
-            this.container.appendChild(closeButton);
-            
-            // Создаем заголовок
-            const moduleTitle = document.createElement('h2');
-            moduleTitle.textContent = 'Тесты по фармакологии';
-            moduleTitle.className = 'pharma-title';
-            moduleWrapper.appendChild(moduleTitle);
-            
-            // Контейнер для содержимого модуля
-            const moduleContent = document.createElement('div');
-            moduleContent.className = 'module-content';
-            moduleContent.id = 'pharma-content';
-            moduleWrapper.appendChild(moduleContent);
-            
-            // Добавляем модуль в контейнер
-            this.container.appendChild(moduleWrapper);
-        },
-        
-        // Показать модуль
-        showModule: function() {
-            // Инициализируем модуль, если он еще не был инициализирован
-            if (!this.state.moduleInitialized) {
-                this.init();
-            }
-            
-            // Показываем контейнер
-            this.container.style.display = 'block';
-            this.state.moduleVisible = true;
-            
-            // Запускаем тест по фармакологии
-            setTimeout(() => {
-                this.startPharmaTest();
-            }, 100);
-        },
-        
-        // Скрыть модуль
-        hideModule: function() {
-            this.container.style.display = 'none';
-            this.state.moduleVisible = false;
-            this.state.testInProgress = false;
-        },
-        
-        // Запуск теста по фармакологии
-        startPharmaTest: function() {
-            // Сбрасываем состояние
-            this.state.userAnswers = [];
-            this.state.userScore = 0;
-            this.state.testInProgress = true;
-            
-            // Отображаем тест
-            this.renderPharmaTest();
-        },
-        
-        // Отображение теста по фармакологии
-        renderPharmaTest: function() {
-            const moduleContent = document.getElementById('pharma-content');
-            moduleContent.innerHTML = '';
-            moduleContent.classList.remove('visible');
-            
-            // Задержка для анимации
-            setTimeout(() => {
-                // Выбираем 5 случайных вопросов
-                const randomQuestions = this.getRandomQuestions(5);
                 
-                // Добавляем информацию о тесте
-                const testInfo = document.createElement('div');
-                testInfo.className = 'test-info fade-in';
-                testInfo.textContent = 'Выберите правильный ответ в каждом вопросе. После ответа на все вопросы нажмите кнопку "Проверить результаты".';
-                moduleContent.appendChild(testInfo);
+                this.nextButton.addEventListener('click', () => this.nextQuestion());
                 
-                // Добавляем каждый вопрос
-                randomQuestions.forEach((question, index) => {
-                    const questionContainer = document.createElement('div');
-                    questionContainer.className = 'pharma-question-container fade-in';
-                    questionContainer.style.animationDelay = `${index * 0.1}s`;
+                // Добавляем обработчик для кнопки закрытия
+                const closeButton = document.getElementById('close-pharma-module');
+                if (closeButton) {
+                    closeButton.addEventListener('click', () => this.hideModule());
+                }
+                
+                return true;
+            },
+
+            // Скрыть модуль
+            hideModule: function() {
+                this.container.style.display = 'none';
+                
+                // Показываем стартовый экран
+                const startScreen = document.getElementById('start-screen');
+                if (startScreen) {
+                    startScreen.style.display = 'block';
+                }
+                
+                // Скрываем контейнер анатомического квиза, если он открыт
+                const quizContainer = document.getElementById('quiz-container');
+                if (quizContainer) {
+                    quizContainer.style.display = 'none';
+                }
+            },
+
+            // Показать модуль
+            showModule: function() {
+                console.log('Запуск модуля фармакологии');
+                
+                try {
+                    // Инициализируем модуль, если нужно
+                    if (!this.init()) {
+                        throw new Error('Не удалось инициализировать модуль фармакологии');
+                    }
+
+                    // Показываем контейнер
+                    this.container.style.display = 'flex';
+
+                    // Запускаем тест
+                    this.startTest();
                     
-                    // Номер вопроса
-                    const questionNumber = document.createElement('div');
-                    questionNumber.className = 'question-number';
-                    questionNumber.textContent = `Вопрос ${index + 1} из ${randomQuestions.length}`;
-                    questionContainer.appendChild(questionNumber);
+                    return true;
+                } catch (error) {
+                    console.error('Ошибка при запуске модуля фармакологии:', error);
+                    alert('Произошла ошибка при запуске модуля фармакологии. Пожалуйста, попробуйте снова.');
                     
-                    // Текст вопроса
-                    const questionText = document.createElement('div');
-                    questionText.className = 'pharma-question';
-                    questionText.textContent = question.question;
-                    questionContainer.appendChild(questionText);
+                    // Показываем стартовый экран в случае ошибки
+                    const startScreen = document.getElementById('start-screen');
+                    if (startScreen) {
+                        startScreen.style.display = 'block';
+                    }
                     
-                    // Варианты ответов
-                    const optionsContainer = document.createElement('div');
-                    optionsContainer.className = 'pharma-options';
-                    optionsContainer.dataset.questionId = question.id;
+                    return false;
+                }
+            },
+
+            // Запуск теста
+            startTest: function() {
+                this.state.currentQuestionIndex = 0;
+                this.state.score = 0;
+                this.state.isTestActive = true;
+                this.selectedAnswerIndex = undefined;
+
+                // Проверяем наличие вопросов
+                if (!this.questions || this.questions.length === 0) {
+                    console.error('Ошибка: нет доступных вопросов');
+                    this.questionContainer.innerHTML = '<p style="color: #e9573f;">Ошибка: нет доступных вопросов</p>';
+                    return false;
+                }
+
+                // Сбрасываем состояние и показываем первый вопрос
+                if (this.nextButton) {
+                    this.nextButton.style.display = 'block';
+                    this.nextButton.disabled = true;
+                }
+                
+                return this.showQuestion();
+            },
+
+            // Показ вопроса
+            showQuestion: function() {
+                try {
+                    // Проверяем доступность вопроса
+                    if (this.state.currentQuestionIndex >= this.questions.length) {
+                        console.error('Индекс вопроса вне диапазона:', this.state.currentQuestionIndex);
+                        this.showResults();
+                        return false;
+                    }
+
+                    const currentQuestion = this.questions[this.state.currentQuestionIndex];
                     
-                    question.options.forEach((option) => {
-                        const optionElem = document.createElement('div');
-                        optionElem.className = 'pharma-option';
-                        optionElem.textContent = option.text;
-                        optionElem.dataset.id = option.id;
-                        optionElem.dataset.correct = option.isCorrect;
-                        
-                        optionElem.addEventListener('click', (e) => this.selectOption(e.target, optionsContainer));
-                        
-                        optionsContainer.appendChild(optionElem);
+                    if (!currentQuestion || !currentQuestion.options) {
+                        console.error('Некорректный формат вопроса:', currentQuestion);
+                        return false;
+                    }
+
+                    this.questionContainer.innerHTML = `
+                        <div class="pharma-question">
+                            <p>${currentQuestion.question}</p>
+                            <div class="pharma-options">
+                                ${currentQuestion.options.map((option, index) => `
+                                    <div class="pharma-option" data-index="${index}">
+                                        ${option}
+                                    </div>
+                                `).join('')}
+                            </div>
+                        </div>
+                    `;
+
+                    // Обработчики для вариантов ответа
+                    const options = this.questionContainer.querySelectorAll('.pharma-option');
+                    if (options.length === 0) {
+                        console.error('Ошибка: варианты ответа не найдены');
+                        return false;
+                    }
+                    
+                    options.forEach(option => {
+                        option.addEventListener('click', (e) => this.selectAnswer(e));
+                    });
+
+                    // Сбрасываем кнопку "Далее"
+                    if (this.nextButton) {
+                        this.nextButton.disabled = true;
+                    }
+                    
+                    return true;
+                } catch (error) {
+                    console.error('Ошибка при отображении вопроса:', error);
+                    this.questionContainer.innerHTML = `
+                        <p style="color: #e9573f;">Произошла ошибка при загрузке вопроса</p>
+                        <button id="pharma-retry-btn" class="pharma-btn">Попробовать снова</button>
+                    `;
+                    
+                    const retryBtn = document.getElementById('pharma-retry-btn');
+                    if (retryBtn) {
+                        retryBtn.addEventListener('click', () => this.startTest());
+                    }
+                    
+                    return false;
+                }
+            },
+
+            // Выбор ответа
+            selectAnswer: function(event) {
+                try {
+                    // Если модуль находится в режиме отображения результатов, игнорируем клики
+                    if (!this.nextButton || this.nextButton.style.display === 'none') {
+                        return;
+                    }
+                    
+                    // Получаем выбранный вариант
+                    const selectedIndex = parseInt(event.target.dataset.index);
+                    const options = this.questionContainer.querySelectorAll('.pharma-option');
+
+                    // Проверяем корректность индекса
+                    if (isNaN(selectedIndex) || selectedIndex < 0 || selectedIndex >= options.length) {
+                        console.error('Некорректный индекс варианта ответа:', selectedIndex);
+                        return;
+                    }
+
+                    // Сбрасываем предыдущие состояния для всех вариантов
+                    options.forEach(opt => opt.classList.remove('selected'));
+
+                    // Отмечаем только выбранный ответ
+                    event.target.classList.add('selected');
+
+                    // Активируем кнопку "Далее"
+                    if (this.nextButton) {
+                        this.nextButton.disabled = false;
+                    }
+                    
+                    // Сохраняем выбранный ответ для проверки при переходе к следующему вопросу
+                    this.selectedAnswerIndex = selectedIndex;
+                } catch (error) {
+                    console.error('Ошибка при выборе ответа:', error);
+                }
+            },
+
+            // Переход к следующему вопросу
+            nextQuestion: function() {
+                try {
+                    // Сначала блокируем возможность менять выбор варианта
+                    const options = this.questionContainer.querySelectorAll('.pharma-option');
+                    options.forEach(option => {
+                        // Убираем возможность кликать по вариантам ответа
+                        option.style.pointerEvents = 'none';
                     });
                     
-                    questionContainer.appendChild(optionsContainer);
-                    
-                    // Блок для объяснения
-                    const explanation = document.createElement('div');
-                    explanation.className = 'explanation';
-                    explanation.style.display = 'none';
-                    explanation.textContent = question.explanation;
-                    questionContainer.appendChild(explanation);
-                    
-                    moduleContent.appendChild(questionContainer);
-                });
-                
-                // Кнопка проверки результатов
-                const navigation = document.createElement('div');
-                navigation.className = 'pharma-navigation';
-                
-                const checkBtn = document.createElement('button');
-                checkBtn.className = 'pharma-btn';
-                checkBtn.id = 'check-results-btn';
-                checkBtn.textContent = 'Проверить результаты';
-                checkBtn.disabled = true;
-                checkBtn.addEventListener('click', () => this.checkResults());
-                
-                navigation.appendChild(checkBtn);
-                moduleContent.appendChild(navigation);
-                
-                // Показываем контент с анимацией
-                moduleContent.classList.add('visible');
-            }, 300);
-        },
-        
-        // Выбор случайных вопросов
-        getRandomQuestions: function(count) {
-            const shuffled = [...this.pharmaQuestions].sort(() => 0.5 - Math.random());
-            return shuffled.slice(0, count);
-        },
-        
-        // Выбор варианта ответа
-        selectOption: function(optionElem, optionsContainer) {
-            // Если на вопрос уже ответили, игнорируем
-            if (optionsContainer.querySelector('.selected')) {
-                return;
-            }
-            
-            // Отмечаем выбранный вариант
-            const options = optionsContainer.querySelectorAll('.pharma-option');
-            options.forEach(opt => opt.classList.remove('selected'));
-            optionElem.classList.add('selected');
-            
-            // Сохраняем ответ
-            this.state.userAnswers.push({
-                questionId: optionsContainer.dataset.questionId,
-                selectedId: optionElem.dataset.id,
-                isCorrect: optionElem.dataset.correct === 'true'
-            });
-            
-            // Проверяем, на все ли вопросы ответили
-            const totalQuestions = document.querySelectorAll('.pharma-question-container').length;
-            if (this.state.userAnswers.length === totalQuestions) {
-                document.getElementById('check-results-btn').disabled = false;
-            }
-        },
-        
-        // Проверка результатов
-        checkResults: function() {
-            if (!this.state.testInProgress) return;
-            
-            this.state.testInProgress = false;
-            let correctAnswers = 0;
-            
-            // Проходим по всем вопросам и показываем правильные/неправильные ответы
-            const questionContainers = document.querySelectorAll('.pharma-question-container');
-            questionContainers.forEach(container => {
-                const optionsContainer = container.querySelector('.pharma-options');
-                const selectedOption = optionsContainer.querySelector('.selected');
-                const explanation = container.querySelector('.explanation');
-                
-                // Показываем объяснение
-                explanation.style.display = 'block';
-                
-                // Отмечаем правильные и неправильные ответы
-                if (selectedOption) {
-                    if (selectedOption.dataset.correct === 'true') {
-                        selectedOption.classList.add('correct');
-                        correctAnswers++;
+                    // Проверяем правильность ответа перед переходом к следующему вопросу
+                    if (typeof this.selectedAnswerIndex !== 'undefined') {
+                        const currentQuestion = this.questions[this.state.currentQuestionIndex];
                         
-                        // Анимация "+1" если доступна
-                        if (window.QuizAnimations && window.QuizAnimations.showScoreAnimation) {
-                            window.QuizAnimations.showScoreAnimation();
+                        // Проверяем наличие индекса правильного ответа
+                        if (currentQuestion && typeof currentQuestion.correctAnswer !== 'undefined' && 
+                            options.length > currentQuestion.correctAnswer) {
+                            
+                            // Отмечаем правильный или неправильный ответ
+                            if (this.selectedAnswerIndex === currentQuestion.correctAnswer) {
+                                options[this.selectedAnswerIndex].classList.add('correct');
+                                this.state.score++;
+                            } else {
+                                options[this.selectedAnswerIndex].classList.add('incorrect');
+                                options[currentQuestion.correctAnswer].classList.add('correct');
+                            }
+                            
+                            // Деактивируем кнопку на время отображения результата
+                            if (this.nextButton) {
+                                this.nextButton.disabled = true;
+                            }
+                            
+                            // Короткая пауза для того, чтобы пользователь увидел результат
+                            setTimeout(() => {
+                                // Увеличиваем индекс текущего вопроса
+                                this.state.currentQuestionIndex++;
+                                
+                                // Сбрасываем выбранный ответ
+                                this.selectedAnswerIndex = undefined;
+
+                                // Проверяем, закончились ли вопросы
+                                if (this.state.currentQuestionIndex >= this.questions.length) {
+                                    this.showResults();
+                                    return;
+                                }
+
+                                // Показываем следующий вопрос
+                                this.showQuestion();
+                                
+                                // Активируем кнопку снова
+                                if (this.nextButton) {
+                                    this.nextButton.disabled = false;
+                                }
+                            }, 1000); // Задержка 1 секунда
+                        } else {
+                            console.error('Ошибка: не найден правильный ответ:', 
+                                currentQuestion ? currentQuestion.correctAnswer : 'вопрос отсутствует');
+                            this.state.currentQuestionIndex++;
+                            this.showQuestion();
                         }
                     } else {
-                        selectedOption.classList.add('incorrect');
+                        // На случай, если метод вызвали без выбранного ответа
+                        this.state.currentQuestionIndex++;
                         
-                        // Показываем правильный ответ
-                        const options = optionsContainer.querySelectorAll('.pharma-option');
-                        options.forEach(opt => {
-                            if (opt.dataset.correct === 'true') {
-                                opt.classList.add('correct');
-                            }
-                        });
+                        // Проверяем, закончились ли вопросы
+                        if (this.state.currentQuestionIndex >= this.questions.length) {
+                            this.showResults();
+                            return;
+                        }
+
+                        // Показываем следующий вопрос
+                        this.showQuestion();
+                    }
+                } catch (error) {
+                    console.error('Ошибка при переходе к следующему вопросу:', error);
+                    // Пытаемся восстановиться и показать следующий вопрос
+                    this.state.currentQuestionIndex++;
+                    if (this.state.currentQuestionIndex >= this.questions.length) {
+                        this.showResults();
+                    } else {
+                        this.showQuestion();
                     }
                 }
-            });
-            
-            // Обновляем счет
-            this.state.userScore = correctAnswers;
-            
-            // Показываем результат
-            this.showResults(correctAnswers, questionContainers.length);
-        },
+            },
+
+            // Показ результатов
+            showResults: function() {
+                try {
+                    const totalQuestions = this.questions.length;
+                    if (totalQuestions === 0) {
+                        console.error('Ошибка: нет вопросов для отображения результатов');
+                        return;
+                    }
+                    
+                    const percentage = Math.round((this.state.score / totalQuestions) * 100);
+
+                    let resultText = '';
+                    if (percentage >= 90) {
+                        resultText = 'Отлично! Вы настоящий эксперт в фармакологии!';
+                    } else if (percentage >= 70) {
+                        resultText = 'Хороший результат! Вы хорошо знаете фармакологию.';
+                    } else if (percentage >= 50) {
+                        resultText = 'Неплохо, но есть над чем поработать.';
+                    } else {
+                        resultText = 'Рекомендуем изучить материал по фармакологии.';
+                    }
+
+                    this.questionContainer.innerHTML = `
+                        <div class="pharma-results">
+                            <h2>Ваш результат</h2>
+                            <p>Правильных ответов: ${this.state.score} из ${totalQuestions}</p>
+                            <p>Процент: ${percentage}%</p>
+                            <p>${resultText}</p>
+                            <div style="margin-top: 20px">
+                                <button id="pharma-restart-btn">Пройти снова</button>
+                                <button id="pharma-main-menu-btn">В главное меню</button>
+                            </div>
+                        </div>
+                    `;
+
+                    // Скрываем кнопку "Далее"
+                    if (this.nextButton) {
+                        this.nextButton.style.display = 'none';
+                    }
+
+                    // Обработчик перезапуска теста
+                    const restartBtn = document.getElementById('pharma-restart-btn');
+                    if (restartBtn) {
+                        restartBtn.addEventListener('click', () => {
+                            if (this.nextButton) {
+                                this.nextButton.style.display = 'block';
+                            }
+                            this.startTest();
+                        });
+                    }
+                    
+                    // Обработчик возврата в главное меню
+                    const mainMenuBtn = document.getElementById('pharma-main-menu-btn');
+                    if (mainMenuBtn) {
+                        mainMenuBtn.addEventListener('click', () => this.hideModule());
+                    }
+                } catch (error) {
+                    console.error('Ошибка при отображении результатов:', error);
+                    this.questionContainer.innerHTML = `
+                        <p style="color: #e9573f;">Произошла ошибка при отображении результатов</p>
+                        <button id="pharma-main-menu-btn" style="margin-top: 10px; background-color: #4a89dc;">В главное меню</button>
+                    `;
+                    
+                    const mainMenuBtn = document.getElementById('pharma-main-menu-btn');
+                    if (mainMenuBtn) {
+                        mainMenuBtn.addEventListener('click', () => this.hideModule());
+                    }
+                }
+            }
+        };
         
-        // Отображение результатов
-        showResults: function(correctAnswers, totalQuestions) {
-            const moduleContent = document.getElementById('pharma-content');
-            
-            // Удаляем кнопку проверки результатов
-            const checkBtn = document.getElementById('check-results-btn');
-            if (checkBtn) {
-                checkBtn.parentNode.removeChild(checkBtn);
-            }
-            
-            // Добавляем счет
-            const scoreElement = document.createElement('div');
-            scoreElement.className = 'pharma-score fade-in';
-            scoreElement.textContent = `Ваш результат: ${correctAnswers} из ${totalQuestions}`;
-            moduleContent.appendChild(scoreElement);
-            
-            // Добавляем оценку
-            let assessment = '';
-            if (correctAnswers === totalQuestions) {
-                assessment = 'Отлично! Вы отлично знаете фармакологию!';
-            } else if (correctAnswers >= totalQuestions * 0.8) {
-                assessment = 'Очень хорошо! Ваши знания фармакологии на высоком уровне.';
-            } else if (correctAnswers >= totalQuestions * 0.6) {
-                assessment = 'Хорошо! У вас хорошие знания, но есть области для улучшения.';
-            } else {
-                assessment = 'Рекомендуем повторить основы фармакологии.';
-            }
-            
-            const assessmentElement = document.createElement('div');
-            assessmentElement.className = 'test-info fade-in';
-            assessmentElement.textContent = assessment;
-            moduleContent.appendChild(assessmentElement);
-            
-            // Кнопка для нового теста
-            const navigation = document.createElement('div');
-            navigation.className = 'pharma-navigation';
-            
-            const newTestBtn = document.createElement('button');
-            newTestBtn.className = 'pharma-btn fade-in';
-            newTestBtn.textContent = 'Новый тест';
-            newTestBtn.addEventListener('click', () => this.startPharmaTest());
-            
-            navigation.appendChild(newTestBtn);
-            moduleContent.appendChild(navigation);
+        // Добавление модуля в глобальную область видимости с защитой от перезаписи
+        if (!window.PharmacologyModule) {
+            window.PharmacologyModule = PharmacologyModule;
+            console.log('Модуль фармакологии успешно инициализирован');
         }
-    };
+        
+    } catch (error) {
+        console.error('Критическая ошибка при инициализации модуля фармакологии:', error);
+        
+        // Создаем резервный объект модуля в случае ошибки
+        window.PharmacologyModule = {
+            showModule: function() {
+                alert('Модуль фармакологии временно недоступен. Пожалуйста, попробуйте позже или выберите другой режим.');
+                
+                // Возвращаемся к меню
+                const startScreen = document.getElementById('start-screen');
+                if (startScreen) {
+                    startScreen.style.display = 'block';
+                }
+            },
+            hideModule: function() {
+                // Пустая реализация для совместимости
+            }
+        };
+    }
     
-    // Добавление модуля в глобальную область видимости
-    window.PharmacologyModule = PharmacologyModule;
-    
-    // Инициализация модуля при загрузке DOM
+    // Инициализация модуля при загрузке DOM если он еще не был инициализирован
     document.addEventListener('DOMContentLoaded', () => {
-        console.log('Модуль тестов по фармакологии загружен');
+        try {
+            console.log('Проверка модуля фармакологии при загрузке DOM');
+            if (window.PharmacologyModule && typeof window.PharmacologyModule.init === 'function') {
+                // Не инициализируем модуль автоматически, только проверяем наличие
+                console.log('Модуль фармакологии доступен и готов к использованию');
+            }
+        } catch (error) {
+            console.error('Ошибка при проверке модуля фармакологии:', error);
+        }
     });
 })();
