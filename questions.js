@@ -401,7 +401,7 @@ window.questions = [
         correctOptionIndex: 0,
         mode: "anatomy",
         difficulty: "easy"
-    }
+    },
     
     // АНАТОМИЯ - СЛОЖНЫЙ УРОВЕНЬ
     {
