@@ -18,12 +18,129 @@
     --option-selected-bg: rgba(235, 244, 255, 0.9);
     --option-correct-bg: rgba(198, 246, 213, 0.9);
     --option-wrong-bg: rgba(254, 215, 215, 0.9);
-    --card-bg: rgba(255, 255, 255, 0.8);
+    --card-bg: rgba(255, 255, 255, 0.95);
     --card-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
     --header-border: #e2e8f0;
     --progress-bg: rgba(237, 242, 247, 0.5);
     --medical-pulse: #f56565;
     --medical-accent: #4fd1c5;
+
+/* Добавляем современные эффекты и особенности */
+/* Красивый градиентный эффект для бейджей */
+.difficulty-badge {
+    background-image: linear-gradient(135deg, var(--accent-color) 0%, var(--accent-color-dark) 100%);
+}
+
+.difficulty-badge.hard {
+    background-image: linear-gradient(135deg, #e91e63 0%, #d81b60 100%);
+}
+
+/* Стильная анимация кнопок */
+.btn-primary, .btn-secondary {
+    transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275), 
+                box-shadow 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.btn-primary:active, .btn-secondary:active {
+    transform: scale(0.98);
+}
+
+/* Пульсирующий эффект для элементов навигации */
+@keyframes gentle-pulse {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.03); }
+    100% { transform: scale(1); }
+}
+
+#start-quiz, .btn-primary, .difficulty-badge {
+    animation: gentle-pulse 3s ease-in-out infinite;
+}
+
+/* Улучшенный эффект наведения для опций */
+.option::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 5px;
+    height: 100%;
+    background: transparent;
+    border-radius: 16px 0 0 16px;
+    transition: background 0.3s ease;
+}
+
+.option:hover::before {
+    background: var(--accent-color);
+}
+
+.option.selected::before {
+    background: var(--accent-color);
+}
+
+.option.correct::before {
+    background: #10b981;
+}
+
+.option.wrong::before {
+    background: #ef4444;
+}
+
+/* Добавляем особенные декоративные элементы */
+h1::before {
+    content: '👨‍⚕️';
+    font-size: 0.8em;
+    position: absolute;
+    top: -15px;
+    left: -30px;
+    transform: rotate(-15deg);
+    opacity: 0.9;
+}
+
+/* Улучшенные нейоморфные эффекты */
+.user-info {
+    box-shadow: 
+        5px 5px 15px rgba(0, 0, 0, 0.05),
+        -5px -5px 15px rgba(255, 255, 255, 0.6);
+}
+
+/* Современная типографика */
+body {
+    font-feature-settings: "kern", "liga", "clig", "calt";
+    text-rendering: optimizeLegibility;
+}
+
+/* Улучшенные переходы между экранами */
+#start-screen, #quiz-container, #results-container {
+    transition: opacity 0.4s ease, transform 0.4s ease;
+}
+
+/* Стильная кнопка Далее */
+#next-question:enabled {
+    position: relative;
+    overflow: hidden;
+}
+
+#next-question:enabled::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(
+        90deg,
+        transparent,
+        rgba(255, 255, 255, 0.2),
+        transparent
+    );
+    animation: shine 2s infinite;
+}
+
+@keyframes shine {
+    100% {
+        left: 100%;
+    }
+}
 }
 
 /* Базовые стили */
@@ -31,7 +148,7 @@
     margin: 0;
     padding: 0;
     box-sizing: border-box;
-    font-family: 'Roboto', sans-serif;
+    font-family: 'Roboto', -apple-system, BlinkMacSystemFont, 'Segoe UI', Oxygen, Ubuntu, sans-serif;
 }
 
 body {
@@ -45,9 +162,11 @@ body {
     justify-content: center;
     position: relative;
     overflow-x: hidden;
+    font-size: 16px;
+    line-height: 1.5;
 }
 
-/* Анимированный фон с медицинской темой */
+/* Улучшенный анимированный фон с медицинской темой */
 .animated-bg {
     position: fixed;
     top: 0;
@@ -58,7 +177,7 @@ body {
         url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%235a67d8' opacity='0.05'%3E%3Cpath d='M19 3H5c-1.1 0-1.99.9-1.99 2L3 19c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-1 11h-4v4h-4v-4H6v-4h4V6h4v4h4v4z'/%3E%3C/svg%3E");
     background-size: 50px 50px;
     z-index: -10;
-    opacity: 0.3;
+    opacity: 0.2;
     animation: bgFloat 120s linear infinite;
 }
 
@@ -80,12 +199,13 @@ body {
 
 .medical-icon {
     position: absolute;
-    width: 40px;
-    height: 40px;
+    width: 48px;
+    height: 48px;
     background-size: contain;
     background-repeat: no-repeat;
     opacity: 0.1;
     animation: floatUpDown 15s ease-in-out infinite;
+    filter: drop-shadow(0 5px 15px rgba(0, 0, 0, 0.1));
 }
 
 .icon1 { 
@@ -122,21 +242,21 @@ body {
 @keyframes floatUpDown {
     0%, 100% {
         transform: translateY(0) rotate(0deg);
-        opacity: 0.05;
+        opacity: 0.08;
     }
     50% {
-        transform: translateY(-20px) rotate(10deg);
-        opacity: 0.15;
+        transform: translateY(-25px) rotate(10deg);
+        opacity: 0.2;
     }
 }
 
-/* Интегрированная пульсовая линия в карточках */
+/* Улучшенная интегрированная пульсовая линия в карточках */
 .card-pulse {
     position: absolute;
     bottom: 0;
     left: 0;
     width: 100%;
-    height: 30px;
+    height: 35px;
     overflow: hidden;
     opacity: 0.7;
     border-radius: 0 0 16px 16px;
@@ -159,27 +279,30 @@ body {
     0% {
         stroke-dasharray: 0 150;
         stroke-dashoffset: 0;
+        opacity: 0.8;
     }
     50% {
         stroke-dasharray: 150 0;
         stroke-dashoffset: -150;
+        opacity: 1;
     }
     100% {
         stroke-dasharray: 150 0;
         stroke-dashoffset: -300;
+        opacity: 0.8;
     }
 }
 
-/* Стили для контейнеров */
+/* Улучшенные стили для контейнеров */
 #start-screen, #quiz-container, #results-container {
-    background-color: var(--main-bg);
-    border-radius: 20px;
+    background-color: var(--card-bg);
+    border-radius: 24px;
     box-shadow: var(--card-shadow);
     width: 100%;
     max-width: 600px;
-    padding: 30px;
+    padding: 35px;
     margin: 20px auto;
-    backdrop-filter: blur(10px);
+    backdrop-filter: blur(20px);
     animation: fadeIn 0.5s ease-out;
     border: 1px solid var(--border-color);
     position: relative;
@@ -189,7 +312,7 @@ body {
 @keyframes fadeIn {
     from {
         opacity: 0;
-        transform: translateY(15px);
+        transform: translateY(20px);
     }
     to {
         opacity: 1;
@@ -197,54 +320,57 @@ body {
     }
 }
 
-/* Стили заголовков */
+/* Улучшенные стили заголовков */
 h1 {
     color: var(--accent-color);
     text-align: center;
-    margin-bottom: 20px;
-    font-size: 32px;
-    font-weight: 700;
+    margin-bottom: 25px;
+    font-size: 36px;
+    font-weight: 800;
     letter-spacing: -0.5px;
     position: relative;
     display: inline-block;
     left: 50%;
     transform: translateX(-50%);
+    text-shadow: 0px 2px 5px rgba(90, 103, 216, 0.2);
 }
 
 h1::after {
     content: '';
     position: absolute;
-    bottom: -8px;
+    bottom: -10px;
     left: 50%;
     transform: translateX(-50%);
     width: 0;
-    height: 3px;
+    height: 4px;
     background: linear-gradient(90deg, var(--accent-color) 0%, var(--medical-accent) 100%);
-    animation: lineExpand 1s forwards ease-out;
-    border-radius: 2px;
+    animation: lineExpand 1.2s forwards ease-out;
+    border-radius: 4px;
 }
 
 @keyframes lineExpand {
-    to { width: 70%; }
+    to { width: 80%; }
 }
 
 h2 {
     color: var(--text-color);
-    margin: 20px 0 15px;
-    font-size: 20px;
+    margin: 25px 0 18px;
+    font-size: 22px;
     font-weight: 600;
 }
 
-/* Стили для информации о пользователе */
+/* Современный стиль для информации о пользователе */
 .user-info {
     display: flex;
     align-items: center;
-    margin-bottom: 20px;
-    padding: 10px;
-    background: rgba(255, 255, 255, 0.4);
-    border-radius: 12px;
-    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+    margin-bottom: 25px;
+    padding: 12px 16px;
+    background: rgba(255, 255, 255, 0.5);
+    border-radius: 16px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
     animation: slideIn 0.5s ease-out;
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.3);
 }
 
 @keyframes slideIn {
@@ -259,17 +385,28 @@ h2 {
 }
 
 .user-info img {
-    width: 40px;
-    height: 40px;
+    width: 45px;
+    height: 45px;
     border-radius: 50%;
-    margin-right: 10px;
-    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-    border: 2px solid white;
+    margin-right: 15px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+    border: 3px solid white;
+    transition: transform 0.3s ease;
 }
 
-/* Стили выбора режима и сложности */
+.user-info img:hover {
+    transform: scale(1.1);
+}
+
+.user-info span {
+    font-weight: 600;
+    font-size: 17px;
+    letter-spacing: 0.3px;
+}
+
+/* Современный стиль выбора режима и сложности */
 .difficulty-selection, .quiz-mode-selection {
-    margin-bottom: 25px;
+    margin-bottom: 30px;
     animation: fadeSlideUp 0.6s ease-out;
     animation-fill-mode: both;
 }
@@ -281,7 +418,7 @@ h2 {
 @keyframes fadeSlideUp {
     from {
         opacity: 0;
-        transform: translateY(20px);
+        transform: translateY(25px);
     }
     to {
         opacity: 1;
@@ -291,29 +428,31 @@ h2 {
 
 .difficulty-btn, .quiz-mode-btn {
     background-color: var(--btn-secondary-bg);
-    border: 1px solid transparent;
-    padding: 12px 18px;
-    margin: 5px;
-    border-radius: 12px;
+    border: 1px solid rgba(226, 232, 240, 0.5);
+    padding: 14px 20px;
+    margin: 6px;
+    border-radius: 16px;
     cursor: pointer;
     font-size: 16px;
+    font-weight: 500;
     transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
     position: relative;
     overflow: hidden;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
 }
 
 .difficulty-btn:hover, .quiz-mode-btn:hover {
     background-color: var(--btn-secondary-bg-hover);
-    transform: translateY(-3px);
-    box-shadow: 0 7px 14px rgba(0, 0, 0, 0.1);
+    transform: translateY(-4px);
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
 }
 
 .difficulty-btn.active, .quiz-mode-btn.active {
     background-color: var(--btn-primary-bg);
     color: white;
     border-color: var(--accent-color-light);
-    box-shadow: 0 5px 15px rgba(92, 103, 216, 0.4);
+    box-shadow: 0 6px 18px rgba(92, 103, 216, 0.4);
+    font-weight: 600;
 }
 
 .difficulty-btn::after, .quiz-mode-btn::after {
@@ -334,23 +473,23 @@ h2 {
     opacity: 1;
 }
 
-/* Стили для кнопок */
+/* Современные стили для кнопок */
 .btn-primary, .btn-secondary {
     display: block;
     width: 100%;
-    padding: 16px;
+    padding: 18px;
     border: none;
-    border-radius: 12px;
+    border-radius: 16px;
     cursor: pointer;
     font-size: 17px;
     font-weight: 600;
     transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
-    margin-top: 15px;
+    margin-top: 18px;
     position: relative;
     overflow: hidden;
     letter-spacing: 0.5px;
     text-transform: uppercase;
-    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
     animation: fadeSlideUp 0.8s ease-out;
     animation-delay: 0.4s;
     animation-fill-mode: both;
@@ -358,8 +497,8 @@ h2 {
 
 .quiz-buttons {
     display: flex;
-    gap: 12px;
-    margin-top: 25px;
+    gap: 15px;
+    margin-top: 30px;
 }
 
 .btn-primary {
@@ -370,8 +509,8 @@ h2 {
 
 .btn-primary:hover {
     background-color: var(--btn-primary-bg-hover);
-    transform: translateY(-4px);
-    box-shadow: 0 15px 20px -7px rgba(92, 103, 216, 0.5);
+    transform: translateY(-5px);
+    box-shadow: 0 15px 25px -7px rgba(92, 103, 216, 0.5);
 }
 
 .btn-secondary {
@@ -381,8 +520,8 @@ h2 {
 
 .btn-secondary:hover {
     background-color: var(--btn-secondary-bg-hover);
-    transform: translateY(-3px);
-    box-shadow: 0 10px 15px -5px rgba(0, 0, 0, 0.1);
+    transform: translateY(-4px);
+    box-shadow: 0 12px 18px -5px rgba(0, 0, 0, 0.1);
 }
 
 .btn-primary:disabled {
@@ -413,19 +552,20 @@ h2 {
     opacity: 1;
 }
 
-/* Стили для контейнера вопросов */
+/* Улучшенные стили для контейнера вопросов */
 .question-counter {
     text-align: right;
-    margin-bottom: 10px;
+    margin-bottom: 12px;
     color: var(--secondary-text);
     font-weight: 500;
+    font-size: 16px;
 }
 
 #progress-bar-container {
-    height: 8px;
+    height: 10px;
     background-color: var(--progress-bg);
-    border-radius: 4px;
-    margin-bottom: 20px;
+    border-radius: 8px;
+    margin-bottom: 25px;
     overflow: hidden;
     box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.1);
 }
@@ -433,7 +573,7 @@ h2 {
 #progress-bar {
     height: 100%;
     background: linear-gradient(90deg, var(--accent-color-light) 0%, var(--accent-color) 100%);
-    border-radius: 4px;
+    border-radius: 8px;
     width: 0%;
     transition: width 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94);
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
@@ -441,23 +581,24 @@ h2 {
 
 .timer {
     text-align: center;
-    margin: 10px 0;
-    font-size: 18px;
+    margin: 12px 0;
+    font-size: 20px;
     font-weight: bold;
     color: var(--accent-color);
 }
 
 .question {
-    margin-bottom: 25px;
-    font-size: 20px;
+    margin-bottom: 30px;
+    font-size: 22px;
     line-height: 1.6;
     font-weight: 500;
-    padding: 15px;
-    border-radius: 12px;
-    background-color: rgba(255, 255, 255, 0.5);
-    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
+    padding: 20px;
+    border-radius: 16px;
+    background-color: rgba(255, 255, 255, 0.6);
+    box-shadow: 0 6px 15px rgba(0, 0, 0, 0.05);
     transform-origin: center;
     animation: questionIn 0.5s ease-out;
+    border-left: 4px solid var(--accent-color);
 }
 
 @keyframes questionIn {
@@ -474,22 +615,23 @@ h2 {
 .options {
     display: flex;
     flex-direction: column;
-    gap: 12px;
-    margin-bottom: 25px;
+    gap: 15px;
+    margin-bottom: 30px;
 }
 
 .option {
     background-color: var(--option-bg);
-    padding: 18px;
-    border-radius: 14px;
+    padding: 20px;
+    border-radius: 16px;
     cursor: pointer;
     transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
     border: 1px solid transparent;
-    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
     position: relative;
     overflow: hidden;
     animation: optionIn 0.5s ease-out;
     animation-fill-mode: both;
+    font-size: 17px;
 }
 
 .option:nth-child(1) { animation-delay: 0.1s; }
@@ -500,7 +642,7 @@ h2 {
 @keyframes optionIn {
     from {
         opacity: 0;
-        transform: translateY(15px);
+        transform: translateY(20px);
     }
     to {
         opacity: 1;
@@ -510,8 +652,8 @@ h2 {
 
 .option:hover {
     background-color: var(--option-bg-hover);
-    transform: translateY(-3px);
-    box-shadow: 0 5px 10px rgba(0, 0, 0, 0.1);
+    transform: translateY(-4px) scale(1.02);
+    box-shadow: 0 8px 15px rgba(0, 0, 0, 0.1);
 }
 
 .option.selected {
@@ -535,7 +677,7 @@ h2 {
         box-shadow: 0 0 0 0 rgba(6, 95, 70, 0.7);
     }
     70% {
-        box-shadow: 0 0 0 10px rgba(6, 95, 70, 0);
+        box-shadow: 0 0 0 15px rgba(6, 95, 70, 0);
     }
     100% {
         box-shadow: 0 0 0 0 rgba(6, 95, 70, 0);
@@ -547,28 +689,29 @@ h2 {
         transform: translateX(0);
     }
     10%, 30%, 50%, 70%, 90% {
-        transform: translateX(-5px);
+        transform: translateX(-6px);
     }
     20%, 40%, 60%, 80% {
-        transform: translateX(5px);
+        transform: translateX(6px);
     }
 }
 
-/* Стили для экрана результатов */
+/* Стильный экран результатов */
 .score {
     text-align: center;
     font-size: 24px;
-    margin-bottom: 30px;
+    margin-bottom: 35px;
 }
 
 .score-percentage {
-    font-size: 60px;
-    font-weight: 700;
-    margin: 20px 0;
+    font-size: 72px;
+    font-weight: 800;
+    margin: 25px 0;
     color: var(--accent-color);
-    text-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    text-shadow: 0 4px 15px rgba(0, 0, 0, 0.15);
     transition: all 0.5s ease;
-    animation: scoreAppear 1s cubic-bezier(0.17, 0.67, 0.83, 0.67);
+    animation: scoreAppear 1.2s cubic-bezier(0.17, 0.67, 0.83, 0.67);
+    line-height: 1;
 }
 
 @keyframes scoreAppear {
@@ -587,41 +730,46 @@ h2 {
 
 .score-percentage.excellent {
     color: #10b981;
+    text-shadow: 0 4px 15px rgba(16, 185, 129, 0.3);
 }
 
 .score-percentage.good {
     color: #3b82f6;
+    text-shadow: 0 4px 15px rgba(59, 130, 246, 0.3);
 }
 
 .score-percentage.average {
     color: #f59e0b;
+    text-shadow: 0 4px 15px rgba(245, 158, 11, 0.3);
 }
 
 .score-percentage.poor {
     color: #ef4444;
+    text-shadow: 0 4px 15px rgba(239, 68, 68, 0.3);
 }
 
 .score-text {
     font-size: 18px;
-    margin: 15px 0 25px;
+    margin: 20px 0 30px;
     font-style: italic;
 }
 
 .result-text {
     font-style: italic;
     display: block;
-    margin-top: 15px;
+    margin-top: 18px;
     color: var(--secondary-text);
     animation: fadeInUp 0.8s ease-out;
     background: rgba(255, 255, 255, 0.5);
-    padding: 12px;
-    border-radius: 10px;
+    padding: 15px;
+    border-radius: 14px;
+    font-weight: 500;
 }
 
 @keyframes fadeInUp {
     from {
         opacity: 0;
-        transform: translateY(20px);
+        transform: translateY(25px);
     }
     to {
         opacity: 1;
@@ -631,26 +779,26 @@ h2 {
 
 .difficulty-badge {
     display: inline-block;
-    padding: 8px 15px;
+    padding: 10px 18px;
     background-color: var(--accent-color);
     color: white;
-    border-radius: 20px;
-    font-size: 14px;
-    margin: 5px;
+    border-radius: 25px;
+    font-size: 15px;
+    margin: 6px;
     font-weight: 600;
-    box-shadow: 0 4px 10px rgba(0,0,0,0.15);
+    box-shadow: 0 6px 15px rgba(0,0,0,0.15);
     animation: badgeFadeIn 0.5s ease-out;
 }
 
 .difficulty-badge.hard {
     background-color: #e91e63;
-    box-shadow: 0 4px 10px rgba(233, 30, 99, 0.3);
+    box-shadow: 0 6px 15px rgba(233, 30, 99, 0.3);
 }
 
 @keyframes badgeFadeIn {
     from {
         opacity: 0;
-        transform: translateY(-15px);
+        transform: translateY(-18px);
     }
     to {
         opacity: 1;
@@ -658,93 +806,8 @@ h2 {
     }
 }
 
-.results-buttons {
-    display: flex;
-    gap: 15px;
-}
-
-/* Темная тема */
-.vk-dark-theme {
-    --bg-color: #111827;
-    --bg-gradient: linear-gradient(135deg, #111827 0%, #1f2937 100%);
-    --main-bg: rgba(31, 41, 55, 0.9);
-    --text-color: #f3f4f6;
-    --secondary-text: #d1d5db;
-    --accent-color: #8b5cf6;
-    --accent-color-light: #a78bfa;
-    --accent-color-dark: #7c3aed;
-    --btn-primary-bg: #8b5cf6;
-    --btn-primary-bg-hover: #7c3aed;
-    --btn-secondary-bg: #374151;
-    --btn-secondary-bg-hover: #4b5563;
-    --border-color: rgba(55, 65, 81, 0.5);
-    --option-bg: rgba(55, 65, 81, 0.8);
-    --option-bg-hover: rgba(75, 85, 99, 0.8);
-    --option-selected-bg: rgba(76, 29, 149, 0.7);
-    --option-correct-bg: rgba(6, 95, 70, 0.7);
-    --option-wrong-bg: rgba(159, 18, 57, 0.7);
-    --card-bg: rgba(31, 41, 55, 0.8);
-    --card-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.3), 0 10px 10px -5px rgba(0, 0, 0, 0.2);
-    --header-border: #374151;
-    --progress-bg: rgba(75, 85, 99, 0.5);
-    --medical-pulse: #ec4899;
-    --medical-accent: #0ea5e9;
-}
-
-/* Медиа-запросы для адаптивности */
-@media (max-width: 768px) {
-    body {
-        padding: 15px;
-    }
-    
-    #start-screen, #quiz-container, #results-container {
-        padding: 25px;
-    }
-    
-    h1 {
-        font-size: 26px;
-    }
-    
-    h2 {
-        font-size: 18px;
-    }
-    
-    .difficulty-btn, .quiz-mode-btn {
-        padding: 10px 14px;
-        font-size: 15px;
-    }
-    
-    .option {
-        padding: 15px;
-    }
-    
-    .score-percentage {
-        font-size: 50px;
-    }
-}
-
-/* Дополнительные стили для маленьких экранов */
-@media (max-width: 480px) {
-    .results-buttons {
-        flex-direction: column;
-    }
-    
-    .btn-primary, .btn-secondary {
-        padding: 14px;
-        font-size: 16px;
-    }
-    
-    .option {
-        padding: 14px;
-        font-size: 15px;
-    }
-    
-    .question {
-        font-size: 18px;
-        padding: 12px;
-    }
-    
-    h1 {
-        font-size: 24px;
-    }
+/* Стилизация заголовков результатов */
+.score-text span {
+    font-weight: 600;
+    color: var(--accent-color);
 }
