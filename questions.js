@@ -685,3 +685,4 @@ window.questions = [
         mode: "clinical",
         difficulty: "easy"
     },
+];
