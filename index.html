@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="ru">
 <head>
@@ -50,7 +51,7 @@
         </div>
     </div>
 
-    <!-- Экран квиза - исправленная позиция в документе -->
+    <!-- Экран квиза -->
     <div id="quiz-container" style="display: none;">
         <div id="user-info-quiz" class="user-info"></div>
         <div id="question-counter" class="question-counter"></div>
@@ -62,7 +63,6 @@
         <div id="options" class="options"></div>
         <div class="quiz-buttons">
             <button id="next-question" class="btn-primary" disabled>Далее</button>
-            <button id="exit-quiz" class="btn-secondary">Выйти</button>
         </div>
         
         <!-- Интегрированная пульсовая линия в карточках -->
@@ -73,6 +73,9 @@
             </svg>
         </div>
     </div>
+
+    <!-- Кнопка "Выйти" перемещена за пределы quiz-container -->
+    <button id="exit-quiz" class="btn-secondary">Выйти</button>
 
     <!-- Экран результатов -->
     <div id="results-container" style="display: none;">
