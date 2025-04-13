@@ -30,7 +30,7 @@ function applyVKTheme(scheme) {
     document.documentElement.classList.toggle('vk-dark-theme', isDarkTheme);
 }
 
-// Функция перемешивания массива (алгоритм Фишера-Йейтса)
+// Функция для перемешивания массива (алгоритм Фишера-Йейтса)
 function shuffleArray(array) {
     if (!Array.isArray(array) || array.length === 0) {
         console.error('Ошибка: shuffleArray получил неверный массив');
@@ -44,7 +44,7 @@ function shuffleArray(array) {
     return newArray;
 }
 
-// Функция для получения базовых вопросов, если нет файла questions.js
+// Функция для получения базовых вопросов
 function getDefaultQuestions() {
     return [
         {
@@ -255,7 +255,6 @@ function initializeApp() {
         }
         console.log(`Выбор вопросов режима ${currentQuizMode}, сложность ${currentDifficulty}`);
 
-        // Фильтруем вопросы по режиму и сложности
         const filteredQuestions = window.questions.filter(q =>
             q.mode === currentQuizMode && q.difficulty === currentDifficulty
         );
@@ -265,13 +264,11 @@ function initializeApp() {
             return shuffleArray(window.questions).slice(0, totalQuestionsToShow);
         }
 
-        // Если вопросов меньше чем нужно, используем имеющиеся
         if (filteredQuestions.length <= totalQuestionsToShow) {
             console.log(`Доступно только ${filteredQuestions.length} вопросов для выбранного режима и сложности`);
             return shuffleArray(filteredQuestions);
         }
 
-        // Перемешиваем и выбираем нужное количество
         return shuffleArray(filteredQuestions).slice(0, totalQuestionsToShow);
     }
 
@@ -287,7 +284,6 @@ function initializeApp() {
         score = 0;
         console.log(`Запуск квиза режима ${currentQuizMode}, сложность ${currentDifficulty}`);
 
-        // Выбираем вопросы для текущего теста
         questionsForQuiz = selectQuestions();
         console.log(`Выбрано ${questionsForQuiz.length} вопросов для квиза`);
 
@@ -297,7 +293,6 @@ function initializeApp() {
             return;
         }
 
-        // Копируем информацию о пользователе
         if (userInfoElement && userInfoQuizElement) {
             userInfoQuizElement.innerHTML = userInfoElement.innerHTML;
         }
@@ -324,20 +319,12 @@ function initializeApp() {
         }
         const question = questionsForQuiz[currentQuestion];
 
-        // Отображаем текст вопроса
         questionElement.textContent = question.text;
-
-        // Обновление счетчика вопросов
         questionCounter.textContent = `Вопрос ${currentQuestion + 1} из ${questionsForQuiz.length}`;
-
-        // Обновление прогресс-бара
         const progress = ((currentQuestion) / questionsForQuiz.length) * 100;
         progressBar.style.width = `${progress}%`;
 
-        // Очистка предыдущих вариантов
         optionsElement.innerHTML = '';
-
-        // Добавление новых вариантов
         if (Array.isArray(question.options)) {
             question.options.forEach((option, index) => {
                 const optionElement = document.createElement('div');
@@ -358,12 +345,10 @@ function initializeApp() {
         const selectedIndex = parseInt(e.target.dataset.index);
         selectedOption = selectedIndex;
 
-        // Подсветка выбранного варианта
         const options = document.querySelectorAll('.option');
         options.forEach(option => option.classList.remove('selected'));
         e.target.classList.add('selected');
 
-        // Активация кнопки "Далее"
         nextButton.disabled = false;
     }
 
@@ -375,29 +360,24 @@ function initializeApp() {
                 return;
             }
 
-            // Блокировка кнопки после клика
             nextButton.disabled = true;
 
-            // Проверка ответа
             const correct = questionsForQuiz[currentQuestion].correctOptionIndex;
             if (selectedOption === correct) {
                 score++;
             }
 
-            // Подсветка правильного/неправильного ответа
             const options = document.querySelectorAll('.option');
             if (options[correct]) options[correct].classList.add('correct');
             if (selectedOption !== correct && options[selectedOption]) {
                 options[selectedOption].classList.add('wrong');
             }
 
-            // Блокировка выбора после проверки
             options.forEach(option => {
                 option.removeEventListener('click', selectOption);
                 option.style.pointerEvents = 'none';
             });
 
-            // Задержка перед следующим вопросом
             setTimeout(() => {
                 currentQuestion++;
                 if (currentQuestion < questionsForQuiz.length) {
@@ -405,7 +385,7 @@ function initializeApp() {
                 } else {
                     showResults();
                 }
-            }, 1500); // 1.5 секунды, чтобы увидеть правильный ответ
+            }, 1500);
         });
     }
 
@@ -419,7 +399,6 @@ function initializeApp() {
         resultsContainer.style.display = 'block';
         const percentage = Math.round((score / questionsForQuiz.length) * 100);
 
-        // Обновляем бэйдж сложности
         const difficultyBadge = document.getElementById('difficulty-badge');
         if (difficultyBadge) {
             difficultyBadge.textContent = currentDifficulty === 'hard' ? 'Сложный уровень' : 'Обычный уровень';
@@ -430,7 +409,6 @@ function initializeApp() {
             }
         }
 
-        // Обновляем бэйдж режима
         const modeBadge = document.getElementById('mode-badge');
         if (modeBadge) {
             let modeText = 'Анатомия';
@@ -439,7 +417,6 @@ function initializeApp() {
             modeBadge.textContent = modeText;
         }
 
-        // Обновляем процент и количество правильных ответов
         const percentageElement = document.getElementById('percentage');
         if (percentageElement) {
             percentageElement.textContent = percentage;
@@ -453,7 +430,6 @@ function initializeApp() {
             totalQuestionsElement.textContent = questionsForQuiz.length;
         }
 
-        // Добавляем класс в зависимости от результата
         const scorePercentageElement = document.querySelector('.score-percentage');
         if (scorePercentageElement) {
             scorePercentageElement.classList.remove('excellent', 'good', 'average', 'poor');
@@ -468,7 +444,6 @@ function initializeApp() {
             }
         }
 
-        // Добавляем текст результата
         const scoreTextElement = document.querySelector('.score-text');
         if (scoreTextElement) {
             let resultText;
@@ -495,7 +470,6 @@ function initializeApp() {
             const difficultyText = currentDifficulty === 'hard' ? 'сложный уровень' : 'обычный уровень';
             const message = `Я прошел Медицинский квиз (${modeText}, ${difficultyText}) и набрал ${percentage}%! Попробуй и ты!`;
 
-            // Получаем текущий экземпляр VK Bridge
             let bridge = vkBridgeInstance || window.vkBridgeInstance;
             if (bridge) {
                 bridge.send('VKWebAppShare', { message })
