@@ -176,12 +176,48 @@ document.addEventListener('DOMContentLoaded', function() {
     // Инициализируем VK Bridge перед инициализацией приложения
     vkBridgeInstance = initVKBridge();
     
+    // Элементы DOM
+    const startScreen = document.getElementById('start-screen');
+    const quizContainer = document.getElementById('quiz-container');
+    const resultsContainer = document.getElementById('results-container');
+    const exitQuizButton = document.getElementById('exit-quiz');
+
+    // Функция для возврата на стартовый экран
+    function returnToStartScreen() {
+        if (quizContainer) quizContainer.style.display = 'none';
+        if (resultsContainer) resultsContainer.style.display = 'none';
+        if (startScreen) startScreen.style.display = 'block';
+        
+        // Сброс глобальных переменных
+        currentQuestion = 0;
+        score = 0;
+        selectedOption = null;
+        questionsForQuiz = [];
+    }
+
+    // Обработчик кнопки "Выйти"
+    if (exitQuizButton) {
+        exitQuizButton.addEventListener('click', function() {
+            // Показываем диалоговое окно подтверждения
+            const confirmExit = confirm('Вы уверены, что хотите выйти? Прогресс теста будет потерян.');
+            
+            // Если пользователь подтвердил выход
+            if (confirmExit) {
+                returnToStartScreen();
+            }
+        });
+    } else {
+        console.error('Кнопка выхода не найдена');
+    }
+    
     // Инициализация приложения будет вызвана в любом случае
-    setTimeout(initializeApp, 500); // Небольшая задержка для гарантии загрузки
+    setTimeout(initializeApp, 500);
 });
 
 // Инициализация приложения
 function initializeApp() {
+    // Остальной существующий код initializeApp() 
+    // (продолжение вашего оригинального кода...)
     // DOM элементы - проверяем их существование перед использованием
     const startScreen = document.getElementById('start-screen');
     const quizContainer = document.getElementById('quiz-container');
@@ -201,12 +237,9 @@ function initializeApp() {
     const difficultyButtons = document.querySelectorAll('.difficulty-btn');
     const quizModeButtons = document.querySelectorAll('.quiz-mode-btn');
 
-    // Проверяем наличие необходимых элементов
-    if (!startScreen || !quizContainer || !resultsContainer || 
-        !questionElement || !optionsElement || !progressBar) {
-        console.error('Ошибка: Некоторые необходимые элементы не найдены в DOM');
-        return; // Прекращаем выполнение, если элементы не найдены
-    }
+    // Остальной код функции initializeApp() остается без изменений
+    // (весь существующий код из вашего оригинального файла)
+}
 
     // Выбор уровня сложности
     difficultyButtons.forEach(button => {
