@@ -8,6 +8,9 @@
     <!-- questions.js и difficult-questions.json загружаются динамически в app.js -->
 </head>
 <body>
+    <!-- Анимированный фон -->
+    <div class="animated-bg"></div>
+    
     <!-- Плавающие медицинские иконки -->
     <div class="medical-icons">
         <div class="medical-icon icon1"></div>
@@ -15,6 +18,7 @@
         <div class="medical-icon icon3"></div>
         <div class="medical-icon icon4"></div>
         <div class="medical-icon icon5"></div>
+        <div class="medical-icon icon6"></div>
     </div>
     
     <!-- Стартовый экран -->
@@ -33,7 +37,14 @@
             <button class="quiz-mode-btn" data-mode="pharmacology">Фармакология</button>
         </div>
         <button id="start-quiz" class="btn-primary">Начать квиз</button>
-        <!-- Здесь будут отображаться предыдущие результаты -->
+        
+        <!-- Интегрированная пульсовая линия в карточках -->
+        <div class="card-pulse">
+            <svg class="pulse-line-svg" viewBox="0 0 150 40" preserveAspectRatio="none">
+                <path class="pulse-line-path" d="M0,20 L10,20 L15,20 L20,10 L25,30 L30,20 L35,20 L40,20 L45,20 L50,20 L55,10 L60,30 L65,20 L70,20 L75,20 L80,20 L85,20 L90,10 L95,30 L100,20 L105,20 L110,20 L115,20 L120,20 L125,10 L130,30 L135,20 L140,20 L150,20">
+                </path>
+            </svg>
+        </div>
     </div>
 
     <!-- Экран квиза -->
@@ -50,6 +61,14 @@
             <button id="next-question" class="btn-primary" disabled>Далее</button>
             <button id="exit-quiz" class="btn-secondary">Выйти</button>
         </div>
+        
+        <!-- Интегрированная пульсовая линия в карточках -->
+        <div class="card-pulse">
+            <svg class="pulse-line-svg" viewBox="0 0 150 40" preserveAspectRatio="none">
+                <path class="pulse-line-path" d="M0,20 L10,20 L15,20 L20,10 L25,30 L30,20 L35,20 L40,20 L45,20 L50,20 L55,10 L60,30 L65,20 L70,20 L75,20 L80,20 L85,20 L90,10 L95,30 L100,20 L105,20 L110,20 L115,20 L120,20 L125,10 L130,30 L135,20 L140,20 L150,20">
+                </path>
+            </svg>
+        </div>
     </div>
 
     <!-- Экран результатов -->
@@ -65,14 +84,14 @@
             <button id="share-results" class="btn-primary">Поделиться</button>
             <button id="restart-quiz" class="btn-secondary">Начать заново</button>
         </div>
-    </div>
-
-    <!-- Добавляем анимацию пульса -->
-    <div class="pulse-line-container">
-        <svg class="pulse-line-svg" viewBox="0 0 150 40" preserveAspectRatio="none">
-            <path class="pulse-line-path" d="M0,20 L10,20 L15,20 L20,10 L25,30 L30,20 L35,20 L40,20 L45,20 L50,20 L55,10 L60,30 L65,20 L70,20 L75,20 L80,20 L85,20 L90,10 L95,30 L100,20 L105,20 L110,20 L115,20 L120,20 L125,10 L130,30 L135,20 L140,20 L150,20">
-            </path>
-        </svg>
+        
+        <!-- Интегрированная пульсовая линия в карточках -->
+        <div class="card-pulse">
+            <svg class="pulse-line-svg" viewBox="0 0 150 40" preserveAspectRatio="none">
+                <path class="pulse-line-path" d="M0,20 L10,20 L15,20 L20,10 L25,30 L30,20 L35,20 L40,20 L45,20 L50,20 L55,10 L60,30 L65,20 L70,20 L75,20 L80,20 L85,20 L90,10 L95,30 L100,20 L105,20 L110,20 L115,20 L120,20 L125,10 L130,30 L135,20 L140,20 L150,20">
+                </path>
+            </svg>
+        </div>
     </div>
 
     <script src="questions.js"></script>
