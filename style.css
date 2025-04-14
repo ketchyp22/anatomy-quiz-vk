@@ -1,3 +1,5 @@
+/* Исправленные стили для медицинского квиза */
+
 /* Определение переменных для светлой темы (по умолчанию) */
 :root {
     --bg-color: #eef2f7;
@@ -24,123 +26,7 @@
     --progress-bg: rgba(237, 242, 247, 0.5);
     --medical-pulse: #f56565;
     --medical-accent: #4fd1c5;
-
-/* Добавляем современные эффекты и особенности */
-/* Красивый градиентный эффект для бейджей */
-.difficulty-badge {
-    background-image: linear-gradient(135deg, var(--accent-color) 0%, var(--accent-color-dark) 100%);
-}
-
-.difficulty-badge.hard {
-    background-image: linear-gradient(135deg, #e91e63 0%, #d81b60 100%);
-}
-
-/* Стильная анимация кнопок */
-.btn-primary, .btn-secondary {
-    transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275), 
-                box-shadow 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-}
-
-.btn-primary:active, .btn-secondary:active {
-    transform: scale(0.98);
-}
-
-/* Пульсирующий эффект для элементов навигации */
-@keyframes gentle-pulse {
-    0% { transform: scale(1); }
-    50% { transform: scale(1.03); }
-    100% { transform: scale(1); }
-}
-
-#start-quiz, .btn-primary, .difficulty-badge {
-    animation: gentle-pulse 3s ease-in-out infinite;
-}
-
-/* Улучшенный эффект наведения для опций */
-.option::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 5px;
-    height: 100%;
-    background: transparent;
-    border-radius: 16px 0 0 16px;
-    transition: background 0.3s ease;
-}
-
-.option:hover::before {
-    background: var(--accent-color);
-}
-
-.option.selected::before {
-    background: var(--accent-color);
-}
-
-.option.correct::before {
-    background: #10b981;
-}
-
-.option.wrong::before {
-    background: #ef4444;
-}
-
-/* Добавляем особенные декоративные элементы */
-h1::before {
-    content: '👨‍⚕️';
-    font-size: 0.8em;
-    position: absolute;
-    top: -15px;
-    left: -30px;
-    transform: rotate(-15deg);
-    opacity: 0.9;
-}
-
-/* Улучшенные нейоморфные эффекты */
-.user-info {
-    box-shadow: 
-        5px 5px 15px rgba(0, 0, 0, 0.05),
-        -5px -5px 15px rgba(255, 255, 255, 0.6);
-}
-
-/* Современная типографика */
-body {
-    font-feature-settings: "kern", "liga", "clig", "calt";
-    text-rendering: optimizeLegibility;
-}
-
-/* Улучшенные переходы между экранами */
-#start-screen, #quiz-container, #results-container {
-    transition: opacity 0.4s ease, transform 0.4s ease;
-}
-
-/* Стильная кнопка Далее */
-#next-question:enabled {
-    position: relative;
-    overflow: hidden;
-}
-
-#next-question:enabled::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: -100%;
-    width: 100%;
-    height: 100%;
-    background: linear-gradient(
-        90deg,
-        transparent,
-        rgba(255, 255, 255, 0.2),
-        transparent
-    );
-    animation: shine 2s infinite;
-}
-
-@keyframes shine {
-    100% {
-        left: 100%;
-    }
-}
+    --gradient-bg: linear-gradient(135deg, rgba(127, 156, 245, 0.1) 0%, rgba(79, 209, 197, 0.1) 100%);
 }
 
 /* Базовые стили */
@@ -250,28 +136,33 @@ body {
     }
 }
 
-/* Улучшенная интегрированная пульсовая линия в карточках */
+/* Улучшенная стилизованная пульсовая линия */
 .card-pulse {
     position: absolute;
     bottom: 0;
     left: 0;
     width: 100%;
-    height: 35px;
+    height: 45px;
     overflow: hidden;
-    opacity: 0.7;
-    border-radius: 0 0 16px 16px;
+    opacity: 0.8;
+    border-radius: 0 0 24px 24px;
+    background: linear-gradient(to bottom, transparent, rgba(255, 255, 255, 0.4));
+    pointer-events: none;
 }
 
 .pulse-line-svg {
     width: 100%;
     height: 100%;
+    transform: translateY(5px);
 }
 
 .pulse-line-path {
     stroke: var(--medical-pulse);
-    stroke-width: 2;
-    fill: none;
+    stroke-width: 2.5;
     stroke-linecap: round;
+    stroke-linejoin: round;
+    fill: none;
+    filter: drop-shadow(0 0 2px rgba(245, 101, 101, 0.5));
     animation: pulse 3s ease-in-out infinite;
 }
 
@@ -279,7 +170,7 @@ body {
     0% {
         stroke-dasharray: 0 150;
         stroke-dashoffset: 0;
-        opacity: 0.8;
+        opacity: 0.7;
     }
     50% {
         stroke-dasharray: 150 0;
@@ -289,24 +180,25 @@ body {
     100% {
         stroke-dasharray: 150 0;
         stroke-dashoffset: -300;
-        opacity: 0.8;
+        opacity: 0.7;
     }
 }
 
 /* Улучшенные стили для контейнеров */
 #start-screen, #quiz-container, #results-container {
-    background-color: var(--card-bg);
+    background: var(--card-bg);
     border-radius: 24px;
-    box-shadow: var(--card-shadow);
+    box-shadow: var(--card-shadow), 0 0 30px rgba(90, 103, 216, 0.1);
     width: 100%;
     max-width: 600px;
     padding: 35px;
     margin: 20px auto;
     backdrop-filter: blur(20px);
     animation: fadeIn 0.5s ease-out;
-    border: 1px solid var(--border-color);
+    border: 1px solid rgba(255, 255, 255, 0.8);
     position: relative;
     overflow: hidden;
+    background-image: linear-gradient(135deg, rgba(255, 255, 255, 0.9) 0%, rgba(249, 250, 255, 0.9) 100%);
 }
 
 @keyframes fadeIn {
@@ -357,6 +249,7 @@ h2 {
     margin: 25px 0 18px;
     font-size: 22px;
     font-weight: 600;
+    text-align: center;
 }
 
 /* Современный стиль для информации о пользователе */
@@ -365,12 +258,15 @@ h2 {
     align-items: center;
     margin-bottom: 25px;
     padding: 12px 16px;
-    background: rgba(255, 255, 255, 0.5);
+    background: rgba(255, 255, 255, 0.7);
     border-radius: 16px;
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
     animation: slideIn 0.5s ease-out;
     backdrop-filter: blur(10px);
-    border: 1px solid rgba(255, 255, 255, 0.3);
+    border: 1px solid rgba(255, 255, 255, 0.5);
+    width: fit-content;
+    margin-left: auto;
+    margin-right: auto;
 }
 
 @keyframes slideIn {
@@ -409,6 +305,12 @@ h2 {
     margin-bottom: 30px;
     animation: fadeSlideUp 0.6s ease-out;
     animation-fill-mode: both;
+    text-align: center;
+    padding: 15px;
+    background: var(--gradient-bg);
+    border-radius: 20px;
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.03);
+    border: 1px solid rgba(255, 255, 255, 0.7);
 }
 
 .quiz-mode-selection {
@@ -439,6 +341,7 @@ h2 {
     position: relative;
     overflow: hidden;
     box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
+    display: inline-block;
 }
 
 .difficulty-btn:hover, .quiz-mode-btn:hover {
@@ -448,7 +351,7 @@ h2 {
 }
 
 .difficulty-btn.active, .quiz-mode-btn.active {
-    background-color: var(--btn-primary-bg);
+    background: linear-gradient(135deg, var(--btn-primary-bg) 0%, var(--accent-color-dark) 100%);
     color: white;
     border-color: var(--accent-color-light);
     box-shadow: 0 6px 18px rgba(92, 103, 216, 0.4);
@@ -594,7 +497,7 @@ h2 {
     font-weight: 500;
     padding: 20px;
     border-radius: 16px;
-    background-color: rgba(255, 255, 255, 0.6);
+    background-color: rgba(255, 255, 255, 0.7);
     box-shadow: 0 6px 15px rgba(0, 0, 0, 0.05);
     transform-origin: center;
     animation: questionIn 0.5s ease-out;
@@ -764,50 +667,4 @@ h2 {
     padding: 15px;
     border-radius: 14px;
     font-weight: 500;
-}
-
-@keyframes fadeInUp {
-    from {
-        opacity: 0;
-        transform: translateY(25px);
-    }
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
-}
-
-.difficulty-badge {
-    display: inline-block;
-    padding: 10px 18px;
-    background-color: var(--accent-color);
-    color: white;
-    border-radius: 25px;
-    font-size: 15px;
-    margin: 6px;
-    font-weight: 600;
-    box-shadow: 0 6px 15px rgba(0,0,0,0.15);
-    animation: badgeFadeIn 0.5s ease-out;
-}
-
-.difficulty-badge.hard {
-    background-color: #e91e63;
-    box-shadow: 0 6px 15px rgba(233, 30, 99, 0.3);
-}
-
-@keyframes badgeFadeIn {
-    from {
-        opacity: 0;
-        transform: translateY(-18px);
-    }
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
-}
-
-/* Стилизация заголовков результатов */
-.score-text span {
-    font-weight: 600;
-    color: var(--accent-color);
 }
