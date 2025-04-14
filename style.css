@@ -251,6 +251,21 @@ h2 {
     font-weight: 600;
     text-align: center;
 }
+/* Стили для эмодзи доктора */
+.doctor-emoji {
+    font-size: 0.9em;
+    display: inline-block;
+    margin-right: 8px;
+    transform: rotate(-10deg);
+    animation: floatDoctorEmoji 3s ease-in-out infinite;
+    position: relative;
+    top: -2px;
+}
+
+@keyframes floatDoctorEmoji {
+    0%, 100% { transform: rotate(-10deg) translateY(0); }
+    50% { transform: rotate(-5deg) translateY(-3px); }
+}
 
 /* Современный стиль для информации о пользователе */
 .user-info {
