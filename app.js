@@ -114,6 +114,7 @@ let currentUserData = null; // Данные текущего пользоват�
 let currentQuizMode = 'anatomy'; // Текущий режим квиза: anatomy, clinical, pharmacology, first_aid
 let currentDifficulty = 'easy'; // Текущий уровень сложности: easy, hard
 let vkBridgeInstance = null; // Будем хранить инициализированный VK Bridge
+let appLink = window.location.href; // Ссылка на приложение для шаринга
 
 // Ждем полную загрузку страницы
 document.addEventListener('DOMContentLoaded', function () {
@@ -433,45 +434,48 @@ function initializeApp() {
         }
     }
 
-    // Поделиться результатами - ОБНОВЛЕННАЯ ВЕРСИЯ
+    // ИСПРАВЛЕННАЯ ФУНКЦИЯ ШЕРИНГА
     if (shareResultsButton) {
-        shareResultsButton.addEventListener('click', () => {
-            const percentage = Math.round((score / questionsForQuiz.length) * 100);
-            let modeText = 'Анатомия';
-            if (currentQuizMode === 'clinical') modeText = 'Клиническое мышление';
-            if (currentQuizMode === 'pharmacology') modeText = 'Фармакология';
-            if (currentQuizMode === 'first_aid') modeText = 'Первая помощь';
-            
-            const difficultyText = currentDifficulty === 'hard' ? 'сложный уровень' : 'обычный уровень';
-            const message = `Я прошел Медицинский квиз (${modeText}, ${difficultyText}) и набрал ${percentage}%! Попробуй и ты!`;
+        shareResultsButton.addEventListener('click', shareResults);
+    }
 
-            let bridge = vkBridgeInstance || window.vkBridgeInstance;
-            if (bridge) {
-                // Используем VKWebAppShowWallPostBox для публикации на стене
-                bridge.send('VKWebAppShowWallPostBox', {
-                    message: message,
-                    attachments: window.location.href // Добавляем ссылку на приложение
-                })
-                .then(data => {
-                    console.log('Публикация на стене успешна:', data);
-                })
-                .catch(error => {
-                    console.error('Ошибка при публикации на стене:', error);
-                    
-                    // В случае ошибки, пробуем обычный шеринг
-                    bridge.send('VKWebAppShare', { message })
-                        .then(data => {
-                            console.log('Поделились результатом через сообщение:', data);
-                        })
-                        .catch(error => {
-                            console.error('Ошибка при шеринге через сообщение:', error);
-                            alert(message);
-                        });
-                });
-            } else {
-                alert(message);
-                console.warn('VK Bridge не определен. Используется альтернативное действие для "Поделиться".');
-            }
-        });
+    // Функция для шеринга результатов
+    function shareResults() {
+        const percentage = Math.round((score / questionsForQuiz.length) * 100);
+        let modeText = 'Анатомия';
+        if (currentQuizMode === 'clinical') modeText = 'Клиническое мышление';
+        if (currentQuizMode === 'pharmacology') modeText = 'Фармакология';
+        if (currentQuizMode === 'first_aid') modeText = 'Первая помощь';
+        
+        const difficultyText = currentDifficulty === 'hard' ? 'сложный уровень' : 'обычный уровень';
+        const message = `Я прошел Медицинский квиз (${modeText}, ${difficultyText}) и набрал ${percentage}%! Попробуй и ты!`;
+
+        const bridge = vkBridgeInstance || window.vkBridgeInstance;
+        
+        if (!bridge) {
+            alert(message);
+            console.warn('VK Bridge не определен. Используется альтернативное действие для "Поделиться".');
+            return;
+        }
+
+        // 1. Сначала пробуем поделиться через сообщение
+        useSimpleShare(bridge, message);
+    }
+
+    // Функция шеринга через сообщение (VKWebAppShare)
+    function useSimpleShare(bridge, message) {
+        bridge.send('VKWebAppShare', { message })
+            .then(data => {
+                console.log('Поделились результатом через сообщение:', data);
+                // Успешное действие
+                if (data && data.result) {
+                    console.log('Результат успешно отправлен');
+                }
+            })
+            .catch(error => {
+                console.error('Ошибка при шеринге через сообщение:', error);
+                // Показываем сообщение пользователю
+                alert('Не удалось поделиться результатом. Попробуйте еще раз или сохраните скриншот.');
+            });
     }
 }
