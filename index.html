@@ -43,7 +43,6 @@
             <button class="quiz-mode-btn active" data-mode="anatomy">Анатомия</button>
             <button class="quiz-mode-btn" data-mode="clinical">Клиническое мышление</button>
             <button class="quiz-mode-btn" data-mode="pharmacology">Фармакология</button>
-            <!-- Новые режимы добавляются автоматически скриптами -->
             <div id="mode-description" class="mode-description"></div>
         </div>
         
@@ -110,15 +109,33 @@
         <div class="tooltip-content"></div>
     </div>
 
-    <!-- Загрузчик приложения и расширений -->
+    <!-- ВАЖНО: Обновленный порядок загрузки скриптов -->
+    <!-- 1. Основные скрипты приложения -->
     <script src="questions.js"></script>
     <script src="app.js"></script>
     
-    <!-- Модули расширения -->
+    <!-- 2. Сначала добавляем вопросы первой помощи -->
     <script src="first-aid-questions.js"></script>
-    <script src="add-first-aid-mode.js"></script>
     
-    <!-- Инициализация подсказок (для отображения информации о режимах) -->
+    <!-- 3. Скрипт инициализации режима с задержкой для гарантии загрузки вопросов -->
+    <script>
+        // Ждем полной инициализации основного приложения и вопросов
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('DOM полностью загружен');
+            
+            // Задержка 500мс для гарантии загрузки вопросов первой помощи
+            setTimeout(function() {
+                // Динамически создаем и добавляем скрипт
+                var script = document.createElement('script');
+                script.src = 'add-first-aid-mode.js';
+                document.body.appendChild(script);
+                
+                console.log('Скрипт add-first-aid-mode.js добавлен с задержкой');
+            }, 500);
+        });
+    </script>
+    
+    <!-- Интерактивное описание режимов -->
     <script>
         document.addEventListener('DOMContentLoaded', function() {
             // Инициализируем описания режимов
@@ -137,6 +154,9 @@
                     'pharmacology': 'Вопросы о лекарственных препаратах, их действии и применении',
                     'first_aid': 'Неотложная помощь при травмах, отравлениях и других состояниях'
                 };
+                
+                // Делаем глобальным для доступа из add-first-aid-mode.js
+                window.modeDescriptions = descriptions;
                 
                 modeButtons.forEach(btn => {
                     btn.addEventListener('mouseover', function() {
