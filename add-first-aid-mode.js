@@ -1,23 +1,39 @@
-// add-first-aid-mode.js - полностью неинвазивная версия
+// add-first-aid-mode.js - с учетом порядка загрузки
 (function() {
     // Константы для режима "Первая помощь"
     const MODE_ID = 'first_aid';
     const MODE_TITLE = 'Первая помощь';
     
-    // Запускаем инициализацию после полной загрузки страницы
+    // ВАЖНОЕ ИЗМЕНЕНИЕ: Увеличиваем задержку для гарантии загрузки вопросов
     window.addEventListener('load', function() {
-        console.log('Начало инициализации режима "Первая помощь"...');
-        setTimeout(initFirstAidMode, 300); // Небольшая задержка для гарантии загрузки основного приложения
+        console.log('Ожидание загрузки вопросов первой помощи...');
+        
+        // Используем более длительную задержку (1000 мс вместо 300)
+        setTimeout(initFirstAidMode, 1000);
     });
     
     // Основная функция инициализации
     function initFirstAidMode() {
-        // Проверяем, загружены ли вопросы первой помощи
+        // Пытаемся найти вопросы для режима "Первая помощь"
         const firstAidQuestionsCount = countFirstAidQuestions();
         console.log(`Найдено ${firstAidQuestionsCount} вопросов для режима "Первая помощь"`);
         
         if (firstAidQuestionsCount === 0) {
-            console.error('Вопросы для режима "Первая помощь" не найдены. Кнопка не будет добавлена.');
+            console.log('Вопросы для режима "Первая помощь" пока не загружены, повторная попытка через 500 мс');
+            
+            // ВАЖНОЕ ИЗМЕНЕНИЕ: Делаем повторную попытку, если вопросы не загружены
+            setTimeout(function() {
+                const retryCount = countFirstAidQuestions();
+                console.log(`Повторная проверка: найдено ${retryCount} вопросов для режима "Первая помощь"`);
+                
+                if (retryCount > 0) {
+                    addModeButton();
+                    console.log('Инициализация режима "Первая помощь" завершена успешно (повторная попытка)');
+                } else {
+                    console.error('Вопросы для режима "Первая помощь" не найдены даже после повторной попытки');
+                }
+            }, 500);
+            
             return;
         }
         
@@ -30,6 +46,7 @@
     // Функция подсчета вопросов для режима Первая помощь
     function countFirstAidQuestions() {
         if (!Array.isArray(window.questions)) {
+            console.log('Массив вопросов не инициализирован');
             return 0;
         }
         
