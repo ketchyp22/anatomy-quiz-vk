@@ -1,4 +1,4 @@
-// add-first-aid-mode.js - исправленная версия
+// add-first-aid-mode.js - версия с перехватом запуска квиза
 (function() {
     // Константы для режима "Первая помощь"
     const MODE_ID = 'first_aid';
@@ -8,71 +8,30 @@
     // Ждем полной загрузки DOM
     document.addEventListener('DOMContentLoaded', function() {
         // Небольшая задержка для уверенности, что основной код инициализирован
-        setTimeout(initFirstAidMode, 1000); // Увеличено время ожидания до 1000мс
+        setTimeout(initFirstAidMode, 1000);
     });
     
     // Главная функция инициализации режима
     function initFirstAidMode() {
         console.log('Инициализация режима "Первая помощь"...');
         
-        // Проверяем доступность основных функций приложения
-        analyzeAppStructure();
+        // Ключевые переменные
+        window.selectedMode = null; // Для отслеживания выбранного пользователем режима
         
         // 1. Добавляем кнопку режима в интерфейс
         addModeButton();
         
-        // 2. Расширяем функционал отображения результатов
-        extendResultsDisplay();
+        // 2. Патчим функцию запуска квиза
+        patchStartQuizFunction();
         
-        // 3. Расширяем функционал шеринга результатов
+        // 3. Патчим функцию отображения результатов
+        patchResultsFunction();
+        
+        // 4. Расширяем функционал шеринга результатов
         extendShareFunction();
         
-        // 4. Добавляем CSS стили для нового режима
+        // 5. Добавляем CSS стили для нового режима
         addCustomStyles();
-    }
-    
-    // Анализ структуры приложения для отладки
-    function analyzeAppStructure() {
-        console.log('Анализ структуры приложения...');
-        
-        // Проверяем наличие ключевых переменных и функций
-        const appVars = [
-            'questions', 'currentQuizMode', 'currentDifficulty', 
-            'score', 'questionsForQuiz', 'showResults'
-        ];
-        
-        const appStatus = {};
-        
-        appVars.forEach(varName => {
-            if (varName in window) {
-                appStatus[varName] = typeof window[varName];
-            } else {
-                appStatus[varName] = 'недоступна';
-                console.warn(`Переменная или функция ${varName} недоступна в глобальном контексте`);
-            }
-        });
-        
-        console.log('Статус приложения:', appStatus);
-        
-        // Если currentQuizMode недоступен, попытаемся найти альтернативные способы
-        if (appStatus.currentQuizMode === 'недоступна') {
-            console.log('Пытаемся найти альтернативные способы доступа к currentQuizMode...');
-            
-            // Метод 1: Поиск переменной в другом контексте
-            for (const key in window) {
-                if (typeof window[key] === 'object' && window[key] !== null) {
-                    if ('currentQuizMode' in window[key]) {
-                        console.log(`Найдена переменная currentQuizMode в контексте window.${key}`);
-                    }
-                }
-            }
-            
-            // Метод 2: Добавление своей переменной
-            if (!('currentQuizModeBackup' in window)) {
-                window.currentQuizModeBackup = 'anatomy'; // Значение по умолчанию
-                console.log('Создана резервная переменная currentQuizModeBackup');
-            }
-        }
     }
     
     // Функция добавления кнопки режима в интерфейс
@@ -114,163 +73,282 @@
         // Добавляем кнопку в контейнер
         modeContainer.appendChild(button);
         
-        // Наблюдаем за существующими кнопками, чтобы понять, как они работают
-        const existingButtons = document.querySelectorAll('.quiz-mode-btn:not([data-mode="' + MODE_ID + '"])');
+        // Модифицируем все кнопки выбора режима
+        const allModeButtons = document.querySelectorAll('.quiz-mode-btn');
         
-        if (existingButtons.length > 0) {
-            // Анализируем обработчики существующих кнопок
-            const buttonSample = existingButtons[0];
-            console.log('Образец кнопки:', buttonSample);
+        // Удаляем существующие обработчики со всех кнопок
+        allModeButtons.forEach(btn => {
+            const newBtn = btn.cloneNode(true);
+            btn.parentNode.replaceChild(newBtn, btn);
             
-            // Проверяем наличие обработчиков onclick
-            if (buttonSample.onclick) {
-                console.log('Обнаружен встроенный обработчик onclick');
-            }
-            
-            // Имитируем поведение существующих кнопок
-            button.addEventListener('click', function() {
+            // Добавляем новый обработчик
+            newBtn.addEventListener('click', function() {
                 // Удаляем класс active у всех кнопок
-                document.querySelectorAll('.quiz-mode-btn').forEach(btn => 
-                    btn.classList.remove('active'));
+                document.querySelectorAll('.quiz-mode-btn').forEach(b => 
+                    b.classList.remove('active'));
                 
                 // Добавляем класс active выбранной кнопке
                 this.classList.add('active');
                 
-                // Определяем источник currentQuizMode
-                let quizModeSource = null;
-                
-                // Вариант 1: Прямой доступ
-                if (typeof window.currentQuizMode !== 'undefined') {
-                    window.currentQuizMode = MODE_ID;
-                    quizModeSource = 'window.currentQuizMode';
-                } 
-                // Вариант 2: Резервная переменная
-                else if (typeof window.currentQuizModeBackup !== 'undefined') {
-                    window.currentQuizModeBackup = MODE_ID;
-                    quizModeSource = 'window.currentQuizModeBackup';
-                } 
-                // Вариант 3: Анализ работы других кнопок
-                else {
-                    // Создаем свою переменную
-                    window.currentQuizMode = MODE_ID;
-                    quizModeSource = 'новая window.currentQuizMode';
-                    
-                    // Прикрепляем к кнопке для отладки
-                    button.setAttribute('data-selected-mode', MODE_ID);
-                }
-                
-                console.log(`Выбран режим квиза: ${MODE_ID} (источник: ${quizModeSource})`);
-                
-                // ИСПРАВЛЕНИЕ: Проверка и перезагрузка вопросов
-                tryToReloadQuestions();
+                // Сохраняем выбранный режим в нашей гарантированной переменной
+                window.selectedMode = this.getAttribute('data-mode');
+                console.log(`Выбран режим: ${window.selectedMode}`);
             });
-        } else {
-            console.warn('Не найдены существующие кнопки режимов для анализа');
-            
-            // Базовый обработчик, на всякий случай
-            button.addEventListener('click', function() {
-                document.querySelectorAll('.quiz-mode-btn').forEach(btn => 
-                    btn.classList.remove('active'));
-                this.classList.add('active');
-                
-                // Создаем переменную, даже если её нет
-                window.currentQuizMode = MODE_ID;
-                console.log(`Выбран режим квиза: ${MODE_ID} (создано новое свойство)`);
-                
-                // ИСПРАВЛЕНИЕ: Проверка и перезагрузка вопросов
-                tryToReloadQuestions();
-            });
+        });
+        
+        // Делаем активной кнопку "Анатомия" по умолчанию
+        const defaultButton = document.querySelector('.quiz-mode-btn[data-mode="anatomy"]');
+        if (defaultButton) {
+            defaultButton.classList.add('active');
+            window.selectedMode = 'anatomy';
         }
         
-        console.log('Кнопка режима "Первая помощь" успешно добавлена');
+        console.log('Кнопки режимов модифицированы, добавлена кнопка "Первая помощь"');
     }
     
-    // НОВАЯ ФУНКЦИЯ: Попытка перезагрузить вопросы для выбранного режима
-    function tryToReloadQuestions() {
-        console.log('Пробуем обновить список вопросов для режима...');
+    // Функция патча для кнопки запуска квиза
+    function patchStartQuizFunction() {
+        const startQuizButton = document.getElementById('start-quiz');
         
-        // Ищем функцию загрузки вопросов
-        if (typeof window.loadQuestionsForQuiz === 'function') {
-            console.log('Найдена функция loadQuestionsForQuiz, вызываем её');
-            window.loadQuestionsForQuiz();
-        } 
-        else if (typeof window.initializeQuiz === 'function') {
-            console.log('Найдена функция initializeQuiz, вызываем её');
-            window.initializeQuiz();
-        }
-        else {
-            console.log('Пытаемся определить, как приложение загружает вопросы...');
-            
-            // Если есть глобальный массив вопросов и выбранный режим
-            if (Array.isArray(window.questions) && window.currentQuizMode) {
-                // Создаем и запускаем простую функцию загрузки вопросов
-                window.reloadQuestionsForMode = function() {
-                    const mode = window.currentQuizMode || MODE_ID;
-                    const difficulty = window.currentDifficulty || 'easy';
-                    
-                    // Фильтруем вопросы по режиму и сложности
-                    const filteredQuestions = window.questions.filter(q => 
-                        q.mode === mode && q.difficulty === difficulty);
-                    
-                    // Обновляем массив вопросов для квиза
-                    if (typeof window.questionsForQuiz !== 'undefined') {
-                        window.questionsForQuiz = filteredQuestions;
-                        console.log(`Загружено ${filteredQuestions.length} вопросов для режима "${mode}" (${difficulty})`);
-                    } else {
-                        window.questionsForQuiz = filteredQuestions;
-                        console.log(`Создан новый массив questionsForQuiz с ${filteredQuestions.length} вопросами`);
-                    }
-                    
-                    return filteredQuestions.length;
-                };
-                
-                // Вызываем функцию
-                const questionsCount = window.reloadQuestionsForMode();
-                console.log(`Загружено ${questionsCount} вопросов для режима "${MODE_ID}"`);
-            }
-        }
-    }
-    
-    // Функция расширения отображения результатов
-    function extendResultsDisplay() {
-        // Проверяем, существует ли функция showResults в глобальном контексте
-        if (typeof window.showResults !== 'function') {
-            console.warn('Функция showResults не найдена в глобальном контексте. Расширение отображения результатов невозможно.');
+        if (!startQuizButton) {
+            console.error('Кнопка запуска квиза не найдена');
             return;
         }
         
-        // Сохраняем оригинальную функцию
-        const originalShowResults = window.showResults;
+        // Создаем копию кнопки для удаления существующих обработчиков
+        const newStartButton = startQuizButton.cloneNode(true);
+        startQuizButton.parentNode.replaceChild(newStartButton, startQuizButton);
         
-        // Заменяем оригинальную функцию нашей расширенной версией
-        window.showResults = function() {
-            // Сначала вызываем оригинальную функцию
-            originalShowResults.apply(this, arguments);
+        // Добавляем новый обработчик для запуска квиза
+        newStartButton.addEventListener('click', function() {
+            // Получаем выбранный режим
+            const mode = window.selectedMode || 'anatomy';
             
-            // Затем добавляем свою логику для режима "Первая помощь"
-            const currentMode = window.currentQuizMode || window.currentQuizModeBackup;
-            
-            if (currentMode === MODE_ID) {
-                // Обновляем отображение названия режима
-                const modeBadge = document.getElementById('mode-badge');
-                if (modeBadge) {
-                    modeBadge.textContent = MODE_TITLE;
-                    modeBadge.classList.add('first-aid-badge');
+            // Получаем выбранную сложность
+            let difficulty = 'easy';
+            const difficultyButtons = document.querySelectorAll('.difficulty-btn');
+            difficultyButtons.forEach(btn => {
+                if (btn.classList.contains('active')) {
+                    difficulty = btn.getAttribute('data-difficulty') || 'easy';
                 }
+            });
+            
+            console.log(`Запуск квиза, режим: ${mode}, сложность: ${difficulty}`);
+            
+            // Подготавливаем вопросы для квиза
+            prepareQuestionsForQuiz(mode, difficulty);
+            
+            // Скрываем стартовый экран
+            const startScreen = document.getElementById('start-screen');
+            if (startScreen) {
+                startScreen.style.display = 'none';
+            }
+            
+            // Отображаем контейнер квиза
+            const quizContainer = document.getElementById('quiz-container');
+            if (quizContainer) {
+                quizContainer.style.display = 'block';
+            }
+            
+            // Загружаем первый вопрос
+            loadQuestion(0);
+        });
+        
+        console.log('Функция запуска квиза успешно модифицирована');
+    }
+    
+    // Подготовка вопросов для квиза
+    function prepareQuestionsForQuiz(mode, difficulty) {
+        if (!Array.isArray(window.questions)) {
+            console.error('Массив вопросов не найден');
+            return [];
+        }
+        
+        // Фильтруем вопросы по режиму и сложности
+        const filteredQuestions = window.questions.filter(q => 
+            q.mode === mode && q.difficulty === difficulty);
+        
+        // Получаем случайные 10 вопросов или меньше, если их меньше 10
+        const questionsCount = Math.min(filteredQuestions.length, 10);
+        window.questionsForQuiz = shuffleArray(filteredQuestions).slice(0, questionsCount);
+        
+        // Сбрасываем счетчики
+        window.currentQuestionIndex = 0;
+        window.score = 0;
+        window.currentQuizMode = mode;
+        window.currentDifficulty = difficulty;
+        
+        console.log(`Подготовлено ${window.questionsForQuiz.length} вопросов для режима "${mode}" (${difficulty})`);
+        
+        return window.questionsForQuiz;
+    }
+    
+    // Функция загрузки вопроса
+    function loadQuestion(index) {
+        if (!Array.isArray(window.questionsForQuiz) || index >= window.questionsForQuiz.length) {
+            console.error('Вопросы не подготовлены или индекс выходит за пределы');
+            return;
+        }
+        
+        const question = window.questionsForQuiz[index];
+        window.currentQuestionIndex = index;
+        
+        // Обновляем счетчик вопросов
+        const questionCounter = document.getElementById('question-counter');
+        if (questionCounter) {
+            questionCounter.textContent = `Вопрос ${index + 1} из ${window.questionsForQuiz.length}`;
+        }
+        
+        // Обновляем прогресс-бар
+        const progressBar = document.getElementById('progress-bar');
+        if (progressBar) {
+            const progress = ((index + 1) / window.questionsForQuiz.length) * 100;
+            progressBar.style.width = `${progress}%`;
+        }
+        
+        // Отображаем текст вопроса
+        const questionElement = document.getElementById('question');
+        if (questionElement) {
+            questionElement.textContent = question.text;
+        }
+        
+        // Отображаем варианты ответов
+        const optionsElement = document.getElementById('options');
+        if (optionsElement) {
+            optionsElement.innerHTML = '';
+            
+            question.options.forEach((option, optionIndex) => {
+                const optionButton = document.createElement('button');
+                optionButton.className = 'option-btn';
+                optionButton.textContent = option;
+                optionButton.setAttribute('data-index', optionIndex);
                 
-                // Добавляем дополнительные стили для оформления результатов
+                optionButton.addEventListener('click', function() {
+                    selectOption(this);
+                });
+                
+                optionsElement.appendChild(optionButton);
+            });
+        }
+        
+        // Сброс состояния кнопки "Далее"
+        const nextButton = document.getElementById('next-question');
+        if (nextButton) {
+            nextButton.disabled = true;
+        }
+        
+        console.log(`Загружен вопрос ${index + 1} из ${window.questionsForQuiz.length}`);
+    }
+    
+    // Функция выбора варианта ответа
+    function selectOption(optionButton) {
+        const selectedIndex = parseInt(optionButton.getAttribute('data-index'));
+        const question = window.questionsForQuiz[window.currentQuestionIndex];
+        
+        // Отключаем все кнопки вариантов
+        const optionButtons = document.querySelectorAll('.option-btn');
+        optionButtons.forEach(btn => {
+            btn.disabled = true;
+            
+            // Определяем правильный ответ
+            const btnIndex = parseInt(btn.getAttribute('data-index'));
+            if (btnIndex === question.correctOptionIndex) {
+                btn.classList.add('correct');
+            }
+        });
+        
+        // Выделяем выбранный вариант
+        if (selectedIndex === question.correctOptionIndex) {
+            optionButton.classList.add('correct');
+            window.score++;
+        } else {
+            optionButton.classList.add('incorrect');
+        }
+        
+        // Активируем кнопку "Далее"
+        const nextButton = document.getElementById('next-question');
+        if (nextButton) {
+            nextButton.disabled = false;
+            
+            // Добавляем обработчик для следующего вопроса или завершения квиза
+            nextButton.onclick = function() {
+                const nextIndex = window.currentQuestionIndex + 1;
+                
+                if (nextIndex < window.questionsForQuiz.length) {
+                    loadQuestion(nextIndex);
+                } else {
+                    showResults();
+                }
+            };
+        }
+    }
+    
+    // Патч функции отображения результатов
+    function patchResultsFunction() {
+        // Определяем функцию показа результатов, если она не существует
+        window.showResults = function() {
+            // Скрываем контейнер квиза
+            const quizContainer = document.getElementById('quiz-container');
+            if (quizContainer) {
+                quizContainer.style.display = 'none';
+            }
+            
+            // Показываем контейнер результатов
+            const resultsContainer = document.getElementById('results-container');
+            if (resultsContainer) {
+                resultsContainer.style.display = 'block';
+            }
+            
+            // Устанавливаем режим
+            const modeBadge = document.getElementById('mode-badge');
+            if (modeBadge) {
+                let modeTitle = '';
+                switch (window.currentQuizMode) {
+                    case 'anatomy': modeTitle = 'Анатомия'; break;
+                    case 'clinical': modeTitle = 'Клиническое мышление'; break;
+                    case 'pharmacology': modeTitle = 'Фармакология'; break;
+                    case 'first_aid': modeTitle = 'Первая помощь'; modeBadge.classList.add('first-aid-badge'); break;
+                    default: modeTitle = 'Медицинский квиз';
+                }
+                modeBadge.textContent = modeTitle;
+            }
+            
+            // Устанавливаем сложность
+            const difficultyBadge = document.getElementById('difficulty-badge');
+            if (difficultyBadge) {
+                difficultyBadge.textContent = window.currentDifficulty === 'hard' ? 'Сложный' : 'Обычный';
+            }
+            
+            // Вычисляем процент правильных ответов
+            const percentage = Math.round((window.score / window.questionsForQuiz.length) * 100);
+            
+            // Отображаем процент
+            const percentageElement = document.getElementById('percentage');
+            if (percentageElement) {
+                percentageElement.textContent = percentage;
+            }
+            
+            // Отображаем количество правильных ответов
+            const correctAnswersElement = document.getElementById('correct-answers');
+            if (correctAnswersElement) {
+                correctAnswersElement.textContent = window.score;
+            }
+            
+            // Отображаем общее количество вопросов
+            const totalQuestionsElement = document.getElementById('total-questions-result');
+            if (totalQuestionsElement) {
+                totalQuestionsElement.textContent = window.questionsForQuiz.length;
+            }
+            
+            // Добавляем особые стили и текст для режима "Первая помощь"
+            if (window.currentQuizMode === 'first_aid') {
                 const scoreElement = document.querySelector('.score');
                 if (scoreElement) {
                     scoreElement.classList.add('first-aid-results');
                 }
                 
-                // Добавляем дополнительный текст или подсказки для режима первой помощи
                 const scoreText = document.querySelector('.score-text');
-                if (scoreText) {
-                    const percentageElement = document.getElementById('percentage');
-                    const percentage = percentageElement ? parseInt(percentageElement.textContent || '0') : 0;
-                    
-                    // Добавляем специфичный для первой помощи текст, в зависимости от результата
+                if (scoreText && !scoreText.querySelector('.first-aid-tip')) {
                     let additionalText = '';
                     if (percentage >= 90) {
                         additionalText = '<p class="first-aid-tip">Прекрасно! Вы отлично подготовлены к оказанию первой помощи.</p>';
@@ -282,91 +360,88 @@
                         additionalText = '<p class="first-aid-tip">Рекомендуем изучить основы первой помощи - эти знания необходимы каждому.</p>';
                     }
                     
-                    // Добавляем текст после существующего содержимого
-                    // Проверяем, не был ли текст уже добавлен
-                    if (!scoreText.querySelector('.first-aid-tip')) {
-                        scoreText.innerHTML += additionalText;
-                    }
+                    scoreText.innerHTML += additionalText;
                 }
             }
+            
+            // Настраиваем кнопку "Начать заново"
+            const restartButton = document.getElementById('restart-quiz');
+            if (restartButton) {
+                restartButton.onclick = function() {
+                    // Скрываем контейнер результатов
+                    resultsContainer.style.display = 'none';
+                    
+                    // Показываем стартовый экран
+                    const startScreen = document.getElementById('start-screen');
+                    if (startScreen) {
+                        startScreen.style.display = 'block';
+                    }
+                };
+            }
+            
+            console.log(`Результаты: ${window.score} из ${window.questionsForQuiz.length} (${percentage}%)`);
         };
         
-        console.log('Функция отображения результатов успешно расширена');
+        console.log('Функция отображения результатов успешно определена или расширена');
     }
     
-    // Функция расширения функционала шеринга
+    // Функция расширения шеринга
     function extendShareFunction() {
-        // Дожидаемся подготовки кнопки шеринга
         setTimeout(() => {
             const shareButton = document.getElementById('share-results');
             if (!shareButton) {
-                console.warn('Кнопка шеринга не найдена. Расширение функционала шеринга невозможно.');
+                console.warn('Кнопка шеринга не найдена');
                 return;
             }
             
-            // Клонируем кнопку, чтобы удалить все обработчики событий
+            // Клонируем кнопку для удаления существующих обработчиков
             const newShareButton = shareButton.cloneNode(true);
             shareButton.parentNode.replaceChild(newShareButton, shareButton);
             
-            // Добавляем новый обработчик клика
-            newShareButton.addEventListener('click', function(event) {
-                // Получаем необходимые данные
+            // Добавляем новый обработчик
+            newShareButton.addEventListener('click', function() {
                 const score = window.score || 0;
                 const totalQuestions = window.questionsForQuiz ? window.questionsForQuiz.length : 10;
                 const percentage = Math.round((score / totalQuestions) * 100);
                 
-                // Определяем текущий режим
-                const currentMode = window.currentQuizMode || window.currentQuizModeBackup || 'anatomy';
-                
-                // Определяем название режима для сообщения
+                // Определяем название режима
                 let modeTitle = '';
-                if (currentMode === 'anatomy') {
-                    modeTitle = 'Анатомия';
-                } else if (currentMode === 'clinical') {
-                    modeTitle = 'Клиническое мышление';
-                } else if (currentMode === 'pharmacology') {
-                    modeTitle = 'Фармакология';
-                } else if (currentMode === MODE_ID) {
-                    modeTitle = MODE_TITLE;
-                } else {
-                    modeTitle = 'Медицинский квиз';
+                switch (window.currentQuizMode) {
+                    case 'anatomy': modeTitle = 'Анатомия'; break;
+                    case 'clinical': modeTitle = 'Клиническое мышление'; break;
+                    case 'pharmacology': modeTitle = 'Фармакология'; break;
+                    case 'first_aid': modeTitle = 'Первая помощь'; break;
+                    default: modeTitle = 'Медицинский квиз';
                 }
                 
-                const difficultyText = (window.currentDifficulty === 'hard') ? 
+                const difficultyText = window.currentDifficulty === 'hard' ? 
                     'сложный уровень' : 'обычный уровень';
                 
-                // Формируем сообщение
                 const message = `Я прошел Медицинский квиз (${modeTitle}, ${difficultyText}) и набрал ${percentage}%! Попробуй и ты!`;
                 
-                // Используем VK Bridge для шеринга, если он доступен
+                // Используем VK Bridge для шеринга
                 let bridge = window.vkBridgeInstance || window.vkBridge;
                 if (bridge) {
                     bridge.send('VKWebAppShare', { message })
-                        .then(data => {
-                            console.log('Результат успешно опубликован:', data);
-                        })
+                        .then(data => console.log('Шеринг успешен:', data))
                         .catch(error => {
-                            console.error('Ошибка при шеринге:', error);
+                            console.error('Ошибка шеринга:', error);
                             alert(message);
                         });
                 } else {
                     alert(message);
-                    console.warn('VK Bridge не найден. Используется альтернативный вариант шеринга.');
                 }
             });
             
-            console.log('Функционал шеринга успешно расширен');
-            
+            console.log('Функция шеринга успешно модифицирована');
         }, 1000);
     }
     
     // Функция добавления стилей для нового режима
     function addCustomStyles() {
-        // Создаем элемент style
         const styleElement = document.createElement('style');
         styleElement.type = 'text/css';
         
-        // Определяем стили
         const css = `
             /* Стили для кнопки режима "Первая помощь" */
             .quiz-mode-btn[data-mode="${MODE_ID}"] {
@@ -417,16 +492,23 @@
             }
         `;
         
-        // Добавляем стили в элемент
         if (styleElement.styleSheet) {
-            // Для поддержки IE
             styleElement.styleSheet.cssText = css;
         } else {
             styleElement.appendChild(document.createTextNode(css));
         }
         
-        // Добавляем элемент в head
         document.head.appendChild(styleElement);
         console.log('Стили для режима "Первая помощь" успешно добавлены');
+    }
+    
+    // Вспомогательная функция для перемешивания массива (алгоритм Фишера-Йейтса)
+    function shuffleArray(array) {
+        const newArray = [...array];
+        for (let i = newArray.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [newArray[i], newArray[j]] = [newArray[j], newArray[i]];
+        }
+        return newArray;
     }
 })();
