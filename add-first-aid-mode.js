@@ -1,4 +1,4 @@
-// add-first-aid-mode.js
+// add-first-aid-mode.js - исправленная версия
 (function() {
     // Константы для режима "Первая помощь"
     const MODE_ID = 'first_aid';
@@ -8,12 +8,15 @@
     // Ждем полной загрузки DOM
     document.addEventListener('DOMContentLoaded', function() {
         // Небольшая задержка для уверенности, что основной код инициализирован
-        setTimeout(initFirstAidMode, 700);
+        setTimeout(initFirstAidMode, 1000); // Увеличено время ожидания до 1000мс
     });
     
     // Главная функция инициализации режима
     function initFirstAidMode() {
         console.log('Инициализация режима "Первая помощь"...');
+        
+        // Проверяем доступность основных функций приложения
+        analyzeAppStructure();
         
         // 1. Добавляем кнопку режима в интерфейс
         addModeButton();
@@ -26,6 +29,50 @@
         
         // 4. Добавляем CSS стили для нового режима
         addCustomStyles();
+    }
+    
+    // Анализ структуры приложения для отладки
+    function analyzeAppStructure() {
+        console.log('Анализ структуры приложения...');
+        
+        // Проверяем наличие ключевых переменных и функций
+        const appVars = [
+            'questions', 'currentQuizMode', 'currentDifficulty', 
+            'score', 'questionsForQuiz', 'showResults'
+        ];
+        
+        const appStatus = {};
+        
+        appVars.forEach(varName => {
+            if (varName in window) {
+                appStatus[varName] = typeof window[varName];
+            } else {
+                appStatus[varName] = 'недоступна';
+                console.warn(`Переменная или функция ${varName} недоступна в глобальном контексте`);
+            }
+        });
+        
+        console.log('Статус приложения:', appStatus);
+        
+        // Если currentQuizMode недоступен, попытаемся найти альтернативные способы
+        if (appStatus.currentQuizMode === 'недоступна') {
+            console.log('Пытаемся найти альтернативные способы доступа к currentQuizMode...');
+            
+            // Метод 1: Поиск переменной в другом контексте
+            for (const key in window) {
+                if (typeof window[key] === 'object' && window[key] !== null) {
+                    if ('currentQuizMode' in window[key]) {
+                        console.log(`Найдена переменная currentQuizMode в контексте window.${key}`);
+                    }
+                }
+            }
+            
+            // Метод 2: Добавление своей переменной
+            if (!('currentQuizModeBackup' in window)) {
+                window.currentQuizModeBackup = 'anatomy'; // Значение по умолчанию
+                console.log('Создана резервная переменная currentQuizModeBackup');
+            }
+        }
     }
     
     // Функция добавления кнопки режима в интерфейс
@@ -67,25 +114,121 @@
         // Добавляем кнопку в контейнер
         modeContainer.appendChild(button);
         
-        // Добавляем обработчик события клика
-        button.addEventListener('click', function() {
-            // Удаляем класс active у всех кнопок
-            document.querySelectorAll('.quiz-mode-btn').forEach(btn => 
-                btn.classList.remove('active'));
+        // Наблюдаем за существующими кнопками, чтобы понять, как они работают
+        const existingButtons = document.querySelectorAll('.quiz-mode-btn:not([data-mode="' + MODE_ID + '"])');
+        
+        if (existingButtons.length > 0) {
+            // Анализируем обработчики существующих кнопок
+            const buttonSample = existingButtons[0];
+            console.log('Образец кнопки:', buttonSample);
             
-            // Добавляем класс active выбранной кнопке
-            this.classList.add('active');
-            
-            // Устанавливаем текущий режим
-            if (typeof window.currentQuizMode !== 'undefined') {
-                window.currentQuizMode = MODE_ID;
-                console.log(`Выбран режим квиза: ${MODE_ID}`);
-            } else {
-                console.error('Ошибка: Переменная currentQuizMode не найдена в глобальном контексте');
+            // Проверяем наличие обработчиков onclick
+            if (buttonSample.onclick) {
+                console.log('Обнаружен встроенный обработчик onclick');
             }
-        });
+            
+            // Имитируем поведение существующих кнопок
+            button.addEventListener('click', function() {
+                // Удаляем класс active у всех кнопок
+                document.querySelectorAll('.quiz-mode-btn').forEach(btn => 
+                    btn.classList.remove('active'));
+                
+                // Добавляем класс active выбранной кнопке
+                this.classList.add('active');
+                
+                // Определяем источник currentQuizMode
+                let quizModeSource = null;
+                
+                // Вариант 1: Прямой доступ
+                if (typeof window.currentQuizMode !== 'undefined') {
+                    window.currentQuizMode = MODE_ID;
+                    quizModeSource = 'window.currentQuizMode';
+                } 
+                // Вариант 2: Резервная переменная
+                else if (typeof window.currentQuizModeBackup !== 'undefined') {
+                    window.currentQuizModeBackup = MODE_ID;
+                    quizModeSource = 'window.currentQuizModeBackup';
+                } 
+                // Вариант 3: Анализ работы других кнопок
+                else {
+                    // Создаем свою переменную
+                    window.currentQuizMode = MODE_ID;
+                    quizModeSource = 'новая window.currentQuizMode';
+                    
+                    // Прикрепляем к кнопке для отладки
+                    button.setAttribute('data-selected-mode', MODE_ID);
+                }
+                
+                console.log(`Выбран режим квиза: ${MODE_ID} (источник: ${quizModeSource})`);
+                
+                // ИСПРАВЛЕНИЕ: Проверка и перезагрузка вопросов
+                tryToReloadQuestions();
+            });
+        } else {
+            console.warn('Не найдены существующие кнопки режимов для анализа');
+            
+            // Базовый обработчик, на всякий случай
+            button.addEventListener('click', function() {
+                document.querySelectorAll('.quiz-mode-btn').forEach(btn => 
+                    btn.classList.remove('active'));
+                this.classList.add('active');
+                
+                // Создаем переменную, даже если её нет
+                window.currentQuizMode = MODE_ID;
+                console.log(`Выбран режим квиза: ${MODE_ID} (создано новое свойство)`);
+                
+                // ИСПРАВЛЕНИЕ: Проверка и перезагрузка вопросов
+                tryToReloadQuestions();
+            });
+        }
         
         console.log('Кнопка режима "Первая помощь" успешно добавлена');
+    }
+    
+    // НОВАЯ ФУНКЦИЯ: Попытка перезагрузить вопросы для выбранного режима
+    function tryToReloadQuestions() {
+        console.log('Пробуем обновить список вопросов для режима...');
+        
+        // Ищем функцию загрузки вопросов
+        if (typeof window.loadQuestionsForQuiz === 'function') {
+            console.log('Найдена функция loadQuestionsForQuiz, вызываем её');
+            window.loadQuestionsForQuiz();
+        } 
+        else if (typeof window.initializeQuiz === 'function') {
+            console.log('Найдена функция initializeQuiz, вызываем её');
+            window.initializeQuiz();
+        }
+        else {
+            console.log('Пытаемся определить, как приложение загружает вопросы...');
+            
+            // Если есть глобальный массив вопросов и выбранный режим
+            if (Array.isArray(window.questions) && window.currentQuizMode) {
+                // Создаем и запускаем простую функцию загрузки вопросов
+                window.reloadQuestionsForMode = function() {
+                    const mode = window.currentQuizMode || MODE_ID;
+                    const difficulty = window.currentDifficulty || 'easy';
+                    
+                    // Фильтруем вопросы по режиму и сложности
+                    const filteredQuestions = window.questions.filter(q => 
+                        q.mode === mode && q.difficulty === difficulty);
+                    
+                    // Обновляем массив вопросов для квиза
+                    if (typeof window.questionsForQuiz !== 'undefined') {
+                        window.questionsForQuiz = filteredQuestions;
+                        console.log(`Загружено ${filteredQuestions.length} вопросов для режима "${mode}" (${difficulty})`);
+                    } else {
+                        window.questionsForQuiz = filteredQuestions;
+                        console.log(`Создан новый массив questionsForQuiz с ${filteredQuestions.length} вопросами`);
+                    }
+                    
+                    return filteredQuestions.length;
+                };
+                
+                // Вызываем функцию
+                const questionsCount = window.reloadQuestionsForMode();
+                console.log(`Загружено ${questionsCount} вопросов для режима "${MODE_ID}"`);
+            }
+        }
     }
     
     // Функция расширения отображения результатов
@@ -105,7 +248,9 @@
             originalShowResults.apply(this, arguments);
             
             // Затем добавляем свою логику для режима "Первая помощь"
-            if (window.currentQuizMode === MODE_ID) {
+            const currentMode = window.currentQuizMode || window.currentQuizModeBackup;
+            
+            if (currentMode === MODE_ID) {
                 // Обновляем отображение названия режима
                 const modeBadge = document.getElementById('mode-badge');
                 if (modeBadge) {
@@ -122,7 +267,8 @@
                 // Добавляем дополнительный текст или подсказки для режима первой помощи
                 const scoreText = document.querySelector('.score-text');
                 if (scoreText) {
-                    const percentage = parseInt(document.getElementById('percentage')?.textContent || '0');
+                    const percentageElement = document.getElementById('percentage');
+                    const percentage = percentageElement ? parseInt(percentageElement.textContent || '0') : 0;
                     
                     // Добавляем специфичный для первой помощи текст, в зависимости от результата
                     let additionalText = '';
@@ -137,7 +283,10 @@
                     }
                     
                     // Добавляем текст после существующего содержимого
-                    scoreText.innerHTML += additionalText;
+                    // Проверяем, не был ли текст уже добавлен
+                    if (!scoreText.querySelector('.first-aid-tip')) {
+                        scoreText.innerHTML += additionalText;
+                    }
                 }
             }
         };
@@ -166,21 +315,24 @@
                 const totalQuestions = window.questionsForQuiz ? window.questionsForQuiz.length : 10;
                 const percentage = Math.round((score / totalQuestions) * 100);
                 
+                // Определяем текущий режим
+                const currentMode = window.currentQuizMode || window.currentQuizModeBackup || 'anatomy';
+                
                 // Определяем название режима для сообщения
                 let modeTitle = '';
-                if (window.currentQuizMode === 'anatomy') {
+                if (currentMode === 'anatomy') {
                     modeTitle = 'Анатомия';
-                } else if (window.currentQuizMode === 'clinical') {
+                } else if (currentMode === 'clinical') {
                     modeTitle = 'Клиническое мышление';
-                } else if (window.currentQuizMode === 'pharmacology') {
+                } else if (currentMode === 'pharmacology') {
                     modeTitle = 'Фармакология';
-                } else if (window.currentQuizMode === MODE_ID) {
+                } else if (currentMode === MODE_ID) {
                     modeTitle = MODE_TITLE;
                 } else {
                     modeTitle = 'Медицинский квиз';
                 }
                 
-                const difficultyText = window.currentDifficulty === 'hard' ? 
+                const difficultyText = (window.currentDifficulty === 'hard') ? 
                     'сложный уровень' : 'обычный уровень';
                 
                 // Формируем сообщение
