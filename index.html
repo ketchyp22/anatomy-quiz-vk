@@ -5,21 +5,24 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Медицинский Квиз</title>
     <link rel="stylesheet" href="style.css">
-    <!-- Подключение VK Bridge -->
     <script src="https://unpkg.com/@vkontakte/vk-bridge/dist/browser.min.js"></script>
-    <!-- Мета-теги для улучшения отображения в социальных сетях -->
     <meta property="og:title" content="Медицинский Квиз – проверь свои знания!">
     <meta property="og:description" content="Тест по медицине с разными режимами: анатомия, клиническое мышление, фармакология и первая помощь.">
     <meta property="og:image" content="https://vk.com/images/camera_100.png">
     <meta name="theme-color" content="#5a67d8">
-    <!-- Добавляем favicon для предотвращения 404 ошибки -->
     <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>👨‍⚕️</text></svg>">
+    
+    <!-- Добавляем стили для кнопки первой помощи прямо в HTML -->
+    <style>
+        .quiz-mode-btn[data-mode="first_aid"] {
+            background: linear-gradient(135deg, #f56565 0%, #e53e3e 100%);
+            color: white;
+        }
+    </style>
 </head>
 <body>
-    <!-- Анимированный фон -->
     <div class="animated-bg"></div>
     
-    <!-- Плавающие медицинские иконки -->
     <div class="medical-icons">
         <div class="medical-icon icon1"></div>
         <div class="medical-icon icon2"></div>
@@ -29,7 +32,6 @@
         <div class="medical-icon icon6"></div>
     </div>
     
-    <!-- Стартовый экран -->
     <div id="start-screen">
         <div id="user-info" class="user-info"></div>
         <h1><span class="doctor-emoji">👨‍⚕️</span> Медицинский Квиз</h1>
@@ -45,12 +47,15 @@
             <button class="quiz-mode-btn active" data-mode="anatomy">Анатомия</button>
             <button class="quiz-mode-btn" data-mode="clinical">Клиническое мышление</button>
             <button class="quiz-mode-btn" data-mode="pharmacology">Фармакология</button>
+            
+            <!-- ВАЖНО: Добавляем кнопку первой помощи прямо в HTML -->
+            <button class="quiz-mode-btn" data-mode="first_aid" style="background: linear-gradient(135deg, #f56565 0%, #e53e3e 100%); color: white;">Первая помощь</button>
+            
             <div id="mode-description" class="mode-description"></div>
         </div>
         
         <button id="start-quiz" class="btn-primary">Начать квиз</button>
         
-        <!-- Интегрированная пульсовая линия в карточках -->
         <div class="card-pulse">
             <svg class="pulse-line-svg" viewBox="0 0 150 40" preserveAspectRatio="none">
                 <path class="pulse-line-path" d="M0,20 L10,20 L15,20 L20,10 L25,30 L30,20 L35,20 L40,20 L45,20 L50,20 L55,10 L60,30 L65,20 L70,20 L75,20 L80,20 L85,20 L90,10 L95,30 L100,20 L105,20 L110,20 L115,20 L120,20 L125,10 L130,30 L135,20 L140,20 L150,20">
@@ -59,7 +64,6 @@
         </div>
     </div>
 
-    <!-- Экран квиза -->
     <div id="quiz-container" style="display: none;">
         <div id="user-info-quiz" class="user-info"></div>
         <div id="question-counter" class="question-counter"></div>
@@ -74,7 +78,6 @@
             <button id="exit-quiz" class="btn-secondary">Выйти</button>
         </div>
         
-        <!-- Интегрированная пульсовая линия в карточках -->
         <div class="card-pulse">
             <svg class="pulse-line-svg" viewBox="0 0 150 40" preserveAspectRatio="none">
                 <path class="pulse-line-path" d="M0,20 L10,20 L15,20 L20,10 L25,30 L30,20 L35,20 L40,20 L45,20 L50,20 L55,10 L60,30 L65,20 L70,20 L75,20 L80,20 L85,20 L90,10 L95,30 L100,20 L105,20 L110,20 L115,20 L120,20 L125,10 L130,30 L135,20 L140,20 L150,20">
@@ -83,7 +86,6 @@
         </div>
     </div>
 
-    <!-- Экран результатов -->
     <div id="results-container" style="display: none;">
         <h1><span class="doctor-emoji">👨‍⚕️</span> Результаты теста</h1>
         <div id="score" class="score">
@@ -97,7 +99,6 @@
             <button id="restart-quiz" class="btn-secondary">Начать заново</button>
         </div>
         
-        <!-- Интегрированная пульсовая линия в карточках -->
         <div class="card-pulse">
             <svg class="pulse-line-svg" viewBox="0 0 150 40" preserveAspectRatio="none">
                 <path class="pulse-line-path" d="M0,20 L10,20 L15,20 L20,10 L25,30 L30,20 L35,20 L40,20 L45,20 L50,20 L55,10 L60,30 L65,20 L70,20 L75,20 L80,20 L85,20 L90,10 L95,30 L100,20 L105,20 L110,20 L115,20 L120,20 L125,10 L130,30 L135,20 L140,20 L150,20">
@@ -106,15 +107,13 @@
         </div>
     </div>
 
-    <!-- Скрытый контейнер для всплывающих подсказок -->
     <div id="tooltip-container" class="tooltip-container" style="display: none;">
         <div class="tooltip-content"></div>
     </div>
 
-    <!-- ОПТИМИЗИРОВАННЫЙ ПОРЯДОК ЗАГРУЗКИ СКРИПТОВ -->
-    <!-- 1. Глобальный объект для описаний режимов (для удобства доступа из other-scripts) -->
+    <!-- Скрипты -->
     <script>
-        // Инициализируем глобальные объекты
+        // Глобальный объект для описаний режимов
         window.modeDescriptions = {
             'anatomy': 'Вопросы о строении человеческого тела, органах и их функциях',
             'clinical': 'Применение медицинских знаний для диагностики и лечения заболеваний',
@@ -123,73 +122,42 @@
         };
     </script>
     
-    <!-- 2. Базовые скрипты приложения -->
+    <!-- Базовые скрипты приложения -->
     <script src="questions.js"></script>
     <script src="app.js"></script>
     
-    <!-- 3. Сначала загружаем вопросы первой помощи -->
+    <!-- Добавляем вопросы первой помощи -->
     <script src="first-aid-questions.js"></script>
     
-    <!-- 4. Затем с задержкой добавляем режим -->
-    <script>
-        // Безопасно добавляем скрипт режима первой помощи после полной загрузки
-        window.addEventListener('load', function() {
-            setTimeout(function() {
-                var script = document.createElement('script');
-                script.src = 'add-first-aid-mode.js';
-                document.body.appendChild(script);
-                console.log('Скрипт add-first-aid-mode.js добавлен с задержкой');
-            }, 1000);
-        });
-    </script>
-    
-    <!-- 5. Инициализация описаний режимов -->
+    <!-- Инициализация описаний режимов -->
     <script>
         document.addEventListener('DOMContentLoaded', function() {
-            // Инициализируем отображение описаний при наведении
-            initModeDescriptions();
+            // Инициализируем показ описаний при наведении
+            const modeDescription = document.getElementById('mode-description');
+            if (!modeDescription) return;
             
-            function initModeDescriptions() {
-                const modeDescription = document.getElementById('mode-description');
-                const modeButtons = document.querySelectorAll('.quiz-mode-btn');
-                
-                if (!modeDescription) return;
-                
-                modeButtons.forEach(btn => {
-                    btn.addEventListener('mouseover', function() {
-                        const mode = this.dataset.mode;
-                        if (window.modeDescriptions[mode]) {
-                            modeDescription.textContent = window.modeDescriptions[mode];
-                            modeDescription.classList.add('active-description');
-                        }
-                    });
-                    
-                    btn.addEventListener('mouseout', function() {
-                        modeDescription.classList.remove('active-description');
-                    });
+            document.querySelectorAll('.quiz-mode-btn').forEach(btn => {
+                btn.addEventListener('mouseover', function() {
+                    const mode = this.dataset.mode;
+                    if (window.modeDescriptions[mode]) {
+                        modeDescription.textContent = window.modeDescriptions[mode];
+                        modeDescription.classList.add('active-description');
+                    }
                 });
-            }
+                
+                btn.addEventListener('mouseout', function() {
+                    modeDescription.classList.remove('active-description');
+                });
+            });
         });
     </script>
     
-    <!-- 6. Отслеживание событий VK -->
+    <!-- VK Bridge -->
     <script>
         document.addEventListener('DOMContentLoaded', function() {
             if (typeof vkBridge !== 'undefined') {
                 vkBridge.send('VKWebAppInit')
-                    .then(() => {
-                        console.log('VK Bridge успешно инициализирован');
-                        
-                        document.getElementById('start-quiz').addEventListener('click', function() {
-                            vkBridge.send('VKWebAppTrackEvent', {
-                                event_name: 'quiz_started',
-                                event_params: {
-                                    mode: window.currentQuizMode || 'anatomy',
-                                    difficulty: window.currentDifficulty || 'easy'
-                                }
-                            }).catch(console.error);
-                        });
-                    })
+                    .then(() => console.log('VK Bridge инициализирован'))
                     .catch(console.error);
             }
         });
