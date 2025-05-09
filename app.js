@@ -111,7 +111,7 @@ let selectedOption = null;
 let questionsForQuiz = []; // Массив для хранения выбранных вопросов
 const totalQuestionsToShow = 10; // Количество вопросов для показа в одном тесте
 let currentUserData = null; // Данные текущего пользователя
-let currentQuizMode = 'anatomy'; // Текущий режим квиза: anatomy, clinical, pharmacology
+let currentQuizMode = 'anatomy'; // Текущий режим квиза: anatomy, clinical, pharmacology, first_aid
 let currentDifficulty = 'easy'; // Текущий уровень сложности: easy, hard
 let vkBridgeInstance = null; // Будем хранить инициализированный VK Bridge
 
@@ -386,6 +386,7 @@ function initializeApp() {
             let modeText = 'Анатомия';
             if (currentQuizMode === 'clinical') modeText = 'Клиническое мышление';
             if (currentQuizMode === 'pharmacology') modeText = 'Фармакология';
+            if (currentQuizMode === 'first_aid') modeText = 'Первая помощь';
             modeBadge.textContent = modeText;
         }
 
@@ -432,26 +433,41 @@ function initializeApp() {
         }
     }
 
-    // Поделиться результатами
+    // Поделиться результатами - ОБНОВЛЕННАЯ ВЕРСИЯ
     if (shareResultsButton) {
         shareResultsButton.addEventListener('click', () => {
             const percentage = Math.round((score / questionsForQuiz.length) * 100);
             let modeText = 'Анатомия';
             if (currentQuizMode === 'clinical') modeText = 'Клиническое мышление';
             if (currentQuizMode === 'pharmacology') modeText = 'Фармакология';
+            if (currentQuizMode === 'first_aid') modeText = 'Первая помощь';
+            
             const difficultyText = currentDifficulty === 'hard' ? 'сложный уровень' : 'обычный уровень';
             const message = `Я прошел Медицинский квиз (${modeText}, ${difficultyText}) и набрал ${percentage}%! Попробуй и ты!`;
 
             let bridge = vkBridgeInstance || window.vkBridgeInstance;
             if (bridge) {
-                bridge.send('VKWebAppShare', { message })
-                    .then(data => {
-                        console.log('Поделились результатом:', data);
-                    })
-                    .catch(error => {
-                        console.error('Ошибка при шеринге:', error);
-                        alert(message);
-                    });
+                // Используем VKWebAppShowWallPostBox для публикации на стене
+                bridge.send('VKWebAppShowWallPostBox', {
+                    message: message,
+                    attachments: window.location.href // Добавляем ссылку на приложение
+                })
+                .then(data => {
+                    console.log('Публикация на стене успешна:', data);
+                })
+                .catch(error => {
+                    console.error('Ошибка при публикации на стене:', error);
+                    
+                    // В случае ошибки, пробуем обычный шеринг
+                    bridge.send('VKWebAppShare', { message })
+                        .then(data => {
+                            console.log('Поделились результатом через сообщение:', data);
+                        })
+                        .catch(error => {
+                            console.error('Ошибка при шеринге через сообщение:', error);
+                            alert(message);
+                        });
+                });
             } else {
                 alert(message);
                 console.warn('VK Bridge не определен. Используется альтернативное действие для "Поделиться".');
