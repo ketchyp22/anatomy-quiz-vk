@@ -1,63 +1,64 @@
-// add-first-aid-mode.js - с учетом порядка загрузки
+// add-first-aid-mode.js - простая и неинвазивная версия
 (function() {
     // Константы для режима "Первая помощь"
     const MODE_ID = 'first_aid';
     const MODE_TITLE = 'Первая помощь';
     
-    // ВАЖНОЕ ИЗМЕНЕНИЕ: Увеличиваем задержку для гарантии загрузки вопросов
+    // Глобальный флаг для отслеживания инициализации
+    window.firstAidModeInitialized = false;
+    
+    // Ждем полной загрузки страницы
     window.addEventListener('load', function() {
-        console.log('Ожидание загрузки вопросов первой помощи...');
-        
-        // Используем более длительную задержку (1000 мс вместо 300)
-        setTimeout(initFirstAidMode, 1000);
+        // Отложенная инициализация
+        setTimeout(initFirstAidMode, 800);
     });
     
-    // Основная функция инициализации
+    // Функция для проверки вопросов с повторными попытками
     function initFirstAidMode() {
-        // Пытаемся найти вопросы для режима "Первая помощь"
-        const firstAidQuestionsCount = countFirstAidQuestions();
-        console.log(`Найдено ${firstAidQuestionsCount} вопросов для режима "Первая помощь"`);
+        console.log('Проверка наличия вопросов для режима "Первая помощь"...');
         
-        if (firstAidQuestionsCount === 0) {
-            console.log('Вопросы для режима "Первая помощь" пока не загружены, повторная попытка через 500 мс');
-            
-            // ВАЖНОЕ ИЗМЕНЕНИЕ: Делаем повторную попытку, если вопросы не загружены
+        // Проверяем наличие вопросов первой помощи
+        const questionsCount = countFirstAidQuestions();
+        console.log(`Найдено ${questionsCount} вопросов для режима "Первая помощь"`);
+        
+        if (questionsCount > 0) {
+            // Добавляем кнопку режима
+            addModeButton();
+            // Устанавливаем флаг инициализации
+            window.firstAidModeInitialized = true;
+        } else {
+            // Если вопросы не найдены, пробуем еще раз через секунду
+            console.log('Вопросы для режима "Первая помощь" не найдены. Повторная попытка через 1 секунду.');
             setTimeout(function() {
                 const retryCount = countFirstAidQuestions();
                 console.log(`Повторная проверка: найдено ${retryCount} вопросов для режима "Первая помощь"`);
                 
                 if (retryCount > 0) {
                     addModeButton();
-                    console.log('Инициализация режима "Первая помощь" завершена успешно (повторная попытка)');
+                    window.firstAidModeInitialized = true;
                 } else {
-                    console.error('Вопросы для режима "Первая помощь" не найдены даже после повторной попытки');
+                    console.error('Вопросы для режима "Первая помощь" не обнаружены после повторной попытки. Убедитесь, что first-aid-questions.js корректно загружается.');
                 }
-            }, 500);
-            
-            return;
+            }, 1000);
         }
-        
-        // Добавляем кнопку режима в интерфейс
-        addModeButton();
-        
-        console.log('Инициализация режима "Первая помощь" завершена успешно');
     }
     
     // Функция подсчета вопросов для режима Первая помощь
     function countFirstAidQuestions() {
+        // Проверяем существование массива вопросов
         if (!Array.isArray(window.questions)) {
             console.log('Массив вопросов не инициализирован');
             return 0;
         }
         
+        // Подсчитываем вопросы с режимом "first_aid"
         return window.questions.filter(q => q.mode === MODE_ID).length;
     }
     
-    // Функция добавления кнопки режима в интерфейс
+    // Функция добавления кнопки режима
     function addModeButton() {
         // Находим контейнер для кнопок выбора режима
         const modeContainer = document.querySelector('.quiz-mode-selection');
-        
         if (!modeContainer) {
             console.error('Контейнер для кнопок режимов не найден');
             return;
@@ -69,93 +70,31 @@
             return;
         }
         
-        // Находим существующую кнопку для копирования стиля
-        const existingButton = document.querySelector('.quiz-mode-btn');
-        
-        if (!existingButton) {
-            console.error('Не найдены существующие кнопки режимов');
-            return;
-        }
-        
-        // Создаем новую кнопку, аналогичную существующим
+        // Создаем новую кнопку (в стиле существующих)
         const button = document.createElement('button');
         button.className = 'quiz-mode-btn';
         button.setAttribute('data-mode', MODE_ID);
         button.textContent = MODE_TITLE;
         
-        // ВАЖНО: Не добавляем никаких своих обработчиков событий и не меняем стили
-        // Это позволит приложению обрабатывать новую кнопку так же, как и остальные
+        // Устанавливаем специальный цвет для кнопки первой помощи (опционально)
+        button.style.background = 'linear-gradient(135deg, #f56565 0%, #e53e3e 100%)';
+        button.style.color = 'white';
         
         // Добавляем кнопку в контейнер
         modeContainer.appendChild(button);
         
-        // Добавляем описание режима для всплывающей подсказки
+        // Добавляем описание для всплывающей подсказки (если применимо)
         addModeDescription();
         
         console.log('Кнопка режима "Первая помощь" успешно добавлена');
     }
     
-    // Функция добавления описания режима для всплывающей подсказки
+    // Функция добавления описания режима
     function addModeDescription() {
-        // Проверяем, существует ли в приложении обработчик описаний режимов
-        const descriptionElement = document.getElementById('mode-description');
-        
-        if (!descriptionElement) {
-            return; // Если нет элемента описания, ничего не делаем
-        }
-        
-        // Ищем существующий объект описаний в приложении
-        const descriptions = findDescriptionsObject();
-        
-        if (descriptions) {
-            // Если нашли объект с описаниями, добавляем наше описание
-            descriptions[MODE_ID] = 'Неотложная помощь при травмах, отравлениях и других состояниях';
-            console.log('Описание режима "Первая помощь" добавлено в существующий объект');
-        } else {
-            // Иначе обрабатываем события наведения мыши самостоятельно
-            handleDescriptionHover();
-        }
-    }
-    
-    // Поиск объекта с описаниями режимов в приложении
-    function findDescriptionsObject() {
-        // Проверяем глобальные переменные
-        for (const key in window) {
-            if (
-                typeof window[key] === 'object' && 
-                window[key] !== null &&
-                typeof window[key]['anatomy'] === 'string' &&
-                typeof window[key]['clinical'] === 'string'
-            ) {
-                return window[key];
-            }
-        }
-        
-        return null;
-    }
-    
-    // Обработка наведения мыши для отображения описания
-    function handleDescriptionHover() {
-        const descriptionElement = document.getElementById('mode-description');
-        
-        if (!descriptionElement) {
-            return;
-        }
-        
-        // Добавляем обработчик только для нашей кнопки
-        const button = document.querySelector(`.quiz-mode-btn[data-mode="${MODE_ID}"]`);
-        
-        if (button) {
-            button.addEventListener('mouseover', function() {
-                descriptionElement.textContent = 'Неотложная помощь при травмах, отравлениях и других состояниях';
-                descriptionElement.classList.add('active-description');
-            });
-            
-            button.addEventListener('mouseout', function() {
-                descriptionElement.classList.remove('active-description');
-            });
-            
-            console.log('Добавлены обработчики наведения для описания режима "Первая помощь"');
+        // Добавляем описание, если оно еще не существует
+        if (window.modeDescriptions && !window.modeDescriptions[MODE_ID]) {
+            window.modeDescriptions[MODE_ID] = 'Неотложная помощь при травмах, отравлениях и других состояниях';
+            console.log('Описание режима "Первая помощь" добавлено');
         }
     }
 })();
