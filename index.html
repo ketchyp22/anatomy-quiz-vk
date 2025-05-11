@@ -23,6 +23,24 @@
             background: linear-gradient(135deg, #ec4899 0%, #d946ef 100%);
             color: white;
         }
+        
+        .author-credit {
+            text-align: center;
+            margin-top: 20px;
+            font-size: 14px;
+            color: #4a5568;
+        }
+        
+        .author-credit a {
+            color: #5a67d8;
+            text-decoration: none;
+            transition: color 0.3s ease;
+        }
+        
+        .author-credit a:hover {
+            color: #434190;
+            text-decoration: underline;
+        }
     </style>
 </head>
 <body>
@@ -63,6 +81,11 @@
         </div>
         
         <button id="start-quiz" class="btn-primary">Начать квиз</button>
+        
+        <!-- Добавляем ссылку на автора -->
+        <div class="author-credit">
+            <p>© 2025 · <a href="https://vk.com/id837477864" target="_blank">Автор</a></p>
+        </div>
         
         <div class="card-pulse">
             <svg class="pulse-line-svg" viewBox="0 0 150 40" preserveAspectRatio="none">
