@@ -5,6 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Медицинский Квиз</title>
     <link rel="stylesheet" href="style.css">
+    <!-- Подключаем стили геймификации -->
+    <link rel="stylesheet" href="gamification.css">
     <script src="https://unpkg.com/@vkontakte/vk-bridge/dist/browser.min.js"></script>
     <meta property="og:title" content="Медицинский Квиз – проверь свои знания!">
     <meta property="og:description" content="Тест по медицине с разными режимами: анатомия, клиническое мышление, фармакология, первая помощь и акушерство.">
@@ -57,6 +59,9 @@
     
     <div id="start-screen">
         <div id="user-info" class="user-info"></div>
+        
+        <!-- Контейнер для статистики геймификации будет добавлен сюда автоматически -->
+        
         <h1><span class="doctor-emoji">👨‍⚕️</span> Медицинский Квиз</h1>
         
         <div class="difficulty-selection">
@@ -125,8 +130,11 @@
             <div class="score-percentage"><span id="percentage">0</span>%</div>
             <div class="score-text">Правильных ответов: <span id="correct-answers">0</span> из <span id="total-questions-result">10</span></div>
         </div>
+        
+        <!-- Мотивационное сообщение будет добавлено сюда автоматически -->
+        
         <div class="results-buttons">
-            <button id="share-results" class="btn-primary">Поделиться</button>
+            <button id="share-results" class="btn-primary">🎉 Поделиться результатом</button>
             <button id="restart-quiz" class="btn-secondary">Начать заново</button>
         </div>
         
@@ -142,7 +150,7 @@
         <div class="tooltip-content"></div>
     </div>
 
-    <!-- Скрипты -->
+    <!-- Базовые скрипты приложения -->
     <script>
         // Глобальный объект для описаний режимов
         window.modeDescriptions = {
@@ -154,7 +162,7 @@
         };
     </script>
     
-    <!-- Базовые скрипты приложения -->
+    <!-- Основные скрипты приложения -->
     <script src="questions.js"></script>
     <script src="app.js"></script>
     
@@ -165,6 +173,10 @@
     <!-- Добавляем вопросы акушерства и гинекологии -->
     <script src="obstetrics-questions.js"></script>
     <script src="obstetrics-hard-questions.js"></script>
+    
+    <!-- 🎮 НОВЫЕ СКРИПТЫ ГЕЙМИФИКАЦИИ - добавлены в конец -->
+    <script src="gamification.js"></script>
+    <script src="integration-patch.js"></script>
     
     <!-- Инициализация описаний режимов -->
     <script>
@@ -198,6 +210,40 @@
                     .catch(console.error);
             }
         });
+    </script>
+    
+    <!-- 🧪 Функция для тестирования геймификации (можно удалить в продакшене) -->
+    <script>
+        // Добавляем кнопку для быстрого тестирования (только для разработки)
+        if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
+            document.addEventListener('DOMContentLoaded', function() {
+                setTimeout(function() {
+                    const testButton = document.createElement('button');
+                    testButton.textContent = '🧪 Тест геймификации';
+                    testButton.style.cssText = `
+                        position: fixed;
+                        top: 10px;
+                        left: 10px;
+                        z-index: 9999;
+                        padding: 8px 12px;
+                        background: #ff6b6b;
+                        color: white;
+                        border: none;
+                        border-radius: 8px;
+                        font-size: 12px;
+                        cursor: pointer;
+                    `;
+                    testButton.onclick = function() {
+                        if (window.testGamification) {
+                            window.testGamification();
+                        } else {
+                            console.log('Геймификация еще не загружена, попробуйте через секунду');
+                        }
+                    };
+                    document.body.appendChild(testButton);
+                }, 2000);
+            });
+        }
     </script>
 </body>
 </html>
