@@ -1,140 +1,108 @@
-// integration-patch.js - Минимальный патч для интеграции геймификации
-// НЕ ИЗМЕНЯЕТ основной код, только добавляет функциональность
-
+// integration-patch.js - Исправленный патч для интеграции геймификации
 (function() {
     'use strict';
     
-    let quizStartTime = null;
     let isQuizActive = false;
+    let currentQuizResults = null;
     
     // Ждем полной загрузки приложения
     document.addEventListener('DOMContentLoaded', function() {
-        setTimeout(initializeGamificationIntegration, 1000);
+        setTimeout(initializeIntegration, 2000);
     });
     
-    function initializeGamificationIntegration() {
-        if (typeof window.Gamification === 'undefined') {
-            console.log('Геймификация не найдена, пропускаем интеграцию');
+    function initializeIntegration() {
+        console.log('🔗 Запуск интеграции геймификации');
+        
+        // Проверяем доступность геймификации
+        if (!window.Gamification) {
+            console.warn('Геймификация не найдена');
             return;
         }
         
-        console.log('🔗 Запуск интеграции геймификации');
+        // Настраиваем отслеживание
+        setupQuizTracking();
+        setupAnswerTracking();
+        setupShareButton();
         
-        // Отслеживаем переходы между экранами
-        observeScreenChanges();
-        
-        // Отслеживаем клики по ответам
-        observeAnswerClicks();
-        
-        // Патчим кнопку "Поделиться" для улучшенного сообщения
-        enhanceShareButton();
+        console.log('✅ Интеграция настроена');
     }
     
-    // Наблюдение за сменой экранов
-    function observeScreenChanges() {
+    // Отслеживание состояния квиза
+    function setupQuizTracking() {
         const observer = new MutationObserver(function(mutations) {
             mutations.forEach(function(mutation) {
                 if (mutation.type === 'attributes' && mutation.attributeName === 'style') {
-                    const target = mutation.target;
-                    
-                    // Квиз начался
-                    if (target.id === 'quiz-container' && target.style.display !== 'none') {
-                        onQuizStart();
-                    }
-                    
-                    // Показались результаты
-                    if (target.id === 'results-container' && target.style.display !== 'none') {
-                        onQuizComplete();
-                    }
-                    
-                    // Вернулись на главный экран
-                    if (target.id === 'start-screen' && target.style.display !== 'none') {
-                        onQuizReset();
-                    }
+                    handleScreenChange(mutation.target);
                 }
             });
         });
         
-        // Наблюдаем за всеми тремя основными контейнерами
-        const startScreen = document.getElementById('start-screen');
-        const quizContainer = document.getElementById('quiz-container');
-        const resultsContainer = document.getElementById('results-container');
-        
-        if (startScreen) observer.observe(startScreen, { attributes: true });
-        if (quizContainer) observer.observe(quizContainer, { attributes: true });
-        if (resultsContainer) observer.observe(resultsContainer, { attributes: true });
-    }
-    
-    // Отслеживание кликов по ответам
-    function observeAnswerClicks() {
-        document.addEventListener('click', function(e) {
-            if (!e.target.classList.contains('option') || !isQuizActive) return;
-            
-            // Ждем, пока основной код обработает клик и добавит классы
-            setTimeout(function() {
-                if (e.target.classList.contains('correct')) {
-                    window.Gamification.onCorrectAnswer();
-                } else if (e.target.classList.contains('wrong')) {
-                    window.Gamification.onWrongAnswer();
-                }
-            }, 200);
+        // Наблюдаем за основными экранами
+        const screens = ['start-screen', 'quiz-container', 'results-container'];
+        screens.forEach(screenId => {
+            const screen = document.getElementById(screenId);
+            if (screen) {
+                observer.observe(screen, { attributes: true, attributeFilter: ['style'] });
+            }
         });
     }
     
+    // Обработка смены экранов
+    function handleScreenChange(target) {
+        const isVisible = target.style.display !== 'none';
+        
+        if (target.id === 'quiz-container' && isVisible && !isQuizActive) {
+            startQuiz();
+        } else if (target.id === 'results-container' && isVisible && isQuizActive) {
+            setTimeout(finishQuiz, 500); // Даем время DOM обновиться
+        } else if (target.id === 'start-screen' && isVisible) {
+            resetQuiz();
+        }
+    }
+    
     // Начало квиза
-    function onQuizStart() {
-        if (isQuizActive) return;
-        
+    function startQuiz() {
         isQuizActive = true;
-        quizStartTime = Date.now();
         console.log('🎮 Квиз начат');
-        
-        // Обновляем статистику геймификации
-        window.Gamification.updateStatsDisplay();
     }
     
     // Завершение квиза
-    function onQuizComplete() {
+    function finishQuiz() {
         if (!isQuizActive) return;
         
         isQuizActive = false;
+        currentQuizResults = getQuizResults();
         
-        // Небольшая задержка, чтобы DOM успел обновиться
-        setTimeout(function() {
-            const results = extractQuizResults();
-            if (results) {
-                // Добавляем мотивационное сообщение
-                addMotivationalMessage(results.percentage);
-                
-                // Уведомляем геймификацию о завершении
-                if (window.triggerQuizCompleted) {
-                    window.triggerQuizCompleted(results.correct, results.total, results.percentage);
-                }
-                
-                console.log('🎮 Квиз завершен:', results);
-            }
-        }, 100);
+        if (currentQuizResults) {
+            console.log('🏁 Квиз завершен:', currentQuizResults);
+            
+            // Уведомляем геймификацию
+            window.Gamification.onQuizComplete(currentQuizResults);
+            
+            // Добавляем мотивационное сообщение
+            addMotivationalMessage();
+        }
     }
     
     // Сброс квиза
-    function onQuizReset() {
+    function resetQuiz() {
         isQuizActive = false;
-        quizStartTime = null;
+        currentQuizResults = null;
         
-        // Обновляем статистику на главном экране
-        setTimeout(function() {
+        // Обновляем статистику
+        setTimeout(() => {
             window.Gamification.updateStatsDisplay();
         }, 100);
     }
     
-    // Извлечение результатов квиза из DOM
-    function extractQuizResults() {
+    // Получение результатов квиза
+    function getQuizResults() {
         const percentageEl = document.getElementById('percentage');
         const correctEl = document.getElementById('correct-answers');
         const totalEl = document.getElementById('total-questions-result');
         
         if (!percentageEl || !correctEl || !totalEl) {
-            console.warn('Не удалось найти элементы результатов');
+            console.warn('Элементы результатов не найдены');
             return null;
         }
         
@@ -145,16 +113,31 @@
         };
     }
     
-    // Добавление мотивационного сообщения к результатам
-    function addMotivationalMessage(percentage) {
-        const resultsContainer = document.getElementById('results-container');
-        if (!resultsContainer) return;
+    // Отслеживание ответов
+    function setupAnswerTracking() {
+        document.addEventListener('click', function(e) {
+            if (!e.target.classList.contains('option') || !isQuizActive) return;
+            
+            // Ждем обработки основным кодом
+            setTimeout(() => {
+                if (e.target.classList.contains('correct')) {
+                    window.Gamification.onCorrectAnswer();
+                } else if (e.target.classList.contains('wrong')) {
+                    window.Gamification.onWrongAnswer();
+                }
+            }, 400);
+        });
+    }
+    
+    // Добавление мотивационного сообщения
+    function addMotivationalMessage() {
+        const container = document.getElementById('results-container');
+        if (!container || !currentQuizResults) return;
         
         // Проверяем, не добавлено ли уже
-        if (resultsContainer.querySelector('.motivational-message')) return;
+        if (container.querySelector('.motivational-message')) return;
         
-        const motivation = window.Gamification.addMotivationalMessage(percentage);
-        
+        const motivation = window.Gamification.addMotivationalMessage(currentQuizResults.percentage);
         const messageEl = document.createElement('div');
         messageEl.className = 'motivational-message';
         messageEl.innerHTML = `
@@ -162,95 +145,195 @@
             <div class="message-text">${motivation.message}</div>
         `;
         
-        // Вставляем после блока с результатами
-        const scoreEl = resultsContainer.querySelector('.score');
-        if (scoreEl && scoreEl.nextSibling) {
-            resultsContainer.insertBefore(messageEl, scoreEl.nextSibling);
-        } else if (scoreEl) {
-            scoreEl.parentNode.appendChild(messageEl);
+        // Вставляем после блока с оценкой
+        const scoreEl = container.querySelector('.score');
+        if (scoreEl) {
+            scoreEl.parentNode.insertBefore(messageEl, scoreEl.nextSibling);
         }
     }
     
-    // Улучшение кнопки "Поделиться"
-    function enhanceShareButton() {
+    // Настройка кнопки "Поделиться"
+    function setupShareButton() {
         const shareButton = document.getElementById('share-results');
-        if (!shareButton) return;
+        if (!shareButton) {
+            console.warn('Кнопка "Поделиться" не найдена');
+            return;
+        }
         
-        // Сохраняем оригинальный обработчик
-        const originalHandler = shareButton.onclick;
-        
+        // Заменяем обработчик полностью
         shareButton.onclick = function(e) {
-            // Получаем результаты
-            const results = extractQuizResults();
-            if (!results) {
-                // Если не можем получить результаты, используем оригинальный обработчик
-                if (originalHandler) originalHandler.call(this, e);
-                return;
-            }
-            
-            // Создаем улучшенное сообщение с достижениями
-            const stats = window.Gamification.stats;
-            const motivation = window.Gamification.addMotivationalMessage(results.percentage);
-            
-            // Определяем режим и сложность
-            const modeButton = document.querySelector('.quiz-mode-btn.active');
-            const difficultyButton = document.querySelector('.difficulty-btn.active');
-            
-            const mode = modeButton ? modeButton.textContent : 'Медицинский квиз';
-            const difficulty = difficultyButton ? difficultyButton.textContent : '';
-            
-            // Формируем сообщение
-            let message = `${motivation.icon} Прошел "${mode}"`;
-            if (difficulty) message += ` (${difficulty.toLowerCase()} уровень)`;
-            message += ` и набрал ${results.percentage}%!\n\n`;
-            
-            // Добавляем статистику
-            if (stats.currentStreak > 2) {
-                message += `🔥 Серия правильных ответов: ${stats.currentStreak}\n`;
-            }
-            if (stats.totalQuizzes > 1) {
-                message += `📊 Всего пройдено тестов: ${stats.totalQuizzes}\n`;
-            }
-            
-            message += '\nПроверь свои знания тоже! 👨‍⚕️';
-            
-            // Используем VK Bridge для шеринга
-            const bridge = window.vkBridgeInstance || window.vkBridge;
-            if (bridge) {
-                bridge.send('VKWebAppShare', { message })
-                    .then(data => {
-                        console.log('Результат успешно отправлен:', data);
-                        
-                        // Показываем достижение за шеринг
-                        if (!stats.achievements.includes('social')) {
-                            stats.achievements.push('social');
-                            window.Gamification.showAchievement('Социальный: поделился результатом! 📤');
-                            window.Gamification.saveStats();
-                        }
-                    })
-                    .catch(error => {
-                        console.error('Ошибка при шеринге:', error);
-                        // Fallback - показываем alert с сообщением
-                        alert(message);
-                    });
-            } else {
-                // Fallback если VK Bridge недоступен
-                alert(message);
-            }
+            e.preventDefault();
+            shareResults();
         };
+        
+        console.log('📤 Кнопка "Поделиться" настроена');
     }
     
-    // Добавляем глобальную функцию для ручного тестирования
+    // Функция шеринга результатов
+    function shareResults() {
+        console.log('📤 Начинаем процесс шеринга');
+        
+        // Получаем результаты
+        const results = currentQuizResults || getQuizResults();
+        if (!results) {
+            alert('Ошибка получения результатов');
+            return;
+        }
+        
+        // Создаем сообщение
+        const message = createShareMessage(results);
+        console.log('📝 Сообщение для шеринга готово');
+        
+        // Пытаемся поделиться через VK
+        shareToVK(message);
+    }
+    
+    // Создание сообщения для шеринга
+    function createShareMessage(results) {
+        // Получаем выбранный режим и сложность
+        const modeBtn = document.querySelector('.quiz-mode-btn.active');
+        const diffBtn = document.querySelector('.difficulty-btn.active');
+        
+        const modeName = modeBtn ? modeBtn.textContent.trim() : 'Медицинский квиз';
+        const difficulty = diffBtn ? diffBtn.textContent.trim().toLowerCase() : 'обычный';
+        
+        // Эмодзи по результату
+        let emoji = '📊';
+        if (results.percentage >= 95) emoji = '🏆';
+        else if (results.percentage >= 85) emoji = '🌟';
+        else if (results.percentage >= 75) emoji = '👍';
+        else if (results.percentage >= 60) emoji = '📚';
+        else emoji = '🎯';
+        
+        // Основное сообщение
+        let msg = `${emoji} Прошел тест "${modeName}"`;
+        
+        if (difficulty !== 'обычный') {
+            msg += ` (${difficulty} уровень)`;
+        }
+        
+        msg += ` и набрал ${results.percentage}%!\n`;
+        msg += `Правильно ответил на ${results.correct} из ${results.total} вопросов.\n`;
+        
+        // Добавляем статистику геймификации
+        if (window.Gamification && window.Gamification.stats) {
+            const stats = window.Gamification.stats;
+            
+            if (stats.currentStreak > 2) {
+                msg += `🔥 Серия правильных ответов: ${stats.currentStreak}\n`;
+            }
+            
+            if (stats.totalQuizzes > 1) {
+                msg += `📈 Всего пройдено тестов: ${stats.totalQuizzes}\n`;
+            }
+        }
+        
+        msg += '\n🩺 Проверь свои медицинские знания тоже!';
+        
+        return msg;
+    }
+    
+    // Шеринг в VK
+    function shareToVK(message) {
+        // Поиск VK Bridge
+        let bridge = null;
+        
+        if (window.vkBridgeInstance) {
+            bridge = window.vkBridgeInstance;
+        } else if (window.vkBridge) {
+            bridge = window.vkBridge;
+        } else if (typeof vkBridge !== 'undefined') {
+            bridge = vkBridge;
+        }
+        
+        if (!bridge) {
+            console.warn('VK Bridge недоступен');
+            fallbackShare(message);
+            return;
+        }
+        
+        console.log('🌐 Используем VK Bridge для шеринга');
+        
+        // Отправляем через VK Bridge
+        bridge.send('VKWebAppShare', { message: message })
+            .then(data => {
+                console.log('✅ Результат успешно опубликован:', data);
+                
+                // Награда за шеринг
+                if (window.Gamification && !window.Gamification.stats.achievements.includes('social')) {
+                    window.Gamification.stats.achievements.push('social');
+                    window.Gamification.showAchievement('Социальный: поделился результатом! 📱');
+                    window.Gamification.saveStats();
+                }
+            })
+            .catch(error => {
+                console.error('❌ Ошибка при публикации:', error);
+                fallbackShare(message);
+            });
+    }
+    
+    // Запасной вариант шеринга
+    function fallbackShare(message) {
+        console.log('📋 Используем запасной способ шеринга');
+        
+        // Пробуем скопировать в буфер обмена
+        if (navigator.clipboard) {
+            navigator.clipboard.writeText(message)
+                .then(() => {
+                    alert('Текст скопирован в буфер обмена! Вставьте его в пост ВКонтакте.');
+                })
+                .catch(() => {
+                    // Если не получилось скопировать, показываем в alert
+                    alert(message);
+                });
+        } else {
+            // Старые браузеры - показываем в alert
+            alert(message);
+        }
+    }
+    
+    // Функция для тестирования
     window.testGamification = function() {
         console.log('🧪 Тестирование геймификации');
         
-        if (window.Gamification) {
+        if (!window.Gamification) {
+            console.error('Геймификация не найдена');
+            return;
+        }
+        
+        // Имитируем правильные ответы
+        console.log('✅ Имитируем правильные ответы...');
+        window.Gamification.onCorrectAnswer();
+        
+        setTimeout(() => {
             window.Gamification.onCorrectAnswer();
-            setTimeout(() => window.Gamification.onCorrectAnswer(), 500);
-            setTimeout(() => window.Gamification.onCorrectAnswer(), 1000);
-            setTimeout(() => {
-                window.triggerQuizCompleted(8, 10, 80);
-            }, 1500);
+        }, 500);
+        
+        setTimeout(() => {
+            window.Gamification.onCorrectAnswer();
+        }, 1000);
+        
+        // Имитируем завершение квиза
+        setTimeout(() => {
+            console.log('🏁 Имитируем завершение квиза...');
+            window.Gamification.onQuizComplete({
+                percentage: 85,
+                correct: 8,
+                total: 10
+            });
+        }, 1500);
+        
+        // Показываем конфетти
+        setTimeout(() => {
+            console.log('🎊 Показываем конфетти...');
+            window.Gamification.showConfetti();
+        }, 2000);
+    };
+    
+    // Функция для сброса статистики (для тестирования)
+    window.resetGameStats = function() {
+        if (window.Gamification) {
+            window.Gamification.resetStats();
         }
     };
     
