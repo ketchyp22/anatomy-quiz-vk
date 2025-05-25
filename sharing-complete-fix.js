@@ -1,165 +1,23 @@
-// sharing-complete-fix.js - Полное исправление всех проблем с шерингом
+// share-fix-v2.js - Новая версия исправления шеринга
 (function() {
     'use strict';
     
-    console.log('🚑 Загружается полное исправление шеринга...');
+    console.log('🔧 Загружается исправление шеринга v2...');
     
     document.addEventListener('DOMContentLoaded', function() {
-        setTimeout(initCompleteShareFix, 2000);
+        setTimeout(initShareFix, 2000);
     });
     
-    function initCompleteShareFix() {
-        console.log('🔧 Инициализируем полное исправление шеринга');
+    function initShareFix() {
+        console.log('🚀 Инициализируем исправление шеринга v2');
         
-        // 1. Исправляем получение результатов квиза
-        fixResultsRetrieval();
-        
-        // 2. Исправляем кнопку поделиться
+        // Исправляем кнопку поделиться
         fixShareButton();
         
-        // 3. Добавляем отладочную информацию
-        addDebugInfo();
+        // Добавляем отладочные функции
+        addDebugFunctions();
     }
     
-    // ===== 1. ИСПРАВЛЕНИЕ ПОЛУЧЕНИЯ РЕЗУЛЬТАТОВ =====
-    function fixResultsRetrieval() {
-        // Отслеживаем появление экрана результатов
-        const observer = new MutationObserver(function(mutations) {
-            mutations.forEach(function(mutation) {
-                if (mutation.type === 'attributes' && mutation.attributeName === 'style') {
-                    const target = mutation.target;
-                    if (target.id === 'results-container' && target.style.display !== 'none') {
-                        console.log('🎯 Обнаружен экран результатов, ждем данные...');
-                        setTimeout(captureResults, 1000); // Даем время на отрисовку
-                    }
-                }
-            });
-        });
-        
-        const resultsContainer = document.getElementById('results-container');
-        if (resultsContainer) {
-            observer.observe(resultsContainer, { attributes: true, attributeFilter: ['style'] });
-        }
-    }
-    
-    function captureResults() {
-        const results = getResultsFromDOM();
-        if (results && results.isValid) {
-            console.log('✅ Результаты успешно получены:', results);
-            window.currentQuizResults = results; // Сохраняем глобально
-            
-            // Уведомляем геймификацию с корректными данными
-            if (window.Gamification) {
-                window.Gamification.onQuizComplete({
-                    percentage: results.percentage,
-                    correct: results.correct,
-                    total: results.total
-                });
-            }
-        } else {
-            console.warn('⚠️ Не удалось получить валидные результаты');
-        }
-    }
-    
-    function getResultsFromDOM() {
-        try {
-            // Попробуем несколько способов найти элементы
-            let percentageEl = document.getElementById('percentage');
-            let correctEl = document.getElementById('correct-answers');
-            let totalEl = document.getElementById('total-questions-result');
-            
-            // Если не нашли по ID, попробуем по селекторам
-            if (!percentageEl) {
-                percentageEl = document.querySelector('#percentage, .score-percentage span, [data-percentage]');
-            }
-            if (!correctEl) {
-                correctEl = document.querySelector('#correct-answers, .correct-answers, [data-correct]');
-            }
-            if (!totalEl) {
-                totalEl = document.querySelector('#total-questions-result, .total-questions, [data-total]');
-            }
-            
-            console.log('🔍 Найденные элементы:', {
-                percentage: percentageEl ? percentageEl.textContent : 'не найден',
-                correct: correctEl ? correctEl.textContent : 'не найден',
-                total: totalEl ? totalEl.textContent : 'не найден'
-            });
-            
-            if (!percentageEl || !correctEl || !totalEl) {
-                console.warn('⚠️ Элементы результатов не найдены, пробуем альтернативный поиск...');
-                
-                // Альтернативный поиск в тексте
-                const resultsContainer = document.getElementById('results-container');
-                if (resultsContainer) {
-                    const text = resultsContainer.textContent;
-                    console.log('📄 Текст контейнера результатов:', text);
-                    
-                    // Поиск по регулярным выражениям
-                    const percentageMatch = text.match(/(\d+)%/);
-                    const correctMatch = text.match(/Правильных ответов:\s*(\d+)/i) || text.match(/(\d+)\s*из\s*\d+/);
-                    const totalMatch = text.match(/из\s*(\d+)/);
-                    
-                    if (percentageMatch && correctMatch && totalMatch) {
-                        const percentage = parseInt(percentageMatch[1]);
-                        const correct = parseInt(correctMatch[1]);
-                        const total = parseInt(totalMatch[1]);
-                        
-                        console.log('✅ Данные найдены через регулярные выражения:', { percentage, correct, total });
-                        
-                        return {
-                            percentage: percentage,
-                            correct: correct,
-                            total: total,
-                            isValid: true,
-                            wasCorrected: false,
-                            method: 'regex'
-                        };
-                    }
-                }
-                
-                return null;
-            }
-            
-            const percentage = parseInt(percentageEl.textContent) || 0;
-            const correct = parseInt(correctEl.textContent) || 0;
-            const total = parseInt(totalEl.textContent) || 0;
-            
-            console.log('📊 Данные из DOM:', { percentage, correct, total });
-            
-            // Проверяем валидность
-            const isValid = total > 0 && percentage >= 0 && percentage <= 100 && correct >= 0 && correct <= total;
-            
-            if (!isValid) {
-                console.warn('⚠️ Невалидные данные:', { percentage, correct, total });
-                
-                // Пытаемся восстановить корректные данные
-                const correctedPercentage = Math.round((correct / total) * 100);
-                console.log('🔧 Исправляем процент на:', correctedPercentage);
-                
-                return {
-                    percentage: correctedPercentage,
-                    correct: correct,
-                    total: total,
-                    isValid: true,
-                    wasCorrected: true
-                };
-            }
-            
-            return {
-                percentage: percentage,
-                correct: correct,
-                total: total,
-                isValid: true,
-                wasCorrected: false
-            };
-            
-        } catch (error) {
-            console.error('❌ Ошибка при получении результатов:', error);
-            return null;
-        }
-    }
-    
-    // ===== 2. ИСПРАВЛЕНИЕ КНОПКИ ПОДЕЛИТЬСЯ =====
     function fixShareButton() {
         const shareButton = document.getElementById('share-results');
         if (!shareButton) {
@@ -172,87 +30,139 @@
             e.preventDefault();
             e.stopPropagation();
             
-            console.log('📤 Клик по исправленной кнопке поделиться');
-            handleShare();
+            console.log('📤 Клик по кнопке поделиться v2');
+            handleShareV2();
         };
         
-        console.log('✅ Кнопка поделиться исправлена');
+        console.log('✅ Кнопка поделиться исправлена v2');
     }
     
-    function handleShare() {
-        console.log('📤 Начинаем процесс шеринга...');
+    function handleShareV2() {
+        console.log('🎯 Начинаем процесс шеринга v2...');
         
-        // Сначала пробуем получить сохраненные результаты
-        let results = window.currentQuizResults;
+        // Пробуем найти результаты разными способами
+        let results = findResults();
         
-        // Если нет сохраненных, пробуем получить из DOM
-        if (!results || !results.isValid) {
-            console.log('🔍 Пробуем получить результаты из DOM...');
-            results = getResultsFromDOM();
+        if (!results) {
+            console.warn('⚠️ Результаты не найдены, запрашиваем у пользователя...');
+            results = getResultsFromUser();
         }
         
-        // Если все еще нет результатов, создаем тестовые
-        if (!results || !results.isValid) {
-            console.warn('⚠️ Не удалось получить результаты, создаем тестовые...');
+        if (!results) {
+            console.error('❌ Не удалось получить результаты');
+            alert('Не удалось получить результаты теста. Попробуйте еще раз.');
+            return;
+        }
+        
+        console.log('📊 Используем результаты:', results);
+        showShareModalV2(results);
+    }
+    
+    function findResults() {
+        console.log('🔍 Ищем результаты на странице...');
+        
+        // Способ 1: Поиск по ID
+        const percentageEl = document.getElementById('percentage');
+        const correctEl = document.getElementById('correct-answers');
+        const totalEl = document.getElementById('total-questions-result');
+        
+        if (percentageEl && correctEl && totalEl) {
+            const percentage = parseInt(percentageEl.textContent) || 0;
+            const correct = parseInt(correctEl.textContent) || 0;
+            const total = parseInt(totalEl.textContent) || 0;
             
-            // Показываем пользователю опцию ввести результаты вручную
-            const userInput = prompt('Не удалось автоматически получить результаты.\nВведите ваш процент (например: 85):');
+            console.log('✅ Найдены элементы по ID:', { percentage, correct, total });
             
-            if (userInput && !isNaN(userInput)) {
-                const percentage = Math.max(0, Math.min(100, parseInt(userInput)));
-                const total = 10; // стандартное количество вопросов
-                const correct = Math.round((percentage / 100) * total);
-                
-                results = {
-                    percentage: percentage,
-                    correct: correct,
-                    total: total,
-                    isValid: true,
-                    wasCorrected: false,
-                    method: 'manual'
-                };
-                
-                console.log('✅ Используем введенные пользователем данные:', results);
-            } else {
-                // Если пользователь отменил, используем примерные данные
-                results = {
-                    percentage: 75,
-                    correct: 8,
-                    total: 10,
-                    isValid: true,
-                    wasCorrected: false,
-                    method: 'fallback'
-                };
-                
-                console.log('⚠️ Используем fallback данные:', results);
+            if (total > 0) {
+                return { percentage, correct, total, method: 'id' };
             }
         }
         
-        console.log('📊 Финальные результаты для шеринга:', results);
+        // Способ 2: Поиск в тексте страницы
+        const bodyText = document.body.textContent || '';
+        console.log('📄 Ищем в тексте страницы...');
         
-        // Показываем модальное окно с вариантами
-        showShareModal(results);
+        // Ищем проценты
+        const percentMatch = bodyText.match(/(\d+)%/g);
+        const correctMatch = bodyText.match(/Правильных ответов:\s*(\d+)\s*из\s*(\d+)/i);
+        const scoreMatch = bodyText.match(/(\d+)\s*из\s*(\d+)/g);
+        
+        console.log('🔍 Найденные совпадения:', {
+            percentMatch,
+            correctMatch,
+            scoreMatch
+        });
+        
+        if (percentMatch && scoreMatch) {
+            // Берем последний найденный процент (вероятно результат)
+            const percentage = parseInt(percentMatch[percentMatch.length - 1]);
+            
+            // Берем последний найденный счет
+            const lastScore = scoreMatch[scoreMatch.length - 1];
+            const scoreNumbers = lastScore.match(/(\d+)\s*из\s*(\d+)/);
+            
+            if (scoreNumbers) {
+                const correct = parseInt(scoreNumbers[1]);
+                const total = parseInt(scoreNumbers[2]);
+                
+                console.log('✅ Найдены результаты в тексте:', { percentage, correct, total });
+                return { percentage, correct, total, method: 'text' };
+            }
+        }
+        
+        // Способ 3: Поиск в элементах с классами счета
+        const scoreElements = document.querySelectorAll('.score, .score-percentage, .result, [class*="result"]');
+        for (let el of scoreElements) {
+            const text = el.textContent || '';
+            const percentMatch = text.match(/(\d+)%/);
+            const scoreMatch = text.match(/(\d+)\s*из\s*(\d+)/);
+            
+            if (percentMatch && scoreMatch) {
+                const percentage = parseInt(percentMatch[1]);
+                const scoreNumbers = scoreMatch[0].match(/(\d+)\s*из\s*(\d+)/);
+                
+                if (scoreNumbers) {
+                    const correct = parseInt(scoreNumbers[1]);
+                    const total = parseInt(scoreNumbers[2]);
+                    
+                    console.log('✅ Найдены результаты в элементах:', { percentage, correct, total });
+                    return { percentage, correct, total, method: 'elements' };
+                }
+            }
+        }
+        
+        console.warn('❌ Результаты не найдены ни одним способом');
+        return null;
     }
     
-    function showShareModal(results) {
+    function getResultsFromUser() {
+        const percentage = prompt('Введите ваш результат в процентах (например: 85):');
+        
+        if (percentage && !isNaN(percentage)) {
+            const percent = Math.max(0, Math.min(100, parseInt(percentage)));
+            const total = 10; // стандартное количество вопросов
+            const correct = Math.round((percent / 100) * total);
+            
+            return {
+                percentage: percent,
+                correct: correct,
+                total: total,
+                method: 'user_input'
+            };
+        }
+        
+        return null;
+    }
+    
+    function showShareModalV2(results) {
         // Удаляем предыдущее модальное окно
-        const existingModal = document.querySelector('.share-modal-fixed');
+        const existingModal = document.querySelector('.share-modal-v2');
         if (existingModal) {
             existingModal.remove();
         }
         
-        const modal = createShareModal(results);
-        document.body.appendChild(modal);
-        
-        // Показываем модальное окно
-        setTimeout(() => {
-            modal.classList.add('show');
-        }, 100);
-    }
-    
-    function createShareModal(results) {
         const modal = document.createElement('div');
-        modal.className = 'share-modal-fixed';
+        modal.className = 'share-modal-v2';
         modal.style.cssText = `
             position: fixed;
             top: 0;
@@ -277,31 +187,32 @@
             width: 400px;
             text-align: center;
             box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
-            transform: scale(0.9);
+            transform: scale(0.8);
             transition: transform 0.3s ease;
         `;
         
-        const message = createShareMessage(results);
+        const message = createMessage(results);
         
         modalContent.innerHTML = `
             <h2 style="margin: 0 0 20px 0; color: #333;">🎯 Поделиться результатами</h2>
             
             <div style="background: #f8f9fa; padding: 20px; border-radius: 12px; margin: 20px 0;">
-                <div style="font-size: 36px; margin-bottom: 10px;">${getResultEmoji(results.percentage)}</div>
+                <div style="font-size: 36px; margin-bottom: 10px;">${getEmoji(results.percentage)}</div>
                 <div style="font-size: 24px; font-weight: bold; margin-bottom: 10px; color: #333;">${results.percentage}%</div>
                 <div style="color: #666;">Правильно: ${results.correct} из ${results.total}</div>
+                <div style="font-size: 12px; color: #999; margin-top: 5px;">Метод: ${results.method}</div>
             </div>
             
-            <div style="display: flex; flex-direction: column; gap: 12px; margin-top: 25px;">
-                <button class="share-option" data-action="copy" style="background: #4CAF50; color: white; border: none; padding: 12px 20px; border-radius: 8px; cursor: pointer; font-size: 14px;">
+            <div style="display: flex; flex-direction: column; gap: 12px;">
+                <button onclick="window.shareFixV2.copyText('${message.replace(/'/g, "\\'")}'); this.parentElement.parentElement.parentElement.remove();" style="background: #4CAF50; color: white; border: none; padding: 12px 20px; border-radius: 8px; cursor: pointer; font-size: 14px;">
                     📋 Скопировать текст
                 </button>
                 
-                <button class="share-option" data-action="vk" style="background: #4680C2; color: white; border: none; padding: 12px 20px; border-radius: 8px; cursor: pointer; font-size: 14px;">
-                    💬 Попробовать VK
+                <button onclick="window.shareFixV2.tryVK('${message.replace(/'/g, "\\'")}'); this.parentElement.parentElement.parentElement.remove();" style="background: #4680C2; color: white; border: none; padding: 12px 20px; border-radius: 8px; cursor: pointer; font-size: 14px;">
+                    💬 Поделиться в VK
                 </button>
                 
-                <button class="share-option" data-action="download" style="background: #FF9800; color: white; border: none; padding: 12px 20px; border-radius: 8px; cursor: pointer; font-size: 14px;">
+                <button onclick="window.shareFixV2.downloadImage(${results.percentage}, ${results.correct}, ${results.total}); this.parentElement.parentElement.parentElement.remove();" style="background: #FF9800; color: white; border: none; padding: 12px 20px; border-radius: 8px; cursor: pointer; font-size: 14px;">
                     🖼️ Скачать картинку
                 </button>
                 
@@ -312,158 +223,35 @@
         `;
         
         modal.appendChild(modalContent);
+        document.body.appendChild(modal);
         
-        // Обработчики кнопок
+        // Анимация появления
+        setTimeout(() => {
+            modal.style.opacity = '1';
+            modalContent.style.transform = 'scale(1)';
+        }, 100);
+        
+        // Закрытие по клику на фон
         modal.addEventListener('click', function(e) {
-            if (e.target.classList.contains('share-option')) {
-                const action = e.target.dataset.action;
-                handleShareAction(action, results, message);
-                modal.remove();
-            } else if (e.target === modal) {
+            if (e.target === modal) {
                 modal.remove();
             }
         });
-        
-        // Показываем модальное окно с анимацией
-        modal.classList.add('show');
-        modal.style.opacity = '1';
-        modalContent.style.transform = 'scale(1)';
-        
-        return modal;
     }
     
-    function handleShareAction(action, results, message) {
-        console.log(`🎯 Выполняем действие: ${action}`);
+    function createMessage(results) {
+        const emoji = getEmoji(results.percentage);
+        const grade = getGrade(results.percentage);
         
-        switch (action) {
-            case 'copy':
-                copyToClipboard(message);
-                break;
-            case 'vk':
-                tryVKShare(message);
-                break;
-            case 'download':
-                downloadResultImage(results);
-                break;
-        }
-        
-        // Награда за шеринг
-        giveShareReward();
-    }
-    
-    function copyToClipboard(text) {
-        if (navigator.clipboard) {
-            navigator.clipboard.writeText(text)
-                .then(() => {
-                    showToast('📋 Текст скопирован!');
-                })
-                .catch(() => {
-                    fallbackCopy(text);
-                });
-        } else {
-            fallbackCopy(text);
-        }
-    }
-    
-    function fallbackCopy(text) {
-        const textarea = document.createElement('textarea');
-        textarea.value = text;
-        textarea.style.position = 'fixed';
-        textarea.style.left = '-9999px';
-        document.body.appendChild(textarea);
-        textarea.select();
-        
-        try {
-            const successful = document.execCommand('copy');
-            if (successful) {
-                showToast('📋 Текст скопирован!');
-            } else {
-                alert(`Скопируйте текст:\n\n${text}`);
-            }
-        } catch (err) {
-            alert(`Скопируйте текст:\n\n${text}`);
-        }
-        
-        document.body.removeChild(textarea);
-    }
-    
-    function tryVKShare(message) {
-        const bridge = getVKBridge();
-        if (!bridge) {
-            showToast('❌ VK Bridge недоступен');
-            copyToClipboard(message); // Fallback
-            return;
-        }
-        
-        console.log('🔄 Пробуем поделиться через VK...');
-        
-        bridge.send('VKWebAppShare', { message: message })
-            .then((data) => {
-                console.log('✅ VK Share успешно:', data);
-                showToast('✅ Успешно поделились!');
-            })
-            .catch((error) => {
-                console.error('❌ Ошибка VK Share:', error);
-                showToast('⚠️ VK недоступен, текст скопирован');
-                copyToClipboard(message); // Fallback
-            });
-    }
-    
-    function downloadResultImage(results) {
-        const canvas = document.createElement('canvas');
-        canvas.width = 600;
-        canvas.height = 400;
-        const ctx = canvas.getContext('2d');
-        
-        // Фон
-        const gradient = ctx.createLinearGradient(0, 0, 600, 400);
-        gradient.addColorStop(0, '#667eea');
-        gradient.addColorStop(1, '#764ba2');
-        ctx.fillStyle = gradient;
-        ctx.fillRect(0, 0, 600, 400);
-        
-        // Текст
-        ctx.fillStyle = 'white';
-        ctx.font = 'bold 32px Arial';
-        ctx.textAlign = 'center';
-        ctx.fillText('🩺 Медицинский Квиз', 300, 60);
-        
-        ctx.font = 'bold 64px Arial';
-        ctx.fillText(`${results.percentage}%`, 300, 150);
-        
-        ctx.font = '24px Arial';
-        ctx.fillText(`Правильно: ${results.correct} из ${results.total}`, 300, 190);
-        
-        ctx.font = '18px Arial';
-        ctx.fillText('Проверь свои знания!', 300, 280);
-        
-        // Скачиваем
-        canvas.toBlob(function(blob) {
-            const url = URL.createObjectURL(blob);
-            const link = document.createElement('a');
-            link.href = url;
-            link.download = `medical-quiz-${results.percentage}%.png`;
-            link.click();
-            URL.revokeObjectURL(url);
-            
-            showToast('🖼️ Картинка сохранена!');
-        });
-    }
-    
-    // ===== ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ =====
-    function createShareMessage(results) {
-        const emoji = getResultEmoji(results.percentage);
-        const grade = getResultGrade(results.percentage);
-        
-        let message = `${emoji} ${grade}! Прошел медицинский квиз и набрал ${results.percentage}%!\n\n`;
-        message += `✅ Правильных ответов: ${results.correct} из ${results.total}\n`;
-        message += `\n🩺 А ты сможешь лучше? Проверь свои знания!\n`;
+        let message = `${emoji} ${grade}! Прошел медицинский квиз и набрал ${results.percentage}%!\\n\\n`;
+        message += `✅ Правильных ответов: ${results.correct} из ${results.total}\\n\\n`;
+        message += `🩺 А ты сможешь лучше? Проверь свои знания!\\n`;
         message += window.location.href;
         
         return message;
     }
     
-    function getResultEmoji(percentage) {
+    function getEmoji(percentage) {
         if (percentage >= 90) return '🏆';
         if (percentage >= 80) return '🌟';
         if (percentage >= 70) return '👏';
@@ -471,94 +259,193 @@
         return '📚';
     }
     
-    function getResultGrade(percentage) {
+    function getGrade(percentage) {
         if (percentage >= 90) return 'Отлично';
         if (percentage >= 80) return 'Хорошо';
         if (percentage >= 70) return 'Неплохо';
         if (percentage >= 60) return 'Удовлетворительно';
-        return 'Нужно подучиться';
+        return 'Есть куда расти';
     }
     
-    function getVKBridge() {
-        if (window.vkBridgeInstance) return window.vkBridgeInstance;
-        if (window.vkBridge) return window.vkBridge;
-        if (typeof vkBridge !== 'undefined') return vkBridge;
-        return null;
-    }
-    
-    function showToast(message) {
-        const toast = document.createElement('div');
-        toast.style.cssText = `
-            position: fixed;
-            top: 20px;
-            right: 20px;
-            background: #333;
-            color: white;
-            padding: 15px 20px;
-            border-radius: 8px;
-            z-index: 10001;
-            font-size: 14px;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
-        `;
-        toast.textContent = message;
-        
-        document.body.appendChild(toast);
-        
-        setTimeout(() => {
-            toast.style.opacity = '0';
-            setTimeout(() => {
-                if (toast.parentNode) {
-                    toast.parentNode.removeChild(toast);
-                }
-            }, 300);
-        }, 3000);
-    }
-    
-    function giveShareReward() {
-        if (window.Gamification && window.Gamification.stats) {
-            const stats = window.Gamification.stats;
+    // Глобальные функции для кнопок
+    window.shareFixV2 = {
+        copyText: function(text) {
+            const cleanText = text.replace(/\\n/g, '\n');
             
-            if (!stats.achievements.includes('social')) {
-                stats.achievements.push('social');
-                setTimeout(() => {
-                    window.Gamification.showAchievement('Социальный: поделился результатом! 📱');
-                }, 500);
-                window.Gamification.saveStats();
+            if (navigator.clipboard) {
+                navigator.clipboard.writeText(cleanText)
+                    .then(() => {
+                        this.showToast('📋 Текст скопирован!');
+                    })
+                    .catch(() => {
+                        this.fallbackCopy(cleanText);
+                    });
+            } else {
+                this.fallbackCopy(cleanText);
             }
-        }
-    }
-    
-    // ===== 3. ОТЛАДОЧНАЯ ИНФОРМАЦИЯ =====
-    function addDebugInfo() {
-        console.log('🐛 Режим отладки активен');
+        },
         
-        // Добавляем глобальные функции для отладки
-        window.debugShareFix = {
-            getResults: () => {
-                const results = getResultsFromDOM();
-                console.log('📊 Текущие результаты:', results);
-                return results;
-            },
-            testShare: () => {
-                console.log('🧪 Тестируем шеринг...');
-                const results = getResultsFromDOM() || {
+        tryVK: function(text) {
+            const cleanText = text.replace(/\\n/g, '\n');
+            const bridge = this.getVKBridge();
+            
+            if (!bridge) {
+                this.showToast('❌ VK недоступен, копируем текст');
+                this.copyText(text);
+                return;
+            }
+            
+            bridge.send('VKWebAppShare', { message: cleanText })
+                .then(() => {
+                    this.showToast('✅ Успешно поделились в VK!');
+                })
+                .catch((error) => {
+                    console.error('❌ Ошибка VK:', error);
+                    this.showToast('⚠️ Ошибка VK, копируем текст');
+                    this.copyText(text);
+                });
+        },
+        
+        downloadImage: function(percentage, correct, total) {
+            const canvas = document.createElement('canvas');
+            canvas.width = 600;
+            canvas.height = 400;
+            const ctx = canvas.getContext('2d');
+            
+            // Фон
+            const gradient = ctx.createLinearGradient(0, 0, 600, 400);
+            gradient.addColorStop(0, '#667eea');
+            gradient.addColorStop(1, '#764ba2');
+            ctx.fillStyle = gradient;
+            ctx.fillRect(0, 0, 600, 400);
+            
+            // Текст
+            ctx.fillStyle = 'white';
+            ctx.font = 'bold 32px Arial';
+            ctx.textAlign = 'center';
+            ctx.fillText('🩺 Медицинский Квиз', 300, 60);
+            
+            ctx.font = 'bold 64px Arial';
+            ctx.fillText(`${percentage}%`, 300, 150);
+            
+            ctx.font = '24px Arial';
+            ctx.fillText(`Правильно: ${correct} из ${total}`, 300, 190);
+            
+            ctx.font = '18px Arial';
+            ctx.fillText('Проверь свои знания!', 300, 280);
+            
+            ctx.font = '14px Arial';
+            ctx.fillText(window.location.href, 300, 350);
+            
+            // Скачиваем
+            canvas.toBlob((blob) => {
+                const url = URL.createObjectURL(blob);
+                const link = document.createElement('a');
+                link.href = url;
+                link.download = `medical-quiz-${percentage}%.png`;
+                link.click();
+                URL.revokeObjectURL(url);
+                
+                this.showToast('🖼️ Картинка сохранена!');
+            });
+        },
+        
+        getVKBridge: function() {
+            if (window.vkBridgeInstance) return window.vkBridgeInstance;
+            if (window.vkBridge) return window.vkBridge;
+            if (typeof vkBridge !== 'undefined') return vkBridge;
+            return null;
+        },
+        
+        fallbackCopy: function(text) {
+            const textarea = document.createElement('textarea');
+            textarea.value = text;
+            textarea.style.position = 'fixed';
+            textarea.style.left = '-9999px';
+            document.body.appendChild(textarea);
+            textarea.select();
+            
+            try {
+                const successful = document.execCommand('copy');
+                if (successful) {
+                    this.showToast('📋 Текст скопирован!');
+                } else {
+                    alert(`Скопируйте текст:\n\n${text}`);
+                }
+            } catch (err) {
+                alert(`Скопируйте текст:\n\n${text}`);
+            }
+            
+            document.body.removeChild(textarea);
+        },
+        
+        showToast: function(message) {
+            const toast = document.createElement('div');
+            toast.style.cssText = `
+                position: fixed;
+                top: 20px;
+                right: 20px;
+                background: #333;
+                color: white;
+                padding: 15px 20px;
+                border-radius: 8px;
+                z-index: 10001;
+                font-size: 14px;
+                box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+            `;
+            toast.textContent = message;
+            
+            document.body.appendChild(toast);
+            
+            setTimeout(() => {
+                toast.style.opacity = '0';
+                setTimeout(() => {
+                    if (toast.parentNode) {
+                        toast.parentNode.removeChild(toast);
+                    }
+                }, 300);
+            }, 3000);
+        }
+    };
+    
+    function addDebugFunctions() {
+        window.debugShareV2 = {
+            findResults: findResults,
+            testModal: () => {
+                showShareModalV2({
                     percentage: 85,
                     correct: 8,
                     total: 10,
-                    isValid: true
-                };
-                showShareModal(results);
+                    method: 'test'
+                });
             },
-            checkVK: () => {
-                const bridge = getVKBridge();
-                console.log('🔍 VK Bridge:', bridge ? 'Доступен' : 'Недоступен');
-                return !!bridge;
+            inspectPage: () => {
+                console.log('🔍 Инспектируем страницу...');
+                console.log('📄 Весь текст страницы:', document.body.textContent);
+                console.log('🎯 Элементы с ID percentage:', document.getElementById('percentage'));
+                console.log('🎯 Элементы с ID correct-answers:', document.getElementById('correct-answers'));
+                console.log('🎯 Элементы с ID total-questions-result:', document.getElementById('total-questions-result'));
+                
+                const allElements = document.querySelectorAll('*');
+                const withNumbers = [];
+                allElements.forEach(el => {
+                    const text = el.textContent?.trim();
+                    if (text && /\d/.test(text) && text.length < 100 && !el.querySelector('*')) {
+                        withNumbers.push({
+                            tag: el.tagName,
+                            id: el.id,
+                            class: el.className,
+                            text: text
+                        });
+                    }
+                });
+                console.log('🔢 Элементы с числами:', withNumbers);
             }
         };
         
-        console.log('🐛 Доступны функции отладки: window.debugShareFix');
+        console.log('🐛 Доступны функции отладки: window.debugShareV2');
     }
     
-    console.log('✅ Полное исправление шеринга загружено');
+    console.log('✅ Исправление шеринга v2 загружено');
     
 })();
