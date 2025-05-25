@@ -271,8 +271,8 @@
             'obstetrics': 'Вопросы о ведении беременности, родов и женском репродуктивном здоровье'
         };
         
-        // Глобальные переменные
-        let vkBridgeInstance = null;
+        // Глобальные переменные  
+        window.vkBridgeInstance = null;
         
         console.log('🚀 Медицинский квиз загружается...');
     </script>
@@ -324,7 +324,7 @@
             const bridge = initVKBridge();
             
             if (bridge) {
-                vkBridgeInstance = bridge;
+                window.vkBridgeInstance = bridge;
                 console.log('✅ VK Bridge инициализирован');
             } else {
                 setTimeout(showGuestMode, 2000);
@@ -411,7 +411,7 @@
                 questions: window.questions ? `${window.questions.length} вопросов` : '❌ Не загружены',
                 gamification: window.Gamification ? '✅ Загружена' : '❌ Не загружена',
                 wallShare: window.debugWallShare ? '✅ Загружен' : '❌ Не загружен',
-                vkBridge: vkBridgeInstance ? '✅ Инициализирован' : '⚠️ Недоступен'
+                vkBridge: window.vkBridgeInstance ? '✅ Инициализирован' : '⚠️ Недоступен'
             };
             
             console.log('📋 Статус компонентов:', status);
