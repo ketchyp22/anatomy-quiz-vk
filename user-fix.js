@@ -1,11 +1,11 @@
-// user-fix.js - Исправленная версия без ошибок
+// user-fix-final.js - Окончательная исправленная версия
 (function() {
     'use strict';
     
-    console.log('🔧 Загружается исправление пользователя v2...');
+    console.log('🔧 Загружается финальное исправление пользователя...');
 
-    // Исправленная функция применения темы VK
-    function applyVKTheme(scheme) {
+    // Функция применения темы VK (добавляем в глобальную область)
+    window.applyVKTheme = function(scheme) {
         console.log('🎨 Применяется тема VK:', scheme);
         const isDarkTheme = ['space_gray', 'vkcom_dark'].includes(scheme);
         
@@ -16,10 +16,10 @@
             document.documentElement.classList.remove('vk-dark-theme');
             document.documentElement.setAttribute('data-theme', 'light');
         }
-    }
+    };
 
-    // Исправленная функция инициализации VK Bridge
-    function initVKBridge() {
+    // Глобальная функция инициализации VK Bridge
+    window.initVKBridge = function() {
         let bridge = null;
 
         // Находим VK Bridge
@@ -29,7 +29,9 @@
             bridge = window.vkBridge;
         } else {
             console.warn('VK Bridge не найден. Переключение в гостевой режим.');
-            setTimeout(showGuestMode, 500);
+            setTimeout(() => {
+                if (window.showGuestMode) window.showGuestMode();
+            }, 500);
             return null;
         }
 
@@ -52,16 +54,14 @@
                     
                     // Проверяем валидность данных
                     if (userData && userData.id && userData.first_name) {
-                        // Обновляем глобальную переменную
-                        if (window.currentUserData !== undefined) {
-                            window.currentUserData = userData;
-                        } else {
-                            currentUserData = userData;
+                        // Сохраняем данные пользователя
+                        window.currentUserData = userData;
+                        if (window.updateUserInfo) {
+                            window.updateUserInfo(userData);
                         }
-                        updateUserInfo(userData);
                     } else {
                         console.warn('Получены неполные данные пользователя:', userData);
-                        showGuestMode();
+                        if (window.showGuestMode) window.showGuestMode();
                         return;
                     }
 
@@ -70,76 +70,34 @@
                 })
                 .then((config) => {
                     console.log('Получена конфигурация приложения:', config);
-                    if (config && config.scheme) {
-                        applyVKTheme(config.scheme);
+                    if (config && config.scheme && window.applyVKTheme) {
+                        window.applyVKTheme(config.scheme);
                     }
                 })
                 .catch((error) => {
                     console.error('Ошибка при работе с VK Bridge:', error);
-                    
-                    // Если ошибка связана с получением данных пользователя, пробуем еще раз
-                    if (error.error_data && error.error_data.error_code === 3) {
-                        console.log('Пробуем получить данные пользователя повторно...');
-                        setTimeout(() => {
-                            retryGetUserInfo(bridge);
-                        }, 1000);
-                    } else {
-                        showGuestMode();
-                    }
+                    if (window.showGuestMode) window.showGuestMode();
                 });
 
             // Подписываемся на события
             bridge.subscribe((event) => {
                 if (event.detail && event.detail.type === 'VKWebAppUpdateConfig') {
-                    applyVKTheme(event.detail.data.scheme);
+                    if (window.applyVKTheme) {
+                        window.applyVKTheme(event.detail.data.scheme);
+                    }
                 }
             });
 
             return bridge;
         } catch (e) {
             console.error('Критическая ошибка при работе с VK Bridge:', e);
-            showGuestMode();
+            if (window.showGuestMode) window.showGuestMode();
             return null;
         }
-    }
+    };
 
-    // Функция повторной попытки получения данных пользователя
-    function retryGetUserInfo(bridge, attempts = 0) {
-        if (attempts >= 3) {
-            console.warn('Не удалось получить данные пользователя после 3 попыток');
-            showGuestMode();
-            return;
-        }
-        
-        bridge.send('VKWebAppGetUserInfo')
-            .then((userData) => {
-                console.log('Данные пользователя получены при повторной попытке:', userData);
-                
-                if (userData && userData.id && userData.first_name) {
-                    // Обновляем глобальную переменную
-                    if (window.currentUserData !== undefined) {
-                        window.currentUserData = userData;
-                    } else {
-                        currentUserData = userData;
-                    }
-                    updateUserInfo(userData);
-                } else {
-                    console.warn('Повторно получены неполные данные, попытка', attempts + 1);
-                    setTimeout(() => {
-                        retryGetUserInfo(bridge, attempts + 1);
-                    }, 1000);
-                }
-            })
-            .catch((error) => {
-                console.error('Ошибка при повторной попытке получения данных:', error);
-                setTimeout(() => {
-                    retryGetUserInfo(bridge, attempts + 1);
-                }, 1000);
-            });
-    }
-
-    // Функция обновления информации о пользователе
-    function updateUserInfo(userData) {
+    // Глобальная функция обновления информации о пользователе
+    window.updateUserInfo = function(userData) {
         if (!userData || !userData.first_name) {
             console.warn('Неполные данные пользователя для обновления интерфейса');
             return;
@@ -166,10 +124,10 @@
         }
         
         console.log('Информация о пользователе обновлена в интерфейсе');
-    }
+    };
 
-    // Функция гостевого режима
-    function showGuestMode() {
+    // Глобальная функция гостевого режима
+    window.showGuestMode = function() {
         const userData = {
             id: 'guest_' + Date.now(),
             first_name: 'Гость',
@@ -177,24 +135,23 @@
             photo_100: 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTAwIiBoZWlnaHQ9IjEwMCIgdmlld0JveD0iMCAwIDEwMCAxMDAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PGNpcmNsZSBjeD0iNTAiIGN5PSI1MCIgcj0iNTAiIGZpbGw9IiM1YTY3ZDgiLz48cGF0aCBkPSJNNTAgMzBjNS41IDAgMTAgNC41IDEwIDEwcy00LjUgMTAtMTAgMTAtMTAtNC41LTEwLTEwIDQuNS0xMCAxMC0xMHptMCAzMGMxMC41IDAgMjAgNS41IDIwIDEwdjVIMzB2LTVjMC00LjUgOS41LTEwIDIwLTEweiIgZmlsbD0id2hpdGUiLz48L3N2Zz4='
         };
 
-        // Обновляем глобальную переменную
-        if (window.currentUserData !== undefined) {
-            window.currentUserData = userData;
-        } else {
-            currentUserData = userData;
+        // Сохраняем данные пользователя
+        window.currentUserData = userData;
+        
+        if (window.updateUserInfo) {
+            window.updateUserInfo(userData);
         }
-
-        updateUserInfo(userData);
+        
         console.log('Запущен гостевой режим с ID:', userData.id);
-    }
+    };
 
     // Функция для принудительного обновления данных пользователя
-    function forceUpdateUserInfo() {
+    window.forceUpdateUserInfo = function() {
         const bridge = window.vkBridgeInstance || window.vkBridge;
         
         if (!bridge) {
             console.warn('VK Bridge недоступен для обновления данных пользователя');
-            showGuestMode();
+            if (window.showGuestMode) window.showGuestMode();
             return;
         }
         
@@ -204,43 +161,45 @@
             .then((userData) => {
                 console.log('Данные пользователя обновлены:', userData);
                 if (userData && userData.id && userData.first_name) {
-                    // Обновляем глобальную переменную
-                    if (window.currentUserData !== undefined) {
-                        window.currentUserData = userData;
-                    } else {
-                        currentUserData = userData;
+                    window.currentUserData = userData;
+                    if (window.updateUserInfo) {
+                        window.updateUserInfo(userData);
                     }
-                    updateUserInfo(userData);
                 } else {
-                    showGuestMode();
+                    if (window.showGuestMode) window.showGuestMode();
                 }
             })
             .catch((error) => {
                 console.error('Ошибка при принудительном обновлении:', error);
-                showGuestMode();
+                if (window.showGuestMode) window.showGuestMode();
             });
-    }
+    };
 
-    // Экспортируем функции для использования в других скриптах
-    window.initVKBridge = initVKBridge;
-    window.updateUserInfo = updateUserInfo;
-    window.showGuestMode = showGuestMode;
-    window.forceUpdateUserInfo = forceUpdateUserInfo;
+    // Автоматическая попытка обновления через 3 секунды после загрузки
+    document.addEventListener('DOMContentLoaded', function() {
+        setTimeout(() => {
+            if (!window.currentUserData || window.currentUserData.first_name === 'Гость') {
+                console.log('Пользователь не загружен, пробуем принудительное обновление...');
+                if (window.forceUpdateUserInfo) {
+                    window.forceUpdateUserInfo();
+                }
+            }
+        }, 3000);
+    });
 
-    // Добавляем функции для отладки (минимальные)
+    // Минимальные отладочные функции
     window.debugUser = {
         getCurrentUser: () => {
-            const user = window.currentUserData || currentUserData;
-            console.log('Текущий пользователь:', user);
-            return user;
+            console.log('Текущий пользователь:', window.currentUserData);
+            return window.currentUserData;
         },
         
         forceUpdate: () => {
-            forceUpdateUserInfo();
+            if (window.forceUpdateUserInfo) window.forceUpdateUserInfo();
         },
         
         showGuest: () => {
-            showGuestMode();
+            if (window.showGuestMode) window.showGuestMode();
         },
         
         checkVK: () => {
@@ -250,16 +209,5 @@
         }
     };
 
-    // Автоматическая попытка обновления через 3 секунды после загрузки
-    document.addEventListener('DOMContentLoaded', function() {
-        setTimeout(() => {
-            const user = window.currentUserData || currentUserData;
-            if (!user || user.first_name === 'Гость') {
-                console.log('Пользователь не загружен, пробуем принудительное обновление...');
-                forceUpdateUserInfo();
-            }
-        }, 3000);
-    });
-
-    console.log('✅ Исправленное отображение пользователя загружено');
+    console.log('✅ Финальное исправление пользователя загружено');
 })();
