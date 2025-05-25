@@ -272,7 +272,6 @@
         };
         
         // Глобальные переменные
-        let currentUserData = null;
         let vkBridgeInstance = null;
         
         console.log('🚀 Медицинский квиз загружается...');
@@ -360,14 +359,14 @@
         
         // Показ гостевого режима
         function showGuestMode() {
-            currentUserData = {
+            const userData = {
                 id: 'guest_' + Date.now(),
                 first_name: 'Гость',
                 last_name: '',
                 photo_100: 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTAwIiBoZWlnaHQ9IjEwMCIgdmlld0JveD0iMCAwIDEwMCAxMDAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PGNpcmNsZSBjeD0iNTAiIGN5PSI1MCIgcj0iNTAiIGZpbGw9IiM1YTY3ZDgiLz48cGF0aCBkPSJNNTAgMzBjNS41IDAgMTAgNC41IDEwIDEwcy00LjUgMTAtMTAgMTAtMTAtNC41LTEwLTEwIDQuNS0xMCAxMC0xMHptMCAzMGMxMC41IDAgMjAgNS41IDIwIDEwdjVIMzB2LTVjMC00LjUgOS41LTEwIDIwLTEweiIgZmlsbD0id2hpdGUiLz48L3N2Zz4='
             };
             
-            updateUserInfo(currentUserData);
+            updateUserInfo(userData);
             console.log('👤 Активирован гостевой режим');
         }
         
