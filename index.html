@@ -5,17 +5,18 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Медицинский Квиз</title>
     <link rel="stylesheet" href="style.css">
-    <!-- Подключаем стили геймификации -->
     <link rel="stylesheet" href="gamification.css">
     <script src="https://unpkg.com/@vkontakte/vk-bridge/dist/browser.min.js"></script>
+    
+    <!-- Метаданные для социальных сетей -->
     <meta property="og:title" content="Медицинский Квиз – проверь свои знания!">
     <meta property="og:description" content="Тест по медицине с разными режимами: анатомия, клиническое мышление, фармакология, первая помощь и акушерство.">
     <meta property="og:image" content="https://vk.com/images/camera_100.png">
     <meta name="theme-color" content="#5a67d8">
     <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>👨‍⚕️</text></svg>">
     
-    <!-- Встроенные стили -->
     <style>
+        /* Стили для кнопок режимов */
         .quiz-mode-btn[data-mode="first_aid"] {
             background: linear-gradient(135deg, #f56565 0%, #e53e3e 100%);
             color: white;
@@ -26,6 +27,71 @@
             color: white;
         }
         
+        /* Улучшенные стили для информации о пользователе */
+        .user-info {
+            display: none;
+            align-items: center;
+            margin-bottom: 25px;
+            padding: 12px 16px;
+            background: rgba(255, 255, 255, 0.7);
+            border-radius: 16px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+            animation: slideIn 0.5s ease-out;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.5);
+            width: fit-content;
+            margin-left: auto;
+            margin-right: auto;
+            transition: all 0.3s ease;
+        }
+        
+        .user-info.loaded {
+            display: flex;
+        }
+        
+        .user-info img {
+            width: 45px;
+            height: 45px;
+            border-radius: 50%;
+            margin-right: 15px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+            border: 3px solid white;
+            transition: transform 0.3s ease;
+        }
+        
+        .user-info img:hover {
+            transform: scale(1.1);
+        }
+        
+        .user-info span {
+            font-weight: 600;
+            font-size: 17px;
+            letter-spacing: 0.3px;
+            color: var(--text-color);
+        }
+        
+        /* Описание режимов */
+        .mode-description {
+            margin-top: 15px;
+            padding: 12px;
+            border-radius: 12px;
+            background: rgba(255, 255, 255, 0.1);
+            font-size: 14px;
+            color: #666;
+            text-align: center;
+            min-height: 20px;
+            opacity: 0;
+            transition: all 0.3s ease;
+            border-left: 3px solid transparent;
+        }
+        
+        .mode-description.active-description {
+            opacity: 1;
+            background: rgba(90, 103, 216, 0.1);
+            border-left-color: var(--accent-color);
+        }
+        
+        /* Ссылка на автора */
         .author-credit {
             text-align: center;
             margin-top: 20px;
@@ -44,49 +110,52 @@
             text-decoration: underline;
         }
 
-        /* Стили для модального окна шеринга v2 */
-        .share-modal-v2 {
-            backdrop-filter: blur(5px);
+        /* Улучшенная кнопка шеринга */
+        #share-results {
+            background: linear-gradient(135deg, #4267B2 0%, #365899 100%);
+            position: relative;
+            overflow: hidden;
         }
         
-        .share-modal-v2 button {
-            transition: all 0.3s ease;
+        #share-results::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+            transition: left 0.5s;
         }
         
-        .share-modal-v2 button:hover {
-            opacity: 0.8;
-            transform: translateY(-2px);
+        #share-results:hover::before {
+            left: 100%;
         }
 
-        /* Стили для тестовых кнопок */
-        .test-buttons {
-            position: fixed;
-            top: 10px;
-            left: 10px;
-            z-index: 9999;
-            display: flex;
-            flex-direction: column;
-            gap: 5px;
+        /* Адаптивность */
+        @media (max-width: 768px) {
+            .user-info {
+                padding: 10px 12px;
+                margin-bottom: 20px;
+            }
+            
+            .user-info img {
+                width: 40px;
+                height: 40px;
+                margin-right: 12px;
+            }
+            
+            .user-info span {
+                font-size: 16px;
+            }
         }
-        
-        .test-btn {
-            padding: 8px 12px;
-            border: none;
-            border-radius: 8px;
-            font-size: 12px;
-            cursor: pointer;
-            color: white;
-            font-weight: 500;
-        }
-        
-        .test-btn.debug { background: #ff6b6b; }
-        .test-btn.share { background: #4CAF50; }
-        .test-btn.inspect { background: #2196F3; }
     </style>
 </head>
 <body>
+    <!-- Анимированный фон -->
     <div class="animated-bg"></div>
     
+    <!-- Плавающие медицинские иконки -->
     <div class="medical-icons">
         <div class="medical-icon icon1"></div>
         <div class="medical-icon icon2"></div>
@@ -96,11 +165,13 @@
         <div class="medical-icon icon6"></div>
     </div>
     
-    <!-- Экран выбора режима -->
+    <!-- Главный экран выбора -->
     <div id="start-screen">
-        <div id="user-info" class="user-info"></div>
+        <div id="user-info" class="user-info">
+            <!-- Данные пользователя будут добавлены автоматически -->
+        </div>
         
-        <!-- Контейнер для статистики геймификации будет добавлен сюда автоматически -->
+        <!-- Статистика геймификации добавится автоматически -->
         
         <h1><span class="doctor-emoji">👨‍⚕️</span> Медицинский Квиз</h1>
         
@@ -123,22 +194,22 @@
         
         <button id="start-quiz" class="btn-primary">Начать квиз</button>
         
-        <!-- Ссылка на автора -->
         <div class="author-credit">
             <p>© 2025 · <a href="https://vk.com/id837477864" target="_blank">Автор</a></p>
         </div>
         
         <div class="card-pulse">
             <svg class="pulse-line-svg" viewBox="0 0 150 40" preserveAspectRatio="none">
-                <path class="pulse-line-path" d="M0,20 L10,20 L15,20 L20,10 L25,30 L30,20 L35,20 L40,20 L45,20 L50,20 L55,10 L60,30 L65,20 L70,20 L75,20 L80,20 L85,20 L90,10 L95,30 L100,20 L105,20 L110,20 L115,20 L120,20 L125,10 L130,30 L135,20 L140,20 L150,20">
-                </path>
+                <path class="pulse-line-path" d="M0,20 L10,20 L15,20 L20,10 L25,30 L30,20 L35,20 L40,20 L45,20 L50,20 L55,10 L60,30 L65,20 L70,20 L75,20 L80,20 L85,20 L90,10 L95,30 L100,20 L105,20 L110,20 L115,20 L120,20 L125,10 L130,30 L135,20 L140,20 L150,20"></path>
             </svg>
         </div>
     </div>
 
-    <!-- Экран квиза -->
+    <!-- Экран прохождения квиза -->
     <div id="quiz-container" style="display: none;">
-        <div id="user-info-quiz" class="user-info"></div>
+        <div id="user-info-quiz" class="user-info">
+            <!-- Копия информации о пользователе -->
+        </div>
         <div id="question-counter" class="question-counter"></div>
         <div id="progress-bar-container">
             <div id="progress-bar"></div>
@@ -153,8 +224,7 @@
         
         <div class="card-pulse">
             <svg class="pulse-line-svg" viewBox="0 0 150 40" preserveAspectRatio="none">
-                <path class="pulse-line-path" d="M0,20 L10,20 L15,20 L20,10 L25,30 L30,20 L35,20 L40,20 L45,20 L50,20 L55,10 L60,30 L65,20 L70,20 L75,20 L80,20 L85,20 L90,10 L95,30 L100,20 L105,20 L110,20 L115,20 L120,20 L125,10 L130,30 L135,20 L140,20 L150,20">
-                </path>
+                <path class="pulse-line-path" d="M0,20 L10,20 L15,20 L20,10 L25,30 L30,20 L35,20 L40,20 L45,20 L50,20 L55,10 L60,30 L65,20 L70,20 L75,20 L80,20 L85,20 L90,10 L95,30 L100,20 L105,20 L110,20 L115,20 L120,20 L125,10 L130,30 L135,20 L140,20 L150,20"></path>
             </svg>
         </div>
     </div>
@@ -169,17 +239,16 @@
             <div class="score-text">Правильных ответов: <span id="correct-answers">0</span> из <span id="total-questions-result">10</span></div>
         </div>
         
-        <!-- Мотивационное сообщение будет добавлено сюда автоматически -->
+        <!-- Место для мотивационного сообщения от геймификации -->
         
         <div class="results-buttons">
-            <button id="share-results" class="btn-primary">🎉 Поделиться результатом</button>
+            <button id="share-results" class="btn-primary">📝 Поделиться на стене ВК</button>
             <button id="restart-quiz" class="btn-secondary">Начать заново</button>
         </div>
         
         <div class="card-pulse">
             <svg class="pulse-line-svg" viewBox="0 0 150 40" preserveAspectRatio="none">
-                <path class="pulse-line-path" d="M0,20 L10,20 L15,20 L20,10 L25,30 L30,20 L35,20 L40,20 L45,20 L50,20 L55,10 L60,30 L65,20 L70,20 L75,20 L80,20 L85,20 L90,10 L95,30 L100,20 L105,20 L110,20 L115,20 L120,20 L125,10 L130,30 L135,20 L140,20 L150,20">
-                </path>
+                <path class="pulse-line-path" d="M0,20 L10,20 L15,20 L20,10 L25,30 L30,20 L35,20 L40,20 L45,20 L50,20 L55,10 L60,30 L65,20 L70,20 L75,20 L80,20 L85,20 L90,10 L95,30 L100,20 L105,20 L110,20 L115,20 L120,20 L125,10 L130,30 L135,20 L140,20 L150,20"></path>
             </svg>
         </div>
     </div>
@@ -189,9 +258,9 @@
         <div class="tooltip-content"></div>
     </div>
 
-    <!-- ============== СКРИПТЫ ============== -->
+    <!-- ==================== СКРИПТЫ ==================== -->
     
-    <!-- Глобальные переменные и конфигурация -->
+    <!-- Конфигурация приложения -->
     <script>
         // Описания режимов квиза
         window.modeDescriptions = {
@@ -201,203 +270,154 @@
             'first_aid': 'Неотложная помощь при травмах, отравлениях и других состояниях',
             'obstetrics': 'Вопросы о ведении беременности, родов и женском репродуктивном здоровье'
         };
-
-        // Флаг для определения среды разработки
-        window.isDevelopment = (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1');
+        
+        // Глобальные переменные
+        let currentUserData = null;
+        let vkBridgeInstance = null;
         
         console.log('🚀 Медицинский квиз загружается...');
-        console.log('🔧 Режим разработки:', window.isDevelopment);
     </script>
     
     <!-- Основные скрипты приложения -->
     <script src="questions.js"></script>
     <script src="app.js"></script>
     
-    <!-- Дополнительные вопросы -->
+    <!-- Исправление отображения пользователя -->
+    <script src="user-fix.js"></script>
+    
+    <!-- Дополнительные наборы вопросов -->
     <script src="first-aid-questions.js"></script>
     <script src="first-aid-hard-questions.js"></script>
     <script src="obstetrics-questions.js"></script>
     <script src="obstetrics-hard-questions.js"></script>
     
-    <!-- Геймификация -->
+    <!-- Система геймификации -->
     <script src="gamification.js"></script>
     
-    <!-- ИСПРАВЛЕННЫЙ ШЕРИНГ V2 (главное исправление) -->
-    <script src="share-fix-v2.js"></script>
+    <!-- Шеринг на стену ВК -->
+    <script src="simple-wall-share.js"></script>
     
-    <!-- Отладка -->
-    <script src="debug.js"></script>
-    
-    <!-- Инициализация интерфейса -->
+    <!-- Инициализация приложения -->
     <script>
         document.addEventListener('DOMContentLoaded', function() {
-            console.log('📱 DOM загружен, инициализируем интерфейс...');
+            console.log('📱 Инициализация приложения...');
             
-            // Инициализируем описание режимов
-            initModeDescriptions();
+            // Инициализируем интерфейс
+            initUserInterface();
             
             // Инициализируем VK Bridge
-            initVKBridge();
+            initVKBridgeEnhanced();
             
-            // Добавляем тестовые кнопки в режиме разработки
-            if (window.isDevelopment) {
-                setTimeout(addTestButtons, 2000);
-            }
-            
-            console.log('✅ Интерфейс инициализирован');
+            console.log('✅ Приложение готово к использованию');
         });
-        
-        // Инициализация описаний режимов при наведении
-        function initModeDescriptions() {
-            const modeDescription = document.getElementById('mode-description');
-            if (!modeDescription) return;
-            
-            document.querySelectorAll('.quiz-mode-btn').forEach(btn => {
-                btn.addEventListener('mouseover', function() {
-                    const mode = this.dataset.mode;
-                    if (window.modeDescriptions[mode]) {
-                        modeDescription.textContent = window.modeDescriptions[mode];
-                        modeDescription.classList.add('active-description');
-                    }
-                });
-                
-                btn.addEventListener('mouseout', function() {
-                    modeDescription.classList.remove('active-description');
-                });
-            });
-            
-            console.log('✅ Описания режимов инициализированы');
-        }
         
         // Инициализация VK Bridge
-        function initVKBridge() {
-            if (typeof vkBridge !== 'undefined') {
-                vkBridge.send('VKWebAppInit')
-                    .then(() => {
-                        console.log('✅ VK Bridge успешно инициализирован');
-                        window.vkBridgeInstance = vkBridge;
-                        
-                        // Пытаемся получить информацию о пользователе
-                        return vkBridge.send('VKWebAppGetUserInfo');
-                    })
-                    .then((userData) => {
-                        console.log('👤 Данные пользователя получены:', userData);
-                    })
-                    .catch(error => {
-                        console.warn('⚠️ VK Bridge предупреждение:', error);
-                        // Не критичная ошибка, приложение может работать без VK
-                    });
+        function initVKBridgeEnhanced() {
+            console.log('🔗 Инициализация VK Bridge...');
+            
+            if (typeof vkBridge === 'undefined') {
+                console.warn('⚠️ VK Bridge недоступен');
+                setTimeout(showGuestMode, 1000);
+                return;
+            }
+            
+            // Используем функцию из user-fix.js
+            const bridge = initVKBridge();
+            
+            if (bridge) {
+                vkBridgeInstance = bridge;
+                console.log('✅ VK Bridge инициализирован');
             } else {
-                console.warn('⚠️ VK Bridge недоступен (нормально для localhost)');
+                setTimeout(showGuestMode, 2000);
             }
         }
         
-        // Добавление тестовых кнопок для разработки
-        function addTestButtons() {
-            const testContainer = document.createElement('div');
-            testContainer.className = 'test-buttons';
-            testContainer.innerHTML = `
-                <button class="test-btn debug" onclick="testDebug()">🧪 Тест</button>
-                <button class="test-btn share" onclick="testShare()">📤 Шеринг</button>
-                <button class="test-btn inspect" onclick="testInspect()">🔍 Инспект</button>
+        // Инициализация интерфейса
+        function initUserInterface() {
+            console.log('🎨 Настройка интерфейса...');
+            
+            // Настраиваем описания режимов
+            const modeDescription = document.getElementById('mode-description');
+            if (modeDescription) {
+                document.querySelectorAll('.quiz-mode-btn').forEach(btn => {
+                    btn.addEventListener('mouseover', function() {
+                        const mode = this.dataset.mode;
+                        const description = window.modeDescriptions[mode];
+                        if (description) {
+                            modeDescription.textContent = description;
+                            modeDescription.classList.add('active-description');
+                        }
+                    });
+                    
+                    btn.addEventListener('mouseout', function() {
+                        modeDescription.classList.remove('active-description');
+                    });
+                });
+            }
+            
+            console.log('✅ Интерфейс настроен');
+        }
+        
+        // Показ гостевого режима
+        function showGuestMode() {
+            currentUserData = {
+                id: 'guest_' + Date.now(),
+                first_name: 'Гость',
+                last_name: '',
+                photo_100: 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTAwIiBoZWlnaHQ9IjEwMCIgdmlld0JveD0iMCAwIDEwMCAxMDAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PGNpcmNsZSBjeD0iNTAiIGN5PSI1MCIgcj0iNTAiIGZpbGw9IiM1YTY3ZDgiLz48cGF0aCBkPSJNNTAgMzBjNS41IDAgMTAgNC41IDEwIDEwcy00LjUgMTAtMTAgMTAtMTAtNC41LTEwLTEwIDQuNS0xMCAxMC0xMHptMCAzMGMxMC41IDAgMjAgNS41IDIwIDEwdjVIMzB2LTVjMC00LjUgOS41LTEwIDIwLTEweiIgZmlsbD0id2hpdGUiLz48L3N2Zz4='
+            };
+            
+            updateUserInfo(currentUserData);
+            console.log('👤 Активирован гостевой режим');
+        }
+        
+        // Обновление информации о пользователе
+        function updateUserInfo(userData) {
+            if (!userData || !userData.first_name) {
+                console.warn('⚠️ Неполные данные пользователя');
+                return;
+            }
+            
+            const userHTML = `
+                <img src="${userData.photo_100 || 'https://vk.com/images/camera_100.png'}" 
+                     alt="${userData.first_name}" 
+                     onerror="this.src='https://vk.com/images/camera_100.png'">
+                <span>${userData.first_name} ${userData.last_name || ''}</span>
             `;
             
-            document.body.appendChild(testContainer);
+            const userInfoElement = document.getElementById('user-info');
+            const userInfoQuizElement = document.getElementById('user-info-quiz');
             
-            // Функции для тестовых кнопок
-            window.testDebug = function() {
-                if (window.testGamification) {
-                    window.testGamification();
-                } else {
-                    console.log('🧪 Функция тестирования геймификации недоступна');
-                }
-            };
+            if (userInfoElement) {
+                userInfoElement.innerHTML = userHTML;
+                userInfoElement.classList.add('loaded');
+            }
             
-            window.testShare = function() {
-                if (window.debugShareV2 && window.debugShareV2.testModal) {
-                    window.debugShareV2.testModal();
-                } else if (window.shareFixV2) {
-                    // Создаем тестовые результаты
-                    const testResults = {
-                        percentage: 85,
-                        correct: 8,
-                        total: 10,
-                        method: 'test'
-                    };
-                    
-                    // Создаем временный элемент кнопки и вызываем обработчик
-                    const shareButton = document.getElementById('share-results');
-                    if (shareButton && shareButton.onclick) {
-                        shareButton.onclick();
-                    } else {
-                        console.log('📤 Тестируем шеринг напрямую...');
-                        window.shareFixV2.copyText('🧪 Тест шеринга: Прошел медицинский квиз и набрал 85%!\n\n✅ Правильных ответов: 8 из 10\n\n🩺 Проверь свои знания!\n' + window.location.href);
-                    }
-                } else {
-                    console.log('📤 Функции шеринга недоступны');
-                }
-            };
+            if (userInfoQuizElement) {
+                userInfoQuizElement.innerHTML = userHTML;
+                userInfoQuizElement.classList.add('loaded');
+            }
             
-            window.testInspect = function() {
-                if (window.debugShareV2 && window.debugShareV2.inspectPage) {
-                    window.debugShareV2.inspectPage();
-                } else {
-                    console.log('🔍 Инспекция страницы...');
-                    console.log('📄 URL:', window.location.href);
-                    console.log('🎯 Элементы результатов:', {
-                        percentage: document.getElementById('percentage'),
-                        correct: document.getElementById('correct-answers'),
-                        total: document.getElementById('total-questions-result')
-                    });
-                }
-            };
-            
-            console.log('🧪 Тестовые кнопки добавлены');
+            console.log('✅ Информация о пользователе обновлена');
         }
     </script>
     
-    <!-- Финальная инициализация -->
+    <!-- Финальная проверка -->
     <script>
-        // Отслеживаем загрузку всех компонентов
         window.addEventListener('load', function() {
-            console.log('🎉 Все ресурсы загружены!');
+            console.log('🎉 Все ресурсы загружены');
             
-            // Проверяем доступность ключевых компонентов
-            const components = {
-                'Questions': !!window.questions && Array.isArray(window.questions),
-                'Gamification': !!window.Gamification,
-                'ShareFix': !!window.shareFixV2,
-                'VK Bridge': !!window.vkBridgeInstance || typeof vkBridge !== 'undefined'
+            // Проверяем ключевые компоненты
+            const status = {
+                questions: window.questions ? `${window.questions.length} вопросов` : '❌ Не загружены',
+                gamification: window.Gamification ? '✅ Загружена' : '❌ Не загружена',
+                wallShare: window.debugWallShare ? '✅ Загружен' : '❌ Не загружен',
+                vkBridge: vkBridgeInstance ? '✅ Инициализирован' : '⚠️ Недоступен'
             };
             
-            console.log('📊 Статус компонентов:', components);
-            
-            // Считаем количество доступных вопросов
-            if (window.questions) {
-                const questionStats = {
-                    total: window.questions.length,
-                    anatomy: window.questions.filter(q => q.mode === 'anatomy').length,
-                    clinical: window.questions.filter(q => q.mode === 'clinical').length,
-                    pharmacology: window.questions.filter(q => q.mode === 'pharmacology').length,
-                    first_aid: window.questions.filter(q => q.mode === 'first_aid').length,
-                    obstetrics: window.questions.filter(q => q.mode === 'obstetrics').length
-                };
-                
-                console.log('📝 Статистика вопросов:', questionStats);
-            }
-            
-            console.log('🚀 Медицинский квиз готов к использованию!');
-        });
-        
-        // Обработка ошибок
-        window.addEventListener('error', function(e) {
-            console.error('🚨 Ошибка приложения:', e.error);
-        });
-        
-        window.addEventListener('unhandledrejection', function(e) {
-            console.error('🚨 Необработанная ошибка Promise:', e.reason);
+            console.log('📋 Статус компонентов:', status);
+            console.log('🚀 Медицинский квиз готов!');
         });
     </script>
-    
 </body>
 </html>
