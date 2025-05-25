@@ -1,19 +1,19 @@
-// final-integration.js - Финальное решение всех проблем
+// final-integration.js - Полностью исправленное решение
 (function() {
     'use strict';
     
     let isQuizActive = false;
-    let originalShareFunction = null;
+    let currentResults = null;
     
     document.addEventListener('DOMContentLoaded', function() {
-        setTimeout(finalIntegration, 2000);
+        setTimeout(finalIntegration, 2500); // Увеличили задержку
     });
     
     function finalIntegration() {
-        console.log('🔧 Финальная интеграция геймификации');
+        console.log('🔧 [Final] Финальная интеграция геймификации');
         
         if (!window.Gamification) {
-            console.warn('Геймификация не найдена');
+            console.warn('[Final] Геймификация не найдена');
             return;
         }
         
@@ -23,11 +23,10 @@
         // Настраиваем отслеживание ответов
         setupAnswerTracking();
         
-        // НЕ трогаем кнопку "Поделиться" - она уже работает из app.js
-        // Просто добавляем к ней нашу функциональность
-        enhanceExistingShare();
+        // Заменяем кнопку "Поделиться" на рабочую версию
+        replaceShareButton();
         
-        console.log('✅ Финальная интеграция завершена');
+        console.log('✅ [Final] Финальная интеграция завершена');
     }
     
     // Отслеживание состояния квиза
@@ -55,7 +54,7 @@
         if (target.id === 'quiz-container' && isVisible && !isQuizActive) {
             startQuiz();
         } else if (target.id === 'results-container' && isVisible && isQuizActive) {
-            setTimeout(finishQuiz, 300);
+            setTimeout(finishQuiz, 500); // Даем больше времени DOM
         } else if (target.id === 'start-screen' && isVisible) {
             resetQuiz();
         }
@@ -63,6 +62,7 @@
     
     function startQuiz() {
         isQuizActive = true;
+        currentResults = null;
         console.log('🎮 [Final] Квиз начат');
     }
     
@@ -71,21 +71,35 @@
         
         isQuizActive = false;
         
-        // Получаем результаты
+        // Пробуем получить результаты несколько раз
+        attemptToGetResults(0);
+    }
+    
+    function attemptToGetResults(attempt) {
+        if (attempt >= 10) {
+            console.error('[Final] Не удалось получить результаты после 10 попыток');
+            return;
+        }
+        
         const results = getResults();
         if (results) {
+            currentResults = results;
             console.log('🏁 [Final] Квиз завершен:', results);
             
             // Уведомляем геймификацию
             window.Gamification.onQuizComplete(results);
             
             // Добавляем мотивационное сообщение
-            setTimeout(addMotivationalMessage, 500);
+            setTimeout(addMotivationalMessage, 200);
+        } else {
+            // Пробуем еще раз через 200мс
+            setTimeout(() => attemptToGetResults(attempt + 1), 200);
         }
     }
     
     function resetQuiz() {
         isQuizActive = false;
+        currentResults = null;
         setTimeout(() => {
             window.Gamification.updateStatsDisplay();
         }, 100);
@@ -98,15 +112,19 @@
             const totalEl = document.getElementById('total-questions-result');
             
             if (!percentageEl || !correctEl || !totalEl) {
-                console.warn('[Final] Элементы результатов не готовы, попробуем позже');
                 return null;
             }
             
-            return {
-                percentage: parseInt(percentageEl.textContent) || 0,
-                correct: parseInt(correctEl.textContent) || 0,
-                total: parseInt(totalEl.textContent) || 0
-            };
+            const percentage = parseInt(percentageEl.textContent) || 0;
+            const correct = parseInt(correctEl.textContent) || 0;
+            const total = parseInt(totalEl.textContent) || 0;
+            
+            // Проверяем, что данные валидны
+            if (percentage === 0 && correct === 0 && total === 0) {
+                return null;
+            }
+            
+            return { percentage, correct, total };
         } catch (e) {
             console.error('[Final] Ошибка получения результатов:', e);
             return null;
@@ -126,7 +144,7 @@
                     console.log('❌ [Final] Неправильный ответ зафиксирован');
                     window.Gamification.onWrongAnswer();
                 }
-            }, 500);
+            }, 600); // Увеличили задержку
         });
     }
     
@@ -141,13 +159,12 @@
             return;
         }
         
-        const results = getResults();
-        if (!results) {
-            console.warn('[Final] Не удалось получить результаты для мотивационного сообщения');
+        if (!currentResults) {
+            console.warn('[Final] Нет результатов для мотивационного сообщения');
             return;
         }
         
-        const motivation = window.Gamification.addMotivationalMessage(results.percentage);
+        const motivation = window.Gamification.addMotivationalMessage(currentResults.percentage);
         const messageEl = document.createElement('div');
         messageEl.className = 'motivational-message';
         messageEl.innerHTML = `
@@ -163,73 +180,179 @@
         }
     }
     
-    // Улучшаем существующую функцию шеринга из app.js
-    function enhanceExistingShare() {
+    // ПОЛНАЯ ЗАМЕНА кнопки "Поделиться"
+    function replaceShareButton() {
         const shareButton = document.getElementById('share-results');
         if (!shareButton) {
             console.warn('[Final] Кнопка "Поделиться" не найдена');
             return;
         }
         
-        // Сохраняем оригинальную функцию
-        originalShareFunction = shareButton.onclick;
-        
-        // Заменяем на улучшенную версию
+        // Полностью заменяем обработчик
         shareButton.onclick = function(e) {
-            console.log('📤 [Final] Клик по улучшенной кнопке "Поделиться"');
+            e.preventDefault();
+            e.stopPropagation();
             
-            // Сначала запускаем оригинальную функцию (она работает!)
-            if (originalShareFunction) {
-                try {
-                    originalShareFunction.call(this, e);
-                    console.log('✅ [Final] Оригинальная функция шеринга выполнена');
-                    
-                    // Добавляем награду за шеринг
-                    setTimeout(giveShareReward, 1000);
-                } catch (error) {
-                    console.error('[Final] Ошибка в оригинальной функции:', error);
-                    
-                    // Если оригинальная не сработала, используем запасной вариант
-                    fallbackShare();
-                }
-            } else {
-                console.warn('[Final] Оригинальная функция не найдена, используем запасной вариант');
-                fallbackShare();
-            }
+            console.log('📤 [Final] Клик по кнопке "Поделиться"');
+            handleShare();
         };
         
-        console.log('✅ [Final] Кнопка "Поделиться" улучшена');
+        console.log('✅ [Final] Кнопка "Поделиться" заменена');
     }
     
-    // Запасной вариант шеринга
-    function fallbackShare() {
-        console.log('🔄 [Final] Запасной шеринг');
-        
-        const results = getResults();
+    function handleShare() {
+        // Получаем результаты (используем сохраненные или пытаемся получить заново)
+        let results = currentResults;
         if (!results) {
-            alert('❌ Не удалось получить результаты теста');
+            results = getResults();
+        }
+        
+        if (!results) {
+            console.error('[Final] Не удалось получить результаты для шеринга');
+            showErrorMessage('Не удалось получить результаты теста. Попробуйте еще раз.');
             return;
         }
         
-        const message = createShareMessage(results);
+        console.log('[Final] Результаты для шеринга:', results);
         
-        // Пробуем прямую ссылку VK
+        // Создаем сообщение
+        const message = createShareMessage(results);
+        console.log('[Final] Сообщение для шеринга готово');
+        
+        // Пробуем различные способы шеринга
+        tryShareMethods(message);
+    }
+    
+    function tryShareMethods(message) {
+        console.log('[Final] Пробуем способы шеринга...');
+        
+        // Способ 1: VK Bridge (пробуем, но не полагаемся на него)
+        if (tryVKBridge(message)) {
+            return; // Если сработал, выходим
+        }
+        
+        // Способ 2: Прямая ссылка VK (надежный)
+        if (tryVKDirectLink(message)) {
+            return;
+        }
+        
+        // Способ 3: Буфер обмена (всегда работает)
+        copyToClipboard(message);
+    }
+    
+    function tryVKBridge(message) {
         try {
+            let bridge = null;
+            
+            if (window.vkBridgeInstance) {
+                bridge = window.vkBridgeInstance;
+            } else if (window.vkBridge) {
+                bridge = window.vkBridge;
+            } else if (typeof vkBridge !== 'undefined') {
+                bridge = vkBridge;
+            }
+            
+            if (!bridge) {
+                console.log('[Final] VK Bridge не найден');
+                return false;
+            }
+            
+            console.log('[Final] Пробуем VK Bridge...');
+            
+            // Отправляем с обработкой ошибок
+            bridge.send('VKWebAppShare', { message: message })
+                .then(data => {
+                    console.log('✅ [Final] VK Bridge успешно:', data);
+                    giveShareReward();
+                    showSuccessMessage('Результат опубликован!');
+                })
+                .catch(error => {
+                    console.warn('[Final] VK Bridge ошибка:', error);
+                    // Не показываем ошибку пользователю, просто переходим к следующему способу
+                    setTimeout(() => tryVKDirectLink(message), 100);
+                });
+            
+            return true; // Попытка была сделана
+        } catch (e) {
+            console.error('[Final] VK Bridge исключение:', e);
+            return false;
+        }
+    }
+    
+    function tryVKDirectLink(message) {
+        try {
+            console.log('[Final] Пробуем прямую ссылку VK...');
+            
             const encodedMessage = encodeURIComponent(message);
             const currentUrl = encodeURIComponent(window.location.href);
-            const vkUrl = `https://vk.com/share.php?url=${currentUrl}&title=${encodeURIComponent('Медицинский квиз')}&description=${encodedMessage}`;
+            const title = encodeURIComponent('Медицинский квиз - мои результаты');
             
-            const newWindow = window.open(vkUrl, 'vk_share', 'width=600,height=400');
+            const vkUrl = `https://vk.com/share.php?url=${currentUrl}&title=${title}&description=${encodedMessage}&noparse=1`;
+            
+            const newWindow = window.open(vkUrl, 'vk_share', 'width=650,height=500,scrollbars=yes,resizable=yes');
+            
             if (newWindow) {
-                console.log('✅ [Final] Запасной шеринг через VK успешен');
+                console.log('✅ [Final] VK окно открыто');
                 giveShareReward();
+                showSuccessMessage('Окно ВКонтакте открыто!');
+                return true;
             } else {
-                // Если не получилось открыть окно, копируем в буфер
-                copyToClipboard(message);
+                console.warn('[Final] Не удалось открыть VK окно (блокировщик попапов)');
+                return false;
             }
         } catch (e) {
-            console.error('[Final] Ошибка запасного шеринга:', e);
-            copyToClipboard(message);
+            console.error('[Final] Ошибка прямой ссылки VK:', e);
+            return false;
+        }
+    }
+    
+    function copyToClipboard(message) {
+        console.log('[Final] Копируем в буфер обмена...');
+        
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+            navigator.clipboard.writeText(message)
+                .then(() => {
+                    console.log('✅ [Final] Скопировано через Clipboard API');
+                    showSuccessMessage('✅ Текст скопирован! Вставьте его в пост ВКонтакте');
+                    giveShareReward();
+                })
+                .catch(err => {
+                    console.warn('[Final] Clipboard API не сработал:', err);
+                    fallbackCopy(message);
+                });
+        } else {
+            fallbackCopy(message);
+        }
+    }
+    
+    function fallbackCopy(message) {
+        try {
+            console.log('[Final] Используем старый способ копирования...');
+            
+            const textArea = document.createElement('textarea');
+            textArea.value = message;
+            textArea.style.cssText = 'position: fixed; left: -9999px; top: -9999px;';
+            
+            document.body.appendChild(textArea);
+            textArea.focus();
+            textArea.select();
+            
+            const successful = document.execCommand('copy');
+            document.body.removeChild(textArea);
+            
+            if (successful) {
+                console.log('✅ [Final] Скопировано старым способом');
+                showSuccessMessage('✅ Текст скопирован! Вставьте его в пост ВКонтакте');
+                giveShareReward();
+            } else {
+                throw new Error('execCommand не сработал');
+            }
+        } catch (e) {
+            console.error('[Final] Все способы копирования не сработали:', e);
+            
+            // Последний резерв - показать текст в alert
+            alert(`📋 Скопируйте этот текст и вставьте в пост ВКонтакте:\n\n${message}`);
+            giveShareReward();
         }
     }
     
@@ -241,104 +364,86 @@
         const difficulty = diffBtn ? diffBtn.textContent.trim() : 'обычный';
         
         let emoji = '📊';
-        if (results.percentage >= 90) emoji = '🏆';
-        else if (results.percentage >= 80) emoji = '🌟';
-        else if (results.percentage >= 70) emoji = '👍';
+        if (results.percentage >= 95) emoji = '🏆';
+        else if (results.percentage >= 85) emoji = '🌟';
+        else if (results.percentage >= 75) emoji = '👍';
+        else if (results.percentage >= 60) emoji = '📚';
         
-        let message = `${emoji} Прошел "${mode}"`;
+        let message = `${emoji} Прошел медицинский тест "${mode}"`;
+        
         if (difficulty.toLowerCase() !== 'обычный') {
-            message += ` (${difficulty.toLowerCase()})`;
+            message += ` (${difficulty.toLowerCase()} уровень)`;
         }
-        message += ` - ${results.percentage}%!\n`;
-        message += `✅ Правильно: ${results.correct}/${results.total}\n`;
         
+        message += ` и набрал ${results.percentage}%!\n\n`;
+        message += `✅ Правильных ответов: ${results.correct} из ${results.total}\n`;
+        
+        // Добавляем статистику геймификации
         if (window.Gamification && window.Gamification.stats) {
             const stats = window.Gamification.stats;
+            
             if (stats.currentStreak > 2) {
-                message += `🔥 Серия: ${stats.currentStreak}\n`;
+                message += `🔥 Серия правильных ответов: ${stats.currentStreak}\n`;
             }
+            
             if (stats.totalQuizzes > 1) {
-                message += `📈 Тестов: ${stats.totalQuizzes}\n`;
+                message += `📈 Всего пройдено тестов: ${stats.totalQuizzes}\n`;
+            }
+            
+            if (stats.achievements && stats.achievements.length > 0) {
+                message += `🏅 Получено достижений: ${stats.achievements.length}\n`;
             }
         }
         
-        message += '\n🩺 Проверь свои знания!';
+        message += '\n🩺 А ты сможешь лучше? Проверь свои медицинские знания!';
+        
         return message;
     }
     
-    function copyToClipboard(message) {
-        if (navigator.clipboard) {
-            navigator.clipboard.writeText(message)
-                .then(() => {
-                    showToast('✅ Текст скопирован! Можете вставить в пост ВК', 'success');
-                    giveShareReward();
-                })
-                .catch(() => fallbackCopy(message));
-        } else {
-            fallbackCopy(message);
-        }
+    function showSuccessMessage(text) {
+        showMessage(text, '#28a745');
     }
     
-    function fallbackCopy(message) {
-        try {
-            const textArea = document.createElement('textarea');
-            textArea.value = message;
-            textArea.style.position = 'fixed';
-            textArea.style.left = '-9999px';
-            document.body.appendChild(textArea);
-            textArea.select();
-            
-            const successful = document.execCommand('copy');
-            document.body.removeChild(textArea);
-            
-            if (successful) {
-                showToast('✅ Текст скопирован!', 'success');
-                giveShareReward();
-            } else {
-                alert(`Скопируйте текст:\n\n${message}`);
-                giveShareReward();
-            }
-        } catch (e) {
-            alert(`Скопируйте текст:\n\n${message}`);
-            giveShareReward();
-        }
+    function showErrorMessage(text) {
+        showMessage(text, '#dc3545');
     }
     
-    function showToast(message, type) {
+    function showMessage(text, color) {
         const toast = document.createElement('div');
         toast.style.cssText = `
             position: fixed;
             top: 20px;
             right: 20px;
-            background: ${type === 'success' ? '#28a745' : '#dc3545'};
+            background: ${color};
             color: white;
             padding: 15px 20px;
-            border-radius: 10px;
-            z-index: 10000;
+            border-radius: 12px;
             font-weight: 500;
-            max-width: 300px;
-            animation: slideInRight 0.3s ease-out;
+            z-index: 10000;
+            max-width: 350px;
+            word-wrap: break-word;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            transform: translateX(100%);
+            transition: transform 0.3s ease-out;
         `;
         
-        toast.textContent = message;
-        
-        const style = document.createElement('style');
-        style.textContent = `
-            @keyframes slideInRight {
-                from { opacity: 0; transform: translateX(100%); }
-                to { opacity: 1; transform: translateX(0); }
-            }
-        `;
-        document.head.appendChild(style);
+        toast.textContent = text;
         document.body.appendChild(toast);
         
+        // Показываем
         setTimeout(() => {
-            toast.style.opacity = '0';
+            toast.style.transform = 'translateX(0)';
+        }, 100);
+        
+        // Скрываем через 4 секунды
+        setTimeout(() => {
+            toast.style.transform = 'translateX(100%)';
             setTimeout(() => {
-                if (toast.parentNode) toast.parentNode.removeChild(toast);
-                if (style.parentNode) style.parentNode.removeChild(style);
+                if (toast.parentNode) {
+                    toast.parentNode.removeChild(toast);
+                }
             }, 300);
-        }, 3000);
+        }, 4000);
     }
     
     function giveShareReward() {
@@ -351,7 +456,7 @@
                 stats.achievements.push('social');
                 setTimeout(() => {
                     window.Gamification.showAchievement('Социальный: поделился результатом! 📱');
-                }, 500);
+                }, 1000);
                 window.Gamification.saveStats();
             }
         }
@@ -361,26 +466,17 @@
     window.testFinalIntegration = function() {
         console.log('🧪 [Final] Тестирование интеграции');
         
-        // Тестируем геймификацию
-        if (window.Gamification) {
-            window.Gamification.onCorrectAnswer();
-            setTimeout(() => window.Gamification.onCorrectAnswer(), 500);
-            setTimeout(() => window.Gamification.onCorrectAnswer(), 1000);
-            
-            setTimeout(() => {
-                window.Gamification.onQuizComplete({
-                    percentage: 90,
-                    correct: 9,
-                    total: 10
-                });
-            }, 1500);
-        }
+        // Симулируем результаты для тестирования шеринга
+        currentResults = {
+            percentage: 85,
+            correct: 8,
+            total: 10
+        };
         
-        // Тестируем шеринг
-        setTimeout(() => {
-            const testMessage = "🏆 Тест - прошел квиз на 90%!";
-            copyToClipboard(testMessage);
-        }, 2000);
+        const message = createShareMessage(currentResults);
+        console.log('Тестовое сообщение:', message);
+        
+        tryShareMethods(message);
     };
     
 })();
