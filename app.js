@@ -247,6 +247,10 @@ function initializeApp() {
 
     function startQuiz() {
         console.log("Начало квиза");
+        
+        // Отправляем событие начала квиза
+        document.dispatchEvent(new Event('quizStarted'));
+        
         if (!startScreen || !quizContainer) {
             console.error('Ошибка: не найдены необходимые элементы DOM');
             return;
@@ -276,6 +280,10 @@ function initializeApp() {
     // Загрузка вопроса
     function loadQuestion() {
         console.log(`Загрузка вопроса ${currentQuestion + 1} из ${questionsForQuiz.length}`);
+        
+        // Отправляем событие загрузки вопроса
+        document.dispatchEvent(new Event('questionLoaded'));
+        
         if (!questionElement || !optionsElement || !questionCounter || !progressBar) {
             console.error('Ошибка при загрузке вопроса: элементы не найдены');
             return;
@@ -322,6 +330,9 @@ function initializeApp() {
         options.forEach(option => option.classList.remove('selected'));
         e.target.classList.add('selected');
 
+        // Отправляем событие выбора ответа
+        document.dispatchEvent(new Event('answerSelected'));
+
         nextButton.disabled = false;
     }
 
@@ -336,9 +347,16 @@ function initializeApp() {
             nextButton.disabled = true;
 
             const correct = questionsForQuiz[currentQuestion].correctOptionIndex;
-            if (selectedOption === correct) {
+            const isCorrect = selectedOption === correct;
+            
+            if (isCorrect) {
                 score++;
             }
+
+            // Отправляем событие с результатом ответа
+            document.dispatchEvent(new CustomEvent('answerResult', {
+                detail: { correct: isCorrect }
+            }));
 
             const options = document.querySelectorAll('.option');
             if (options[correct]) options[correct].classList.add('correct');
@@ -432,6 +450,11 @@ function initializeApp() {
             }
             scoreTextElement.innerHTML = `<span class="result-text">${resultText}</span>`;
         }
+
+        // Отправляем событие завершения квиза
+        document.dispatchEvent(new CustomEvent('quizCompleted', {
+            detail: { score, total: questionsForQuiz.length, percentage }
+        }));
     }
 
     // ИСПРАВЛЕННАЯ ФУНКЦИЯ ШЕРИНГА
