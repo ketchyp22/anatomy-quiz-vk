@@ -296,6 +296,10 @@
     <!-- ПРАВИЛЬНОЕ решение шеринга для VK -->
     <script src="vk-share-correct.js"></script>
     
+    <!-- Модуль подсказок -->
+    <link rel="stylesheet" href="hints-system.css">
+    <script src="hints-system.js"></script>
+    
     <!-- Инициализация приложения -->
     <script>
         document.addEventListener('DOMContentLoaded', function() {
@@ -306,6 +310,9 @@
             
             // Инициализируем VK Bridge
             initVKBridgeEnhanced();
+            
+            // Интеграция геймификации с квизом
+            integrateGamification();
             
             console.log('✅ Приложение готово к использованию');
         });
@@ -355,6 +362,44 @@
             }
             
             console.log('✅ Интерфейс настроен');
+        }
+        
+        // Интеграция геймификации
+        function integrateGamification() {
+            // Слушаем событие результата ответа
+            document.addEventListener('answerResult', function(event) {
+                if (window.Gamification && window.Gamification.initialized) {
+                    if (event.detail.correct) {
+                        window.Gamification.onCorrectAnswer();
+                    } else {
+                        window.Gamification.onWrongAnswer();
+                    }
+                }
+            });
+            
+            // Слушаем событие завершения квиза
+            document.addEventListener('quizCompleted', function(event) {
+                if (window.Gamification && window.Gamification.initialized) {
+                    window.Gamification.onQuizComplete(event.detail);
+                    
+                    // Добавляем мотивационное сообщение
+                    const motivationData = window.Gamification.addMotivationalMessage(event.detail.percentage);
+                    const resultsContainer = document.getElementById('results-container');
+                    const scoreDiv = document.getElementById('score');
+                    
+                    if (resultsContainer && scoreDiv && motivationData) {
+                        const motivationDiv = document.createElement('div');
+                        motivationDiv.className = 'motivational-message';
+                        motivationDiv.innerHTML = `
+                            <span class="message-icon">${motivationData.icon}</span>
+                            <span class="message-text">${motivationData.message}</span>
+                        `;
+                        
+                        // Вставляем после блока с результатами
+                        scoreDiv.insertAdjacentElement('afterend', motivationDiv);
+                    }
+                }
+            });
         }
         
         // Показ гостевого режима
@@ -410,6 +455,7 @@
             const status = {
                 questions: window.questions ? `${window.questions.length} вопросов` : '❌ Не загружены',
                 gamification: window.Gamification ? '✅ Загружена' : '❌ Не загружена',
+                hintsSystem: window.HintsSystem ? '✅ Загружена' : '❌ Не загружена',
                 vkShare: window.debugVKShare ? '✅ Загружен' : '❌ Не загружен',
                 vkBridge: window.vkBridgeInstance ? '✅ Инициализирован' : '⚠️ Недоступен'
             };
