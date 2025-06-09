@@ -1,4 +1,4 @@
-// hints-system.js - Исправленный модуль подсказок 50/50
+// hints-system.js - Исправленная версия с правильной интеграцией
 (function() {
     'use strict';
     
@@ -6,9 +6,9 @@
 
     // Конфигурация
     const CONFIG = {
-        DAILY_HINTS: 3,        // Подсказок в день
-        HINTS_FOR_AD: 1,       // Подсказок за рекламу
-        MAX_HINTS: 10,         // Максимум подсказок
+        DAILY_HINTS: 3,
+        HINTS_FOR_AD: 1,
+        MAX_HINTS: 10,
         STORAGE_KEY: 'hintsData'
     };
 
@@ -20,28 +20,19 @@
         currentQuestionAnswered: false,
         hintUsedForCurrentQuestion: false,
         
-        // Инициализация
         init: function() {
             if (this.initialized) return;
             
             console.log('🚀 Инициализация системы подсказок');
             
-            // Загружаем данные
             this.loadData();
-            
-            // Создаем UI
             this.createUI();
-            
-            // Проверяем ежедневный бонус
             this.checkDailyBonus();
-            
-            // Слушаем события
             this.attachEventListeners();
             
             this.initialized = true;
         },
 
-        // Загрузка данных
         loadData: function() {
             try {
                 const savedData = localStorage.getItem(CONFIG.STORAGE_KEY);
@@ -51,7 +42,6 @@
                     this.lastBonusDate = data.lastBonusDate || null;
                     console.log('📊 Загружены подсказки:', this.hints);
                 } else {
-                    // Первый запуск - даем стартовые подсказки
                     this.hints = CONFIG.DAILY_HINTS;
                     this.saveData();
                 }
@@ -61,7 +51,6 @@
             }
         },
 
-        // Сохранение данных
         saveData: function() {
             try {
                 const data = {
@@ -74,9 +63,7 @@
             }
         },
 
-        // Создание интерфейса
         createUI: function() {
-            // Создаем контейнер для подсказок
             const hintsContainer = document.createElement('div');
             hintsContainer.id = 'hints-container';
             hintsContainer.className = 'hints-container';
@@ -96,13 +83,8 @@
             `;
             
             document.body.appendChild(hintsContainer);
-            
-            // Создаем модальное окно для ежедневного бонуса
             this.createBonusModal();
-            
-            // Модальное окно для получения подсказок
             this.createGetHintsModal();
-            
             this.updateUI();
         },
 
@@ -152,7 +134,6 @@
             document.body.appendChild(getHintsModal);
         },
 
-        // Обновление интерфейса
         updateUI: function() {
             const hintsNumber = document.querySelector('.hints-number');
             const hintButton = document.getElementById('use-hint-btn');
@@ -163,7 +144,6 @@
                 setTimeout(() => hintsNumber.classList.remove('hints-updated'), 300);
             }
             
-            // Показываем/скрываем кнопку подсказки
             if (hintButton) {
                 const inQuiz = document.getElementById('quiz-container')?.style.display !== 'none';
                 const hasHints = this.hints > 0;
@@ -174,7 +154,6 @@
             }
         },
 
-        // Проверка ежедневного бонуса
         checkDailyBonus: function() {
             const today = new Date().toDateString();
             const bonusButton = document.getElementById('daily-bonus-btn');
@@ -182,17 +161,14 @@
             if (!bonusButton) return;
             
             if (this.lastBonusDate !== today) {
-                // Можно получить бонус
                 bonusButton.classList.add('bonus-available');
                 bonusButton.title = 'Получить ежедневный бонус!';
             } else {
-                // Бонус уже получен
                 bonusButton.classList.remove('bonus-available');
                 bonusButton.title = 'Бонус уже получен сегодня';
             }
         },
 
-        // Получение ежедневного бонуса
         collectDailyBonus: function() {
             const today = new Date().toDateString();
             
@@ -201,22 +177,52 @@
                 return;
             }
             
-            // Даем бонус
             this.lastBonusDate = today;
             this.hints = Math.min(this.hints + CONFIG.DAILY_HINTS, CONFIG.MAX_HINTS);
             this.saveData();
             
-            // Показываем анимацию
             this.showBonusModal();
-            
-            // Обновляем UI
             this.updateUI();
             this.checkDailyBonus();
             
             console.log('🎁 Получен ежедневный бонус!');
         },
 
-        // ИСПРАВЛЕННАЯ функция использования подсказки
+        // ИСПРАВЛЕННАЯ функция получения данных вопроса
+        getCurrentQuestionData: function() {
+            // Способ 1: Через глобальные переменные app.js
+            if (window.getCurrentQuestionData && typeof window.getCurrentQuestionData === 'function') {
+                const data = window.getCurrentQuestionData();
+                if (data) {
+                    console.log('✅ Данные вопроса получены через window.getCurrentQuestionData:', data);
+                    return data;
+                }
+            }
+            
+            // Способ 2: Прямой доступ к глобальным переменным
+            if (window.questionsForQuiz && typeof window.currentQuestion !== 'undefined') {
+                const question = window.questionsForQuiz[window.currentQuestion];
+                if (question) {
+                    console.log('✅ Данные вопроса получены напрямую:', question);
+                    return question;
+                }
+            }
+            
+            // Способ 3: Через DOM поиск
+            const questionText = document.getElementById('question')?.textContent;
+            if (questionText && window.questions) {
+                const foundQuestion = window.questions.find(q => q.text === questionText);
+                if (foundQuestion) {
+                    console.log('✅ Данные вопроса найдены через поиск по тексту:', foundQuestion);
+                    return foundQuestion;
+                }
+            }
+            
+            console.error('❌ Не удалось получить данные текущего вопроса');
+            return null;
+        },
+
+        // ПОЛНОСТЬЮ ПЕРЕПИСАННАЯ функция использования подсказки
         useHint: function() {
             console.log('💡 Попытка использовать подсказку...');
             
@@ -242,29 +248,26 @@
             const options = document.querySelectorAll('.option');
             console.log('🔍 Найдено вариантов ответов:', options.length);
             
-            if (options.length !== 4) {
-                console.error('❌ Должно быть 4 варианта ответов, найдено:', options.length);
-                this.showNotification('Ошибка: неверное количество вариантов ответов');
+            if (options.length < 3) {
+                console.error('❌ Недостаточно вариантов ответов для подсказки 50/50');
+                this.showNotification('Ошибка: недостаточно вариантов ответов');
                 return;
             }
             
-            // Получаем правильный ответ из глобальных переменных
-            let correctIndex = -1;
-            try {
-                if (window.questionsForQuiz && typeof window.currentQuestion !== 'undefined') {
-                    const currentQuestionData = window.questionsForQuiz[window.currentQuestion];
-                    if (currentQuestionData && typeof currentQuestionData.correctOptionIndex !== 'undefined') {
-                        correctIndex = currentQuestionData.correctOptionIndex;
-                        console.log('✅ Правильный ответ найден:', correctIndex);
-                    }
-                }
-            } catch (error) {
-                console.error('❌ Ошибка получения правильного ответа:', error);
+            // Получаем данные вопроса
+            const questionData = this.getCurrentQuestionData();
+            if (!questionData) {
+                console.error('❌ Не удалось получить данные вопроса');
+                this.showNotification('Ошибка: не удалось определить правильный ответ');
+                return;
             }
             
-            if (correctIndex === -1 || correctIndex < 0 || correctIndex >= options.length) {
+            const correctIndex = questionData.correctOptionIndex;
+            console.log('✅ Правильный ответ:', correctIndex);
+            
+            if (correctIndex === undefined || correctIndex < 0 || correctIndex >= options.length) {
                 console.error('❌ Неверный индекс правильного ответа:', correctIndex);
-                this.showNotification('Ошибка: не удалось определить правильный ответ');
+                this.showNotification('Ошибка: неверный индекс правильного ответа');
                 return;
             }
             
@@ -278,34 +281,13 @@
             
             console.log('❌ Неправильные варианты:', wrongIndices);
             
-            // Перемешиваем и выбираем 2 для скрытия
-            const toHide = this.shuffleArray(wrongIndices).slice(0, 2);
+            // Определяем сколько убрать (для 50/50 убираем половину неправильных или 2, если их много)
+            const toHideCount = Math.min(2, Math.floor(wrongIndices.length / 2));
+            const toHide = this.shuffleArray(wrongIndices).slice(0, toHideCount);
             console.log('🚫 Скрываем варианты:', toHide);
             
-            // Скрываем неправильные ответы с анимацией
-            toHide.forEach((index, animationDelay) => {
-                setTimeout(() => {
-                    const option = options[index];
-                    option.classList.add('hint-disabled');
-                    option.style.opacity = '0.4';
-                    option.style.pointerEvents = 'none';
-                    option.style.background = '#fee2e2';
-                    option.style.color = '#991b1b';
-                    option.style.border = '2px dashed #f87171';
-                    option.style.textDecoration = 'line-through';
-                    option.style.transform = 'scale(0.95)';
-                    option.style.transition = 'all 0.3s ease';
-                    
-                    // Добавляем иконку исключения
-                    if (!option.querySelector('.hint-cross')) {
-                        const cross = document.createElement('span');
-                        cross.className = 'hint-cross';
-                        cross.innerHTML = ' ❌';
-                        cross.style.float = 'right';
-                        option.appendChild(cross);
-                    }
-                }, animationDelay * 200);
-            });
+            // Применяем подсказку с анимацией
+            this.applyHintAnimation(options, toHide);
             
             // Списываем подсказку
             this.hints--;
@@ -313,21 +295,58 @@
             this.saveData();
             this.updateUI();
             
-            // Анимация использования
+            // Показываем анимацию использования
             this.showHintAnimation();
             
             console.log('✅ Подсказка 50/50 успешно использована');
             console.log('💡 Осталось подсказок:', this.hints);
         },
 
-        // Показ модального окна бонуса
+        // Новая функция для применения анимации подсказки
+        applyHintAnimation: function(options, toHide) {
+            toHide.forEach((index, animationDelay) => {
+                setTimeout(() => {
+                    const option = options[index];
+                    
+                    // Применяем стили для скрытого варианта
+                    option.classList.add('hint-disabled');
+                    option.style.cssText = `
+                        background: linear-gradient(135deg, #fee2e2 0%, #fecaca 100%) !important;
+                        color: #991b1b !important;
+                        cursor: not-allowed !important;
+                        border: 2px dashed #f87171 !important;
+                        opacity: 0.6 !important;
+                        transform: scale(0.95) !important;
+                        pointer-events: none !important;
+                        text-decoration: line-through !important;
+                        transition: all 0.3s ease !important;
+                    `;
+                    
+                    // Добавляем крестик
+                    if (!option.querySelector('.hint-cross')) {
+                        const cross = document.createElement('span');
+                        cross.className = 'hint-cross';
+                        cross.innerHTML = ' ❌';
+                        cross.style.cssText = `
+                            float: right;
+                            color: #dc2626 !important;
+                            font-weight: bold;
+                            font-size: 20px;
+                            animation: bounceIn 0.6s ease-out;
+                            text-decoration: none !important;
+                        `;
+                        option.appendChild(cross);
+                    }
+                }, animationDelay * 200);
+            });
+        },
+
         showBonusModal: function() {
             const modal = document.getElementById('bonus-modal');
             if (!modal) return;
             
             modal.classList.add('show');
             
-            // Анимация подарка
             setTimeout(() => {
                 const gift = modal.querySelector('.bonus-gift');
                 const reveal = modal.querySelector('.bonus-reveal');
@@ -336,7 +355,6 @@
             }, 300);
         },
 
-        // Показ модального окна получения подсказок
         showGetHintsModal: function() {
             const modal = document.getElementById('get-hints-modal');
             if (modal) {
@@ -344,68 +362,97 @@
             }
         },
 
-        // Анимация использования подсказки
         showHintAnimation: function() {
             const animation = document.createElement('div');
             animation.className = 'hint-use-animation';
             animation.innerHTML = '💡 50/50';
+            animation.style.cssText = `
+                position: fixed;
+                top: 50%;
+                left: 50%;
+                transform: translate(-50%, -50%);
+                font-size: 48px;
+                font-weight: bold;
+                color: #f59e0b;
+                opacity: 0;
+                z-index: 3000;
+                transition: all 0.3s ease;
+                text-shadow: 0 4px 20px rgba(245, 158, 11, 0.5);
+            `;
+            
             document.body.appendChild(animation);
             
-            setTimeout(() => animation.classList.add('show'), 10);
             setTimeout(() => {
-                animation.classList.remove('show');
+                animation.style.opacity = '1';
+                animation.style.transform = 'translate(-50%, -50%) scale(1.2)';
+            }, 10);
+            
+            setTimeout(() => {
+                animation.style.opacity = '0';
+                animation.style.transform = 'translate(-50%, -50%) scale(0.8)';
                 setTimeout(() => animation.remove(), 300);
             }, 1000);
         },
 
-        // Показ уведомления
         showNotification: function(text) {
             const notification = document.createElement('div');
             notification.className = 'hints-notification';
             notification.textContent = text;
+            notification.style.cssText = `
+                position: fixed;
+                bottom: 30px;
+                left: 50%;
+                transform: translateX(-50%) translateY(100px);
+                background: rgba(0, 0, 0, 0.9);
+                color: white;
+                padding: 15px 25px;
+                border-radius: 10px;
+                font-weight: 500;
+                z-index: 3000;
+                transition: transform 0.3s ease;
+                max-width: 90%;
+                text-align: center;
+            `;
+            
             document.body.appendChild(notification);
             
-            setTimeout(() => notification.classList.add('show'), 10);
             setTimeout(() => {
-                notification.classList.remove('show');
+                notification.style.transform = 'translateX(-50%) translateY(0)';
+            }, 10);
+            
+            setTimeout(() => {
+                notification.style.transform = 'translateX(-50%) translateY(100px)';
                 setTimeout(() => notification.remove(), 300);
             }, 3000);
         },
 
-        // Обработчики событий
         attachEventListeners: function() {
-            // Кнопка использования подсказки
             document.addEventListener('click', (e) => {
                 if (e.target && e.target.id === 'use-hint-btn') {
                     e.preventDefault();
                     e.stopPropagation();
                     this.useHint();
                 }
-            });
-            
-            // Кнопка ежедневного бонуса
-            document.addEventListener('click', (e) => {
+                
                 if (e.target && (e.target.id === 'daily-bonus-btn' || e.target.closest('#daily-bonus-btn'))) {
                     e.preventDefault();
                     e.stopPropagation();
                     this.collectDailyBonus();
                 }
-            });
-            
-            // Закрытие модалок
-            document.addEventListener('click', (e) => {
+                
                 if (e.target && e.target.id === 'close-bonus-modal') {
                     document.getElementById('bonus-modal').classList.remove('show');
                 }
+                
                 if (e.target && e.target.id === 'close-hints-modal') {
                     document.getElementById('get-hints-modal').classList.remove('show');
                 }
+                
                 if (e.target && e.target.id === 'watch-ad-btn') {
                     this.watchAdForHints();
                 }
             });
             
-            // Слушаем события квиза
             document.addEventListener('quizStarted', () => {
                 console.log('🎮 Квиз начался');
                 this.updateUI();
@@ -433,7 +480,6 @@
             });
         },
 
-        // Просмотр рекламы за подсказки
         watchAdForHints: async function() {
             const bridge = window.vkBridgeInstance || window.vkBridge;
             
@@ -448,7 +494,6 @@
                 });
                 
                 if (result.result) {
-                    // Даем подсказку за рекламу
                     this.hints = Math.min(this.hints + CONFIG.HINTS_FOR_AD, CONFIG.MAX_HINTS);
                     this.saveData();
                     this.updateUI();
@@ -462,7 +507,6 @@
             }
         },
 
-        // Вспомогательная функция перемешивания
         shuffleArray: function(array) {
             const newArray = [...array];
             for (let i = newArray.length - 1; i > 0; i--) {
@@ -472,7 +516,6 @@
             return newArray;
         },
 
-        // Функция для сброса состояния подсказки (для отладки)
         resetHintState: function() {
             this.currentQuestionAnswered = false;
             this.hintUsedForCurrentQuestion = false;
@@ -480,7 +523,6 @@
             console.log('🔄 Состояние подсказки сброшено');
         },
 
-        // Функция для добавления подсказок (для отладки)
         addHints: function(count = 1) {
             this.hints = Math.min(this.hints + count, CONFIG.MAX_HINTS);
             this.saveData();
@@ -508,14 +550,16 @@
             initialized: window.HintsSystem.initialized
         }),
         checkQuestionData: () => {
-            if (window.questionsForQuiz && typeof window.currentQuestion !== 'undefined') {
-                const question = window.questionsForQuiz[window.currentQuestion];
-                console.log('Текущий вопрос:', question);
-                console.log('Правильный ответ:', question?.correctOptionIndex);
-                return question;
-            } else {
-                console.log('Данные вопроса недоступны');
-                return null;
+            return window.HintsSystem.getCurrentQuestionData();
+        },
+        forceUseHint: () => {
+            // Принудительное использование подсказки для тестирования
+            const options = document.querySelectorAll('.option');
+            if (options.length >= 3) {
+                const toHide = [0, 2]; // Скрываем первый и третий варианты для теста
+                window.HintsSystem.applyHintAnimation(options, toHide);
+                window.HintsSystem.showHintAnimation();
+                console.log('🧪 Принудительно применена подсказка для тестирования');
             }
         }
     };
