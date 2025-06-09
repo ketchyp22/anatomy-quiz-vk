@@ -1,4 +1,4 @@
-/* hints-system.css - Стили для системы подсказок */
+/* hints-system.css - Полные стили для системы подсказок */
 
 /* Контейнер подсказок */
 .hints-container {
@@ -78,6 +78,7 @@
 .hint-button:disabled {
     opacity: 0.5;
     cursor: not-allowed;
+    transform: none;
 }
 
 .hint-button::after {
@@ -378,12 +379,119 @@
     transform: translateX(-50%) translateY(0);
 }
 
-/* Стиль для отключенных вариантов ответа */
+/* ОСНОВНЫЕ СТИЛИ ДЛЯ ОТКЛЮЧЕННЫХ ВАРИАНТОВ ОТВЕТА */
 .option.hint-disabled {
-    background: #f3f4f6 !important;
-    color: #9ca3af !important;
+    background: linear-gradient(135deg, #fee2e2 0%, #fecaca 100%) !important;
+    color: #991b1b !important;
     cursor: not-allowed !important;
-    border: 1px dashed #d1d5db !important;
+    border: 2px dashed #f87171 !important;
+    opacity: 0.6 !important;
+    transform: scale(0.95) !important;
+    pointer-events: none !important;
+    text-decoration: line-through !important;
+    position: relative;
+    overflow: visible !important;
+}
+
+.option.hint-disabled::before {
+    content: '❌';
+    position: absolute;
+    top: 10px;
+    right: 15px;
+    font-size: 18px;
+    animation: hintCrossAppear 0.5s ease-out;
+}
+
+.option.hint-disabled::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: repeating-linear-gradient(
+        45deg,
+        transparent,
+        transparent 10px,
+        rgba(239, 68, 68, 0.1) 10px,
+        rgba(239, 68, 68, 0.1) 20px
+    );
+    pointer-events: none;
+    border-radius: inherit;
+}
+
+@keyframes hintCrossAppear {
+    0% {
+        opacity: 0;
+        transform: scale(0) rotate(-180deg);
+    }
+    50% {
+        transform: scale(1.2) rotate(0deg);
+    }
+    100% {
+        opacity: 1;
+        transform: scale(1) rotate(0deg);
+    }
+}
+
+/* Анимация исключения варианта */
+.option.hint-disabled {
+    animation: hintExclude 0.5s ease-out;
+}
+
+@keyframes hintExclude {
+    0% {
+        transform: scale(1);
+        background: var(--option-bg);
+    }
+    25% {
+        transform: scale(1.05);
+        background: #fef3c7;
+    }
+    50% {
+        transform: scale(0.95);
+        background: #fed7d7;
+    }
+    100% {
+        transform: scale(0.95);
+        background: linear-gradient(135deg, #fee2e2 0%, #fecaca 100%);
+    }
+}
+
+/* Подсветка оставшихся вариантов */
+.option:not(.hint-disabled) {
+    position: relative;
+    z-index: 1;
+}
+
+.hints-container .option:not(.hint-disabled) {
+    box-shadow: 0 0 0 2px rgba(34, 197, 94, 0.3);
+    background: linear-gradient(135deg, rgba(34, 197, 94, 0.05) 0%, rgba(16, 185, 129, 0.05) 100%);
+}
+
+/* Улучшенный стиль для крестика */
+.hint-cross {
+    display: inline-block;
+    color: #dc2626 !important;
+    font-weight: bold;
+    font-size: 20px;
+    animation: bounceIn 0.6s ease-out;
+    text-decoration: none !important;
+}
+
+@keyframes bounceIn {
+    0% {
+        opacity: 0;
+        transform: scale(0.3);
+    }
+    50% {
+        opacity: 1;
+        transform: scale(1.1);
+    }
+    100% {
+        opacity: 1;
+        transform: scale(1);
+    }
 }
 
 /* Адаптивность */
@@ -391,6 +499,7 @@
     .hints-container {
         top: 10px;
         right: 10px;
+        gap: 10px;
     }
     
     .hints-widget {
@@ -413,6 +522,18 @@
     .hint-button {
         padding: 6px 12px;
         font-size: 12px;
+    }
+    
+    .hints-modal-content,
+    .bonus-modal-content {
+        margin: 0 10px;
+        padding: 20px;
+    }
+    
+    .option.hint-disabled::before {
+        font-size: 16px;
+        top: 8px;
+        right: 10px;
     }
 }
 
@@ -439,4 +560,53 @@
 
 .vk-dark-theme .hints-option-btn:hover {
     background: #4b5563;
+}
+
+.vk-dark-theme .option.hint-disabled {
+    background: linear-gradient(135deg, #7f1d1d 0%, #991b1b 100%) !important;
+    color: #fecaca !important;
+    border-color: #dc2626 !important;
+}
+
+/* Дополнительные эффекты для лучшего UX */
+.hint-button {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    letter-spacing: 0.5px;
+}
+
+.hint-button:hover::before {
+    content: '💡';
+    position: absolute;
+    left: -25px;
+    top: 50%;
+    transform: translateY(-50%);
+    animation: floatLeft 0.3s ease-out;
+}
+
+@keyframes floatLeft {
+    0% {
+        opacity: 0;
+        left: 0;
+    }
+    100% {
+        opacity: 1;
+        left: -25px;
+    }
+}
+
+/* Пульсация кнопки подсказки когда доступна */
+.hint-button:not(:disabled) {
+    animation: hintPulse 2s infinite;
+}
+
+@keyframes hintPulse {
+    0% {
+        box-shadow: 0 4px 12px rgba(245, 158, 11, 0.3);
+    }
+    50% {
+        box-shadow: 0 4px 12px rgba(245, 158, 11, 0.6);
+    }
+    100% {
+        box-shadow: 0 4px 12px rgba(245, 158, 11, 0.3);
+    }
 }
