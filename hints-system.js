@@ -25,12 +25,44 @@
             
             console.log('🚀 Инициализация системы подсказок');
             
+            // Добавляем CSS анимации
+            this.addAnimationStyles();
+            
             this.loadData();
             this.createUI();
             this.checkDailyBonus();
             this.attachEventListeners();
             
             this.initialized = true;
+        },
+
+        // Добавляем необходимые CSS стили для анимаций
+        addAnimationStyles: function() {
+            if (document.getElementById('hints-animation-styles')) return;
+            
+            const style = document.createElement('style');
+            style.id = 'hints-animation-styles';
+            style.textContent = `
+                @keyframes bounceIn {
+                    0% {
+                        opacity: 0;
+                        transform: scale(0.3);
+                    }
+                    50% {
+                        opacity: 1;
+                        transform: scale(1.1);
+                    }
+                    100% {
+                        opacity: 1;
+                        transform: scale(1);
+                    }
+                }
+                
+                .hint-cross {
+                    animation: bounceIn 0.6s ease-out !important;
+                }
+            `;
+            document.head.appendChild(style);
         },
 
         loadData: function() {
@@ -248,9 +280,9 @@
             const options = document.querySelectorAll('.option');
             console.log('🔍 Найдено вариантов ответов:', options.length);
             
-            if (options.length < 3) {
-                console.error('❌ Недостаточно вариантов ответов для подсказки 50/50');
-                this.showNotification('Ошибка: недостаточно вариантов ответов');
+            if (wrongIndices.length < 2) {
+                console.error('❌ Недостаточно неправильных вариантов для подсказки 50/50');
+                this.showNotification('Ошибка: недостаточно вариантов для подсказки 50/50');
                 return;
             }
             
@@ -281,8 +313,8 @@
             
             console.log('❌ Неправильные варианты:', wrongIndices);
             
-            // Определяем сколько убрать (для 50/50 убираем половину неправильных или 2, если их много)
-            const toHideCount = Math.min(2, Math.floor(wrongIndices.length / 2));
+            // Для подсказки 50/50 всегда убираем ровно 2 неправильных ответа
+            const toHideCount = Math.min(2, wrongIndices.length);
             const toHide = this.shuffleArray(wrongIndices).slice(0, toHideCount);
             console.log('🚫 Скрываем варианты:', toHide);
             
@@ -304,9 +336,12 @@
 
         // Новая функция для применения анимации подсказки
         applyHintAnimation: function(options, toHide) {
+            console.log('🎬 Применяем анимацию для вариантов:', toHide);
+            
             toHide.forEach((index, animationDelay) => {
                 setTimeout(() => {
                     const option = options[index];
+                    console.log(`🚫 Скрываем вариант ${index}:`, option.textContent);
                     
                     // Применяем стили для скрытого варианта
                     option.classList.add('hint-disabled');
@@ -320,24 +355,26 @@
                         pointer-events: none !important;
                         text-decoration: line-through !important;
                         transition: all 0.3s ease !important;
+                        position: relative !important;
                     `;
                     
-                    // Добавляем крестик
+                    // Добавляем крестик, только если его еще нет
                     if (!option.querySelector('.hint-cross')) {
                         const cross = document.createElement('span');
                         cross.className = 'hint-cross';
                         cross.innerHTML = ' ❌';
                         cross.style.cssText = `
-                            float: right;
+                            float: right !important;
                             color: #dc2626 !important;
-                            font-weight: bold;
-                            font-size: 20px;
-                            animation: bounceIn 0.6s ease-out;
+                            font-weight: bold !important;
+                            font-size: 20px !important;
+                            animation: bounceIn 0.6s ease-out !important;
                             text-decoration: none !important;
+                            margin-left: 10px !important;
                         `;
                         option.appendChild(cross);
                     }
-                }, animationDelay * 200);
+                }, animationDelay * 300); // Увеличена задержка для лучшей видимости
             });
         },
 
