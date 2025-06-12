@@ -869,7 +869,77 @@
         }
     }, 3000);
     
+    // 🔧 КРИТИЧЕСКИ ВАЖНО: АВТОМАТИЧЕСКОЕ ИСПРАВЛЕНИЕ НА ВСЕ 50 ВОПРОСОВ
+    setTimeout(() => {
+        console.log('🧠 Настройка экспертного режима на ВСЕ 50 вопросов...');
+        
+        // Перехватываем функцию selectQuestions
+        if (typeof window.selectQuestions !== 'undefined' || typeof selectQuestions !== 'undefined') {
+            const originalSelectQuestions = window.selectQuestions || selectQuestions;
+            
+            const newSelectQuestions = function() {
+                // Проверяем экспертный режим
+                const isExpertMode = (window.currentQuizMode === 'expert') || 
+                                   (typeof currentQuizMode !== 'undefined' && currentQuizMode === 'expert') ||
+                                   document.querySelector('.expert-mode-btn.active, .quiz-mode-btn[data-mode="expert"].active');
+                
+                if (isExpertMode) {
+                    console.log('🧠 ЭКСПЕРТНЫЙ РЕЖИМ: ЗАГРУЖАЕМ ВСЕ 50 ВОПРОСОВ');
+                    
+                    // Устанавливаем переменные
+                    if (typeof currentQuizMode !== 'undefined') currentQuizMode = 'expert';
+                    if (typeof currentDifficulty !== 'undefined') currentDifficulty = 'expert';
+                    window.currentQuizMode = 'expert';
+                    window.currentDifficulty = 'expert';
+                    
+                    // Получаем ВСЕ экспертные вопросы
+                    const expertQuestions = window.questions.filter(q => q.mode === 'expert');
+                    console.log(`🧠 Найдено ${expertQuestions.length} экспертных вопросов`);
+                    
+                    if (expertQuestions.length === 0) {
+                        console.error('❌ Экспертные вопросы не найдены!');
+                        return originalSelectQuestions();
+                    }
+                    
+                    // Перемешиваем и возвращаем ВСЕ экспертные вопросы
+                    const shuffled = [...expertQuestions];
+                    for (let i = shuffled.length - 1; i > 0; i--) {
+                        const j = Math.floor(Math.random() * (i + 1));
+                        [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+                    }
+                    
+                    console.log(`✅ Возвращаем ВСЕ ${shuffled.length} экспертных вопросов`);
+                    return shuffled; // Возвращаем ВСЕ 50 экспертных вопросов
+                }
+                
+                // Для обычных режимов используем оригинальную функцию
+                return originalSelectQuestions();
+            };
+            
+            // Заменяем функции
+            if (typeof window.selectQuestions !== 'undefined') {
+                window.selectQuestions = newSelectQuestions;
+            }
+            if (typeof selectQuestions !== 'undefined') {
+                selectQuestions = newSelectQuestions;
+            }
+            
+            console.log('✅ Функция selectQuestions перехвачена для ВСЕ 50 экспертных вопросов');
+        }
+        
+        // Обновляем уведомление в блоке сложности для экспертного режима
+        const diffSection = document.querySelector('.difficulty-selection');
+        if (diffSection) {
+            const existingNotice = diffSection.querySelector('.expert-notice');
+            if (existingNotice) {
+                existingNotice.textContent = '🧠 ВСЕ 50 экспертных вопросов';
+            }
+        }
+        
+    }, 2000);
+    
     console.log('✅ Экспертный пак вопросов полностью загружен с исправлением кнопки');
+    console.log('🧠 ЭКСПЕРТНЫЙ РЕЖИМ НАСТРОЕН НА ВСЕ 50 ВОПРОСОВ');
     console.log('🐛 Доступны функции отладки: window.debugExpert');
     
 })();
