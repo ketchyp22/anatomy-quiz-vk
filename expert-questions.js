@@ -1,30 +1,24 @@
-// expert-questions.js - Экспертный пак из 50 сложнейших вопросов (ИСПРАВЛЕННАЯ ВЕРСИЯ БЕЗ БАННЕРА)
+// expert-questions.js - Полностью исправленная версия без баннеров и с корректной работой
 (function() {
     'use strict';
     
-    console.log('🧠 Загружается ЭКСПЕРТНЫЙ пак вопросов (исправленная версия)...');
+    console.log('🧠 Загружается экспертный пак вопросов...');
 
-    // Ждем полной загрузки DOM
     document.addEventListener('DOMContentLoaded', function() {
         addExpertQuestions();
         addExpertMode();
-        // КРИТИЧЕСКИ ВАЖНО: исправляем кнопку после создания
-        setTimeout(fixExpertButton, 1000);
+        setTimeout(setupExpertButton, 1000);
     });
     
     function addExpertQuestions() {
-        // Проверяем, существует ли массив вопросов
         if (typeof window.questions === 'undefined') {
             console.error('Массив вопросов не существует. Создаем новый.');
             window.questions = [];
         }
         
-        // Префикс для ID экспертных вопросов
         const PREFIX = 'expert_';
         
-        // 🧠 ЭКСПЕРТНЫЕ ВОПРОСЫ - САМЫЕ СЛОЖНЫЕ ИЗ ВСЕХ КАТЕГОРИЙ
         const expertQuestions = [
-            // АНАТОМИЯ - ЭКСПЕРТНЫЙ УРОВЕНЬ
             {
                 id: PREFIX + '001',
                 text: "Какие структуры НЕ входят в состав ромбовидной ямки (дно IV желудочка)?",
@@ -51,7 +45,7 @@
             },
             {
                 id: PREFIX + '004',
-                text: "Клетки Рouркинье мозжечка получают возбуждающие сигналы от:",
+                text: "Клетки Пуркинье мозжечка получают возбуждающие сигналы от:",
                 options: ["Только от лазящих волокон", "Только от параллельных волокон", "От лазящих и параллельных волокон", "От звездчатых клеток"],
                 correctOptionIndex: 2,
                 mode: "expert",
@@ -65,8 +59,6 @@
                 mode: "expert",
                 difficulty: "expert"
             },
-
-            // КЛИНИЧЕСКОЕ МЫШЛЕНИЕ - ЭКСПЕРТНЫЙ УРОВЕНЬ
             {
                 id: PREFIX + '006',
                 text: "Парадокс Робин-Гуда при церебральной гипертензии характеризуется:",
@@ -107,8 +99,6 @@
                 mode: "expert",
                 difficulty: "expert"
             },
-
-            // ФАРМАКОЛОГИЯ - ЭКСПЕРТНЫЙ УРОВЕНЬ
             {
                 id: PREFIX + '011',
                 text: "Цитохром P450 3A4 преимущественно метаболизирует какой процент всех лекарственных препаратов?",
@@ -149,8 +139,6 @@
                 mode: "expert",
                 difficulty: "expert"
             },
-
-            // ПЕРВАЯ ПОМОЩЬ - ЭКСПЕРТНЫЙ УРОВЕНЬ
             {
                 id: PREFIX + '016',
                 text: "При электротравме от источника переменного тока 50 Гц наиболее вероятен:",
@@ -191,8 +179,6 @@
                 mode: "expert",
                 difficulty: "expert"
             },
-
-            // АКУШЕРСТВО - ЭКСПЕРТНЫЙ УРОВЕНЬ
             {
                 id: PREFIX + '021',
                 text: "Синдром Ашермана характеризуется:",
@@ -233,8 +219,6 @@
                 mode: "expert",
                 difficulty: "expert"
             },
-
-            // МИКС ИЗ РАЗНЫХ СПЕЦИАЛЬНОСТЕЙ - ЭКСПЕРТНЫЙ УРОВЕНЬ
             {
                 id: PREFIX + '026',
                 text: "Парадоксальная эмболия возможна при наличии:",
@@ -437,44 +421,37 @@
             }
         ];
         
-        // Добавляем вопросы в общий массив
         expertQuestions.forEach(question => {
-            // Проверяем, нет ли дубликатов
             const existingQuestion = window.questions.find(q => q.id === question.id);
             if (!existingQuestion) {
                 window.questions.push(question);
             }
         });
         
-        console.log(`🧠 Добавлено ${expertQuestions.length} ЭКСПЕРТНЫХ вопросов`);
+        console.log(`🧠 Добавлено ${expertQuestions.length} экспертных вопросов`);
     }
     
-    // Добавляем экспертный режим в интерфейс
     function addExpertMode() {
-        // Проверяем, были ли добавлены вопросы
         const expertQuestionsCount = Array.isArray(window.questions) 
             ? window.questions.filter(q => q.mode === 'expert').length 
             : 0;
         
         if (expertQuestionsCount === 0) {
-            console.error('Экспертные вопросы не найдены, кнопка не будет добавлена');
+            console.error('Экспертные вопросы не найдены');
             return;
         }
         
-        // Находим контейнер для кнопок режимов
         const modeContainer = document.querySelector('.quiz-mode-selection');
         if (!modeContainer) {
             console.error('Контейнер для кнопок режимов не найден');
             return;
         }
         
-        // Проверяем, нет ли уже кнопки эксперта
         if (document.querySelector('.quiz-mode-btn[data-mode="expert"]')) {
             console.log('Кнопка экспертного режима уже существует');
             return;
         }
         
-        // Создаем специальный контейнер для экспертного режима
         const expertContainer = document.createElement('div');
         expertContainer.className = 'expert-mode-container';
         expertContainer.style.cssText = `
@@ -487,29 +464,18 @@
             overflow: hidden;
         `;
         
-        // Добавляем пульсирующий эффект
-        const style = document.createElement('style');
-        style.textContent = `
-            @keyframes expertPulse {
-                0% {
-                    transform: scale(1);
-                    box-shadow: 0 8px 25px rgba(238, 90, 36, 0.4);
-                }
-                50% {
-                    transform: scale(1.02);
-                    box-shadow: 0 12px 35px rgba(238, 90, 36, 0.6);
-                }
-                100% {
-                    transform: scale(1);
-                    box-shadow: 0 8px 25px rgba(238, 90, 36, 0.4);
-                }
-            }
-            
-            .expert-mode-container {
-                animation: expertPulse 2s ease-in-out infinite;
-            }
-            
-            .expert-mode-btn {
+        expertContainer.innerHTML = `
+            <div style="
+                color: white;
+                font-size: 14px;
+                font-weight: 600;
+                margin-bottom: 10px;
+                text-align: center;
+                text-transform: uppercase;
+                letter-spacing: 2px;
+                text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+            ">🧠 ЭКСПЕРТНЫЙ УРОВЕНЬ 🧠</div>
+            <button class="quiz-mode-btn expert-mode-btn" data-mode="expert" style="
                 width: 100%;
                 background: rgba(255, 255, 255, 0.2) !important;
                 color: white !important;
@@ -520,110 +486,52 @@
                 border-radius: 15px !important;
                 text-transform: uppercase !important;
                 letter-spacing: 1px !important;
-                position: relative !important;
-                overflow: hidden !important;
-                transition: all 0.3s ease !important;
                 cursor: pointer !important;
-            }
-            
-            .expert-mode-btn::before {
-                content: '';
-                position: absolute;
-                top: -50%;
-                left: -50%;
-                width: 200%;
-                height: 200%;
-                background: linear-gradient(45deg, transparent, rgba(255, 255, 255, 0.3), transparent);
-                transform: rotate(45deg);
-                animation: expertShine 3s ease-in-out infinite;
-            }
-            
-            @keyframes expertShine {
-                0% { transform: translateX(-100%) translateY(-100%) rotate(45deg); }
-                50% { transform: translateX(100%) translateY(100%) rotate(45deg); }
-                100% { transform: translateX(-100%) translateY(-100%) rotate(45deg); }
-            }
-            
-            .expert-mode-btn:hover {
-                background: rgba(255, 255, 255, 0.3) !important;
-                transform: translateY(-3px) !important;
-                box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3) !important;
-            }
-            
-            .expert-mode-btn.active {
-                background: rgba(255, 255, 255, 0.4) !important;
-                box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.6) !important;
-                transform: scale(1.05) !important;
-            }
-            
-            .expert-label {
-                color: white;
-                font-size: 14px;
-                font-weight: 600;
-                margin-bottom: 10px;
-                text-align: center;
-                text-transform: uppercase;
-                letter-spacing: 2px;
-                text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
-            }
-            
-            .expert-description {
+                transition: all 0.3s ease !important;
+            ">
+                ⚡ ВЫЗОВ ДЛЯ ПРОФЕССИОНАЛОВ ⚡
+            </button>
+            <div style="
                 color: rgba(255, 255, 255, 0.9);
                 font-size: 13px;
                 text-align: center;
                 margin-top: 8px;
                 font-style: italic;
-            }
-        `;
-        document.head.appendChild(style);
-        
-        // Создаем содержимое экспертного контейнера
-        expertContainer.innerHTML = `
-            <div class="expert-label">🧠 ЭКСПЕРТНЫЙ УРОВЕНЬ 🧠</div>
-            <button class="quiz-mode-btn expert-mode-btn" data-mode="expert">
-                ⚡ ВЫЗОВ ДЛЯ ПРОФЕССИОНАЛОВ ⚡
-            </button>
-            <div class="expert-description">
+            ">
                 50 сверхсложных вопросов для истинных экспертов медицины
             </div>
         `;
         
-        // Добавляем контейнер в конец блока выбора режимов
         modeContainer.appendChild(expertContainer);
         
-        // Обновляем описания режимов
         if (window.modeDescriptions) {
             window.modeDescriptions['expert'] = '🧠 Экстремально сложные вопросы для профессионалов с многолетним опытом. Только для истинных экспертов медицины!';
         }
         
-        console.log('🔥 Экспертный режим успешно добавлен в интерфейс');
+        console.log('🔥 Экспертный режим добавлен');
     }
     
-    // 🔧 КРИТИЧЕСКИ ВАЖНАЯ ФУНКЦИЯ ИСПРАВЛЕНИЯ КНОПКИ
-    function fixExpertButton() {
-        console.log('🔧 Исправляем работу экспертной кнопки...');
-        
-        const expertBtn = document.querySelector('.expert-mode-btn, .quiz-mode-btn[data-mode="expert"]');
+    function setupExpertButton() {
+        const expertBtn = document.querySelector('.quiz-mode-btn[data-mode="expert"]');
         
         if (!expertBtn) {
-            console.error('❌ Экспертная кнопка не найдена для исправления');
+            console.error('❌ Экспертная кнопка не найдена');
             return;
         }
         
-        console.log('✅ Кнопка найдена, применяем исправление...');
+        console.log('✅ Настраиваем экспертную кнопку');
         
-        // Клонируем кнопку без старых обработчиков
+        // Убираем все старые обработчики
         const newBtn = expertBtn.cloneNode(true);
         expertBtn.parentNode.replaceChild(newBtn, expertBtn);
         
-        // Добавляем правильный обработчик события
         newBtn.addEventListener('click', function(e) {
             e.preventDefault();
             e.stopPropagation();
             
-            console.log('🧠 ЭКСПЕРТНЫЙ РЕЖИМ АКТИВИРОВАН!');
+            console.log('🧠 Экспертный режим выбран');
             
-            // Убираем активность со всех кнопок режимов
+            // Снимаем активность со всех кнопок
             document.querySelectorAll('.quiz-mode-btn').forEach(btn => {
                 btn.classList.remove('active');
             });
@@ -631,44 +539,18 @@
             // Активируем экспертную кнопку
             this.classList.add('active');
             
-            // Принудительно устанавливаем глобальные переменные
+            // Устанавливаем переменные ТОЛЬКО для этого режима
             window.currentQuizMode = 'expert';
             window.currentDifficulty = 'expert';
             
             // Блокируем выбор сложности
             const difficultySection = document.querySelector('.difficulty-selection');
             if (difficultySection) {
-                difficultySection.style.cssText = `
-                    opacity: 0.5;
-                    pointer-events: none;
-                    transition: all 0.3s ease;
-                    position: relative;
-                `;
-                
-                // Добавляем поясняющий текст
-                if (!difficultySection.querySelector('.expert-block-notice')) {
-                    const notice = document.createElement('div');
-                    notice.className = 'expert-block-notice';
-                    notice.style.cssText = `
-                        position: absolute;
-                        top: 50%;
-                        left: 50%;
-                        transform: translate(-50%, -50%);
-                        background: rgba(238, 90, 36, 0.9);
-                        color: white;
-                        padding: 8px 16px;
-                        border-radius: 8px;
-                        font-size: 14px;
-                        font-weight: 600;
-                        z-index: 10;
-                        animation: fadeIn 0.3s ease;
-                    `;
-                    notice.textContent = '🧠 Экспертный уровень';
-                    difficultySection.appendChild(notice);
-                }
+                difficultySection.style.opacity = '0.5';
+                difficultySection.style.pointerEvents = 'none';
             }
             
-            // Показываем описание экспертного режима
+            // Показываем описание
             const modeDescription = document.getElementById('mode-description');
             if (modeDescription && window.modeDescriptions) {
                 modeDescription.innerHTML = `
@@ -683,171 +565,16 @@
                 modeDescription.style.cssText = `
                     background: linear-gradient(135deg, rgba(238, 90, 36, 0.1) 0%, rgba(255, 107, 107, 0.1) 100%);
                     border-left: 4px solid #ee5a24;
-                    animation: expertGlow 0.5s ease;
                 `;
             }
-            
-            console.log('✅ Экспертный режим настроен:', {
-                currentQuizMode: window.currentQuizMode,
-                currentDifficulty: window.currentDifficulty,
-                expertQuestions: window.questions ? window.questions.filter(q => q.mode === 'expert').length : 0
-            });
         });
         
-        // Добавляем hover эффекты
-        newBtn.addEventListener('mouseover', function() {
-            if (!this.classList.contains('active')) {
-                const modeDescription = document.getElementById('mode-description');
-                if (modeDescription && window.modeDescriptions) {
-                    modeDescription.textContent = window.modeDescriptions['expert'];
-                    modeDescription.classList.add('active-description');
-                }
-            }
-        });
-        
-        newBtn.addEventListener('mouseout', function() {
-            if (!this.classList.contains('active')) {
-                const modeDescription = document.getElementById('mode-description');
-                if (modeDescription) {
-                    modeDescription.classList.remove('active-description');
-                }
-            }
-        });
-        
-        console.log('✅ Экспертная кнопка успешно исправлена!');
+        console.log('✅ Экспертная кнопка настроена');
     }
     
-    // 🔧 КРИТИЧЕСКИ ВАЖНО: АВТОМАТИЧЕСКОЕ ИСПРАВЛЕНИЕ НА ВСЕ 50 ВОПРОСОВ
-    setTimeout(() => {
-        console.log('🧠 Настройка экспертного режима на ВСЕ 50 вопросов...');
-        
-        // Перехватываем функцию selectQuestions
-        if (typeof window.selectQuestions !== 'undefined' || typeof selectQuestions !== 'undefined') {
-            const originalSelectQuestions = window.selectQuestions || selectQuestions;
-            
-            const newSelectQuestions = function() {
-                // Проверяем экспертный режим
-                const isExpertMode = (window.currentQuizMode === 'expert') || 
-                                   (typeof currentQuizMode !== 'undefined' && currentQuizMode === 'expert') ||
-                                   document.querySelector('.expert-mode-btn.active, .quiz-mode-btn[data-mode="expert"].active');
-                
-                if (isExpertMode) {
-                    console.log('🧠 ЭКСПЕРТНЫЙ РЕЖИМ: ЗАГРУЖАЕМ ВСЕ 50 ВОПРОСОВ');
-                    
-                    // Устанавливаем переменные
-                    if (typeof currentQuizMode !== 'undefined') currentQuizMode = 'expert';
-                    if (typeof currentDifficulty !== 'undefined') currentDifficulty = 'expert';
-                    window.currentQuizMode = 'expert';
-                    window.currentDifficulty = 'expert';
-                    
-                    // Получаем ВСЕ экспертные вопросы
-                    const expertQuestions = window.questions.filter(q => q.mode === 'expert');
-                    console.log(`🧠 Найдено ${expertQuestions.length} экспертных вопросов`);
-                    
-                    if (expertQuestions.length === 0) {
-                        console.error('❌ Экспертные вопросы не найдены!');
-                        return originalSelectQuestions();
-                    }
-                    
-                    // Перемешиваем и возвращаем ВСЕ экспертные вопросы
-                    const shuffled = [...expertQuestions];
-                    for (let i = shuffled.length - 1; i > 0; i--) {
-                        const j = Math.floor(Math.random() * (i + 1));
-                        [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
-                    }
-                    
-                    console.log(`✅ Возвращаем ВСЕ ${shuffled.length} экспертных вопросов`);
-                    return shuffled; // Возвращаем ВСЕ 50 экспертных вопросов
-                }
-                
-                // Для обычных режимов используем оригинальную функцию
-                return originalSelectQuestions();
-            };
-            
-            // Заменяем функции
-            if (typeof window.selectQuestions !== 'undefined') {
-                window.selectQuestions = newSelectQuestions;
-            }
-            if (typeof selectQuestions !== 'undefined') {
-                selectQuestions = newSelectQuestions;
-            }
-            
-            console.log('✅ Функция selectQuestions перехвачена для ВСЕ 50 экспертных вопросов');
-        }
-        
-        // Обновляем уведомление в блоке сложности для экспертного режима
-        const diffSection = document.querySelector('.difficulty-selection');
-        if (diffSection) {
-            const existingNotice = diffSection.querySelector('.expert-notice');
-            if (existingNotice) {
-                existingNotice.textContent = '🧠 ВСЕ 50 экспертных вопросов';
-            }
-        }
-        
-    }, 2000);
+    // НЕ ПЕРЕХВАТЫВАЕМ selectQuestions - пусть работает как обычно!
+    // Функция selectQuestions в app.js уже правильно обрабатывает экспертный режим
     
-    // Функции для отладки
-    window.debugExpert = {
-        getExpertQuestions: () => {
-            return window.questions ? window.questions.filter(q => q.mode === 'expert') : [];
-        },
-        
-        getExpertCount: () => {
-            const expertQuestions = window.questions ? window.questions.filter(q => q.mode === 'expert') : [];
-            return expertQuestions.length;
-        },
-        
-        testExpertMode: () => {
-            // Имитируем выбор экспертного режима
-            const expertBtn = document.querySelector('.expert-mode-btn, .quiz-mode-btn[data-mode="expert"]');
-            if (expertBtn) {
-                expertBtn.click();
-                console.log('🧠 Экспертный режим активирован для тестирования');
-            } else {
-                console.error('❌ Экспертная кнопка не найдена');
-            }
-        },
-        
-        fixButton: () => {
-            fixExpertButton();
-        },
-        
-        checkState: () => {
-            return {
-                currentQuizMode: window.currentQuizMode,
-                currentDifficulty: window.currentDifficulty,
-                expertQuestions: window.questions ? window.questions.filter(q => q.mode === 'expert').length : 0,
-                buttonExists: !!document.querySelector('.expert-mode-btn, .quiz-mode-btn[data-mode="expert"]')
-            };
-        },
-        
-        showExpertStats: () => {
-            const expert = window.questions ? window.questions.filter(q => q.mode === 'expert') : [];
-            console.log('📊 Статистика экспертных вопросов:', {
-                total: expert.length,
-                byCategory: {
-                    anatomy: expert.filter(q => q.text.includes('анатом') || q.text.includes('нерв') || q.text.includes('артери')).length,
-                    clinical: expert.filter(q => q.text.includes('синдром') || q.text.includes('симптом')).length,
-                    pharmacology: expert.filter(q => q.text.includes('препарат') || q.text.includes('механизм')).length,
-                    firstAid: expert.filter(q => q.text.includes('помощ') || q.text.includes('травм')).length,
-                    obstetrics: expert.filter(q => q.text.includes('беремен') || q.text.includes('родов')).length
-                }
-            });
-        }
-    };
-    
-    // Дополнительная проверка и исправление через 3 секунды
-    setTimeout(() => {
-        const expertBtn = document.querySelector('.expert-mode-btn, .quiz-mode-btn[data-mode="expert"]');
-        if (expertBtn && !expertBtn.onclick && !expertBtn._expertFixed) {
-            console.log('🔧 Дополнительное исправление экспертной кнопки...');
-            fixExpertButton();
-            expertBtn._expertFixed = true;
-        }
-    }, 3000);
-    
-    console.log('✅ Экспертный пак вопросов полностью загружен без навязчивого баннера');
-    console.log('🧠 ЭКСПЕРТНЫЙ РЕЖИМ НАСТРОЕН НА ВСЕ 50 ВОПРОСОВ');
-    console.log('🐛 Доступны функции отладки: window.debugExpert');
+    console.log('✅ Экспертный пак загружен без навязчивых элементов');
     
 })();
