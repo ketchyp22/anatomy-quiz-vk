@@ -1,4 +1,4 @@
-// expert-questions.js - Экспертный пак из 50 сложнейших вопросов (ИСПРАВЛЕННАЯ ВЕРСИЯ)
+// expert-questions.js - Экспертный пак из 50 сложнейших вопросов (ИСПРАВЛЕННАЯ ВЕРСИЯ БЕЗ БАННЕРА)
 (function() {
     'use strict';
     
@@ -687,9 +687,6 @@
                 `;
             }
             
-            // Показываем уведомление об активации
-            showExpertNotification();
-            
             console.log('✅ Экспертный режим настроен:', {
                 currentQuizMode: window.currentQuizMode,
                 currentDifficulty: window.currentDifficulty,
@@ -719,155 +716,6 @@
         
         console.log('✅ Экспертная кнопка успешно исправлена!');
     }
-    
-    // Функция показа уведомления об активации экспертного режима
-    function showExpertNotification() {
-        const notification = document.createElement('div');
-        notification.style.cssText = `
-            position: fixed;
-            top: 20px;
-            right: 20px;
-            background: linear-gradient(135deg, #ee5a24 0%, #ff6b6b 100%);
-            color: white;
-            padding: 20px;
-            border-radius: 12px;
-            z-index: 10000;
-            box-shadow: 0 8px 25px rgba(238, 90, 36, 0.4);
-            font-weight: 600;
-            font-size: 16px;
-            animation: expertNotificationSlide 0.5s ease;
-            border: 2px solid rgba(255, 255, 255, 0.3);
-            backdrop-filter: blur(10px);
-            max-width: 300px;
-        `;
-        
-        notification.innerHTML = `
-            <div style="font-size: 24px; margin-bottom: 5px; text-align: center;">🧠</div>
-            <div style="text-align: center;">ЭКСПЕРТНЫЙ РЕЖИМ</div>
-            <div style="font-size: 12px; opacity: 0.9; margin-top: 5px; text-align: center;">
-                Для истинных профессионалов
-            </div>
-        `;
-        
-        // Добавляем CSS анимацию если её нет
-        if (!document.getElementById('expert-notification-styles')) {
-            const style = document.createElement('style');
-            style.id = 'expert-notification-styles';
-            style.textContent = `
-                @keyframes expertNotificationSlide {
-                    0% {
-                        transform: translateX(100%);
-                        opacity: 0;
-                    }
-                    100% {
-                        transform: translateX(0);
-                        opacity: 1;
-                    }
-                }
-                
-                @keyframes expertNotificationOut {
-                    0% {
-                        transform: translateX(0);
-                        opacity: 1;
-                    }
-                    100% {
-                        transform: translateX(100%);
-                        opacity: 0;
-                    }
-                }
-                
-                @keyframes expertGlow {
-                    0% {
-                        box-shadow: 0 0 5px rgba(238, 90, 36, 0.3);
-                    }
-                    50% {
-                        box-shadow: 0 0 20px rgba(238, 90, 36, 0.6);
-                    }
-                    100% {
-                        box-shadow: 0 0 5px rgba(238, 90, 36, 0.3);
-                    }
-                }
-                
-                @keyframes fadeIn {
-                    from { opacity: 0; }
-                    to { opacity: 1; }
-                }
-            `;
-            document.head.appendChild(style);
-        }
-        
-        document.body.appendChild(notification);
-        
-        // Удаляем уведомление через 4 секунды
-        setTimeout(() => {
-            notification.style.animation = 'expertNotificationOut 0.3s ease';
-            setTimeout(() => {
-                if (notification.parentNode) {
-                    notification.parentNode.removeChild(notification);
-                }
-            }, 300);
-        }, 4000);
-    }
-    
-    // Функции для отладки
-    window.debugExpert = {
-        getExpertQuestions: () => {
-            return window.questions ? window.questions.filter(q => q.mode === 'expert') : [];
-        },
-        
-        getExpertCount: () => {
-            const expertQuestions = window.questions ? window.questions.filter(q => q.mode === 'expert') : [];
-            return expertQuestions.length;
-        },
-        
-        testExpertMode: () => {
-            // Имитируем выбор экспертного режима
-            const expertBtn = document.querySelector('.expert-mode-btn, .quiz-mode-btn[data-mode="expert"]');
-            if (expertBtn) {
-                expertBtn.click();
-                console.log('🧠 Экспертный режим активирован для тестирования');
-            } else {
-                console.error('❌ Экспертная кнопка не найдена');
-            }
-        },
-        
-        fixButton: () => {
-            fixExpertButton();
-        },
-        
-        checkState: () => {
-            return {
-                currentQuizMode: window.currentQuizMode,
-                currentDifficulty: window.currentDifficulty,
-                expertQuestions: window.questions ? window.questions.filter(q => q.mode === 'expert').length : 0,
-                buttonExists: !!document.querySelector('.expert-mode-btn, .quiz-mode-btn[data-mode="expert"]')
-            };
-        },
-        
-        showExpertStats: () => {
-            const expert = window.questions ? window.questions.filter(q => q.mode === 'expert') : [];
-            console.log('📊 Статистика экспертных вопросов:', {
-                total: expert.length,
-                byCategory: {
-                    anatomy: expert.filter(q => q.text.includes('анатом') || q.text.includes('нерв') || q.text.includes('артери')).length,
-                    clinical: expert.filter(q => q.text.includes('синдром') || q.text.includes('симптом')).length,
-                    pharmacology: expert.filter(q => q.text.includes('препарат') || q.text.includes('механизм')).length,
-                    firstAid: expert.filter(q => q.text.includes('помощ') || q.text.includes('травм')).length,
-                    obstetrics: expert.filter(q => q.text.includes('беремен') || q.text.includes('родов')).length
-                }
-            });
-        }
-    };
-    
-    // Дополнительная проверка и исправление через 3 секунды
-    setTimeout(() => {
-        const expertBtn = document.querySelector('.expert-mode-btn, .quiz-mode-btn[data-mode="expert"]');
-        if (expertBtn && !expertBtn.onclick && !expertBtn._expertFixed) {
-            console.log('🔧 Дополнительное исправление экспертной кнопки...');
-            fixExpertButton();
-            expertBtn._expertFixed = true;
-        }
-    }, 3000);
     
     // 🔧 КРИТИЧЕСКИ ВАЖНО: АВТОМАТИЧЕСКОЕ ИСПРАВЛЕНИЕ НА ВСЕ 50 ВОПРОСОВ
     setTimeout(() => {
@@ -938,7 +786,67 @@
         
     }, 2000);
     
-    console.log('✅ Экспертный пак вопросов полностью загружен с исправлением кнопки');
+    // Функции для отладки
+    window.debugExpert = {
+        getExpertQuestions: () => {
+            return window.questions ? window.questions.filter(q => q.mode === 'expert') : [];
+        },
+        
+        getExpertCount: () => {
+            const expertQuestions = window.questions ? window.questions.filter(q => q.mode === 'expert') : [];
+            return expertQuestions.length;
+        },
+        
+        testExpertMode: () => {
+            // Имитируем выбор экспертного режима
+            const expertBtn = document.querySelector('.expert-mode-btn, .quiz-mode-btn[data-mode="expert"]');
+            if (expertBtn) {
+                expertBtn.click();
+                console.log('🧠 Экспертный режим активирован для тестирования');
+            } else {
+                console.error('❌ Экспертная кнопка не найдена');
+            }
+        },
+        
+        fixButton: () => {
+            fixExpertButton();
+        },
+        
+        checkState: () => {
+            return {
+                currentQuizMode: window.currentQuizMode,
+                currentDifficulty: window.currentDifficulty,
+                expertQuestions: window.questions ? window.questions.filter(q => q.mode === 'expert').length : 0,
+                buttonExists: !!document.querySelector('.expert-mode-btn, .quiz-mode-btn[data-mode="expert"]')
+            };
+        },
+        
+        showExpertStats: () => {
+            const expert = window.questions ? window.questions.filter(q => q.mode === 'expert') : [];
+            console.log('📊 Статистика экспертных вопросов:', {
+                total: expert.length,
+                byCategory: {
+                    anatomy: expert.filter(q => q.text.includes('анатом') || q.text.includes('нерв') || q.text.includes('артери')).length,
+                    clinical: expert.filter(q => q.text.includes('синдром') || q.text.includes('симптом')).length,
+                    pharmacology: expert.filter(q => q.text.includes('препарат') || q.text.includes('механизм')).length,
+                    firstAid: expert.filter(q => q.text.includes('помощ') || q.text.includes('травм')).length,
+                    obstetrics: expert.filter(q => q.text.includes('беремен') || q.text.includes('родов')).length
+                }
+            });
+        }
+    };
+    
+    // Дополнительная проверка и исправление через 3 секунды
+    setTimeout(() => {
+        const expertBtn = document.querySelector('.expert-mode-btn, .quiz-mode-btn[data-mode="expert"]');
+        if (expertBtn && !expertBtn.onclick && !expertBtn._expertFixed) {
+            console.log('🔧 Дополнительное исправление экспертной кнопки...');
+            fixExpertButton();
+            expertBtn._expertFixed = true;
+        }
+    }, 3000);
+    
+    console.log('✅ Экспертный пак вопросов полностью загружен без навязчивого баннера');
     console.log('🧠 ЭКСПЕРТНЫЙ РЕЖИМ НАСТРОЕН НА ВСЕ 50 ВОПРОСОВ');
     console.log('🐛 Доступны функции отладки: window.debugExpert');
     
