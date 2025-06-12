@@ -293,29 +293,33 @@ function selectQuestions() {
     if (currentQuizMode === 'expert') {
         // Для экспертного режима используем ВСЕ экспертные вопросы
         filteredQuestions = window.questions.filter(q => q.mode === 'expert');
-        console.log(`🧠 Найдено ${filteredQuestions.length} экспертных вопросов`);
+        console.log(`🧠 Найдено ${filteredQuestions.length} экспертных вопросов - используем ВСЕ`);
         
         // Возвращаем ВСЕ экспертные вопросы перемешанными
         return shuffleArray(filteredQuestions);
     } else {
-        // Для обычных режимов используем стандартную логику
+        // Для обычных режимов используем стандартную логику с ограничением в 10 вопросов
         filteredQuestions = window.questions.filter(q =>
             q.mode === currentQuizMode && q.difficulty === currentDifficulty
         );
         console.log(`📚 Найдено ${filteredQuestions.length} вопросов для режима ${currentQuizMode}, сложность ${currentDifficulty}`);
-    }
+        
+        // ВАЖНО: для обычных режимов всегда ограничиваем до 10 вопросов
+        const questionsLimit = 10;
+        
+        if (filteredQuestions.length === 0) {
+            console.warn(`⚠️ Нет вопросов для режима ${currentQuizMode} и сложности ${currentDifficulty}. Используем все вопросы.`);
+            return shuffleArray(window.questions).slice(0, questionsLimit);
+        }
 
-    if (filteredQuestions.length === 0) {
-        console.warn(`⚠️ Нет вопросов для режима ${currentQuizMode} и сложности ${currentDifficulty}. Используем все вопросы.`);
-        return shuffleArray(window.questions).slice(0, totalQuestionsToShow);
-    }
+        if (filteredQuestions.length <= questionsLimit) {
+            console.log(`📊 Доступно только ${filteredQuestions.length} вопросов для выбранного режима и сложности`);
+            return shuffleArray(filteredQuestions);
+        }
 
-    if (filteredQuestions.length <= totalQuestionsToShow) {
-        console.log(`📊 Доступно только ${filteredQuestions.length} вопросов для выбранного режима и сложности`);
-        return shuffleArray(filteredQuestions);
+        console.log(`📝 Выбираем ${questionsLimit} вопросов из ${filteredQuestions.length} доступных`);
+        return shuffleArray(filteredQuestions).slice(0, questionsLimit);
     }
-
-    return shuffleArray(filteredQuestions).slice(0, totalQuestionsToShow);
 }
 
 // Начало квиза
