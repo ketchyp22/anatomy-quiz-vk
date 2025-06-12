@@ -1,4 +1,4 @@
-// app.js - Полная версия с интеграцией системы подсказок
+// app.js - Полная версия с интеграцией системы подсказок и экспертного режима
 
 // Глобальная функция для показа гостевого режима
 function showGuestMode() {
@@ -113,8 +113,8 @@ let selectedOption = null;
 let questionsForQuiz = []; // Массив для хранения выбранных вопросов
 const totalQuestionsToShow = 10; // Количество вопросов для показа в одном тесте
 let currentUserData = null; // Данные текущего пользователя
-let currentQuizMode = 'anatomy'; // Текущий режим квиза: anatomy, clinical, pharmacology, first_aid
-let currentDifficulty = 'easy'; // Текущий уровень сложности: easy, hard
+let currentQuizMode = 'anatomy'; // Текущий режим квиза: anatomy, clinical, pharmacology, first_aid, obstetrics, expert
+let currentDifficulty = 'easy'; // Текущий уровень сложности: easy, hard, expert
 let vkBridgeInstance = null; // Будем хранить инициализированный VK Bridge
 let appLink = window.location.href; // Ссылка на приложение для шаринга
 
@@ -179,6 +179,12 @@ function initializeApp() {
     // Выбор уровня сложности
     difficultyButtons.forEach(button => {
         button.addEventListener('click', function () {
+            // Проверяем, если выбран экспертный режим, не даем менять сложность
+            if (currentQuizMode === 'expert') {
+                console.log('Экспертный режим имеет фиксированную сложность');
+                return;
+            }
+            
             difficultyButtons.forEach(btn => btn.classList.remove('active'));
             this.classList.add('active');
             currentDifficulty = this.dataset.difficulty;
@@ -192,7 +198,35 @@ function initializeApp() {
             quizModeButtons.forEach(btn => btn.classList.remove('active'));
             this.classList.add('active');
             currentQuizMode = this.dataset.mode;
-            console.log('Выбран режим квиза:', currentQuizMode);
+            
+            // Особая логика для экспертного режима
+            if (currentQuizMode === 'expert') {
+                currentDifficulty = 'expert'; // Экспертный режим имеет свою сложность
+                
+                // Скрываем или блокируем выбор сложности
+                const difficultySection = document.querySelector('.difficulty-selection');
+                if (difficultySection) {
+                    difficultySection.style.opacity = '0.5';
+                    difficultySection.style.pointerEvents = 'none';
+                }
+                
+                console.log('Выбран ЭКСПЕРТНЫЙ режим квиза - фиксированная сложность');
+            } else {
+                // Возвращаем возможность выбора сложности
+                const difficultySection = document.querySelector('.difficulty-selection');
+                if (difficultySection) {
+                    difficultySection.style.opacity = '1';
+                    difficultySection.style.pointerEvents = 'auto';
+                }
+                
+                // Восстанавливаем сложность из активной кнопки
+                const activeDifficultyBtn = document.querySelector('.difficulty-btn.active');
+                if (activeDifficultyBtn) {
+                    currentDifficulty = activeDifficultyBtn.dataset.difficulty;
+                }
+                
+                console.log('Выбран режим квиза:', currentQuizMode);
+            }
         });
     });
 
@@ -234,23 +268,43 @@ function resetQuiz() {
     if (questionElement) questionElement.textContent = '';
     if (optionsElement) optionsElement.innerHTML = '';
 
+    // Возвращаем возможность выбора сложности если не экспертный режим
+    if (currentQuizMode !== 'expert') {
+        const difficultySection = document.querySelector('.difficulty-selection');
+        if (difficultySection) {
+            difficultySection.style.opacity = '1';
+            difficultySection.style.pointerEvents = 'auto';
+        }
+    }
+
     // Сбрасываем состояние подсказок
     if (window.HintsSystem && window.HintsSystem.resetHintState) {
         window.HintsSystem.resetHintState();
     }
 }
 
-// Выбор вопросов на основе режима и сложности
+// 🔥 ИСПРАВЛЕННАЯ ФУНКЦИЯ ВЫБОРА ВОПРОСОВ С ПОДДЕРЖКОЙ ЭКСПЕРТНОГО РЕЖИМА
 function selectQuestions() {
     if (!Array.isArray(window.questions)) {
         console.error('Ошибка: переменная window.questions не является массивом');
         return [];
     }
+    
     console.log(`Выбор вопросов режима ${currentQuizMode}, сложность ${currentDifficulty}`);
 
-    const filteredQuestions = window.questions.filter(q =>
-        q.mode === currentQuizMode && q.difficulty === currentDifficulty
-    );
+    let filteredQuestions = [];
+
+    if (currentQuizMode === 'expert') {
+        // Для экспертного режима используем только вопросы с mode: "expert"
+        filteredQuestions = window.questions.filter(q => q.mode === 'expert');
+        console.log(`Найдено ${filteredQuestions.length} экспертных вопросов`);
+    } else {
+        // Для обычных режимов используем старую логику
+        filteredQuestions = window.questions.filter(q =>
+            q.mode === currentQuizMode && q.difficulty === currentDifficulty
+        );
+        console.log(`Найдено ${filteredQuestions.length} вопросов для режима ${currentQuizMode}, сложность ${currentDifficulty}`);
+    }
 
     if (filteredQuestions.length === 0) {
         console.warn(`Нет вопросов для режима ${currentQuizMode} и сложности ${currentDifficulty}. Используем все вопросы.`);
@@ -444,11 +498,18 @@ function showResults() {
 
     const difficultyBadge = document.getElementById('difficulty-badge');
     if (difficultyBadge) {
-        difficultyBadge.textContent = currentDifficulty === 'hard' ? 'Сложный уровень' : 'Обычный уровень';
-        if (currentDifficulty === 'hard') {
-            difficultyBadge.classList.add('hard');
+        if (currentQuizMode === 'expert') {
+            difficultyBadge.textContent = '🧠 ЭКСПЕРТНЫЙ УРОВЕНЬ';
+            difficultyBadge.classList.add('expert');
+            difficultyBadge.style.background = 'linear-gradient(135deg, #ff6b6b 0%, #ee5a24 100%)';
+            difficultyBadge.style.color = 'white';
         } else {
-            difficultyBadge.classList.remove('hard');
+            difficultyBadge.textContent = currentDifficulty === 'hard' ? 'Сложный уровень' : 'Обычный уровень';
+            if (currentDifficulty === 'hard') {
+                difficultyBadge.classList.add('hard');
+            } else {
+                difficultyBadge.classList.remove('hard');
+            }
         }
     }
 
@@ -459,6 +520,7 @@ function showResults() {
         if (currentQuizMode === 'pharmacology') modeText = 'Фармакология';
         if (currentQuizMode === 'first_aid') modeText = 'Первая помощь';
         if (currentQuizMode === 'obstetrics') modeText = 'Акушерство';
+        if (currentQuizMode === 'expert') modeText = '🧠 ЭКСПЕРТ';
         modeBadge.textContent = modeText;
     }
 
@@ -494,14 +556,28 @@ function showResults() {
     const scoreTextElement = document.querySelector('.score-text');
     if (scoreTextElement) {
         let resultText;
-        if (percentage >= 90) {
-            resultText = 'Великолепно! Вы настоящий эксперт!';
-        } else if (percentage >= 70) {
-            resultText = 'Хороший результат! Вы хорошо знаете предмет!';
-        } else if (percentage >= 50) {
-            resultText = 'Неплохо! Но есть над чем поработать.';
+        if (currentQuizMode === 'expert') {
+            // Особые сообщения для экспертного режима
+            if (percentage >= 90) {
+                resultText = '🧠 НЕВЕРОЯТНО! Вы - истинный эксперт медицины!';
+            } else if (percentage >= 70) {
+                resultText = '🔥 Отличный результат для экспертного уровня!';
+            } else if (percentage >= 50) {
+                resultText = '💪 Хороший уровень, но есть куда расти!';
+            } else {
+                resultText = '📚 Экспертный уровень очень сложен, продолжайте изучать!';
+            }
         } else {
-            resultText = 'Стоит подучить материал, но вы уже на пути к знаниям!';
+            // Обычные сообщения
+            if (percentage >= 90) {
+                resultText = 'Великолепно! Вы настоящий эксперт!';
+            } else if (percentage >= 70) {
+                resultText = 'Хороший результат! Вы хорошо знаете предмет!';
+            } else if (percentage >= 50) {
+                resultText = 'Неплохо! Но есть над чем поработать.';
+            } else {
+                resultText = 'Стоит подучить материал, но вы уже на пути к знаниям!';
+            }
         }
         scoreTextElement.innerHTML = `<span class="result-text">${resultText}</span>`;
     }
@@ -531,8 +607,10 @@ function shareResults() {
     if (currentQuizMode === 'pharmacology') modeText = 'Фармакология';
     if (currentQuizMode === 'first_aid') modeText = 'Первая помощь';
     if (currentQuizMode === 'obstetrics') modeText = 'Акушерство';
+    if (currentQuizMode === 'expert') modeText = '🧠 ЭКСПЕРТНЫЙ УРОВЕНЬ';
     
-    const difficultyText = currentDifficulty === 'hard' ? 'сложный уровень' : 'обычный уровень';
+    const difficultyText = currentQuizMode === 'expert' ? 'экспертный уровень' : 
+                          (currentDifficulty === 'hard' ? 'сложный уровень' : 'обычный уровень');
     const message = `Я прошел Медицинский квиз (${modeText}, ${difficultyText}) и набрал ${percentage}%! Попробуй и ты!`;
 
     const bridge = vkBridgeInstance || window.vkBridgeInstance;
@@ -585,6 +663,15 @@ window.debugQuiz = {
     getCurrentQuestionData: () => window.getCurrentQuestionData(),
     getScore: () => score,
     getSelectedOption: () => selectedOption,
+    getCurrentMode: () => currentQuizMode,
+    getCurrentDifficulty: () => currentDifficulty,
+    testExpertMode: () => {
+        currentQuizMode = 'expert';
+        currentDifficulty = 'expert';
+        console.log('🧠 Экспертный режим активирован для тестирования');
+        const expertQuestions = selectQuestions();
+        console.log(`Найдено ${expertQuestions.length} экспертных вопросов:`, expertQuestions);
+    },
     skipToResults: () => {
         score = Math.floor(Math.random() * questionsForQuiz.length);
         showResults();
@@ -592,5 +679,5 @@ window.debugQuiz = {
     resetQuiz: () => resetQuiz()
 };
 
-console.log('✅ app.js загружен с поддержкой системы подсказок');
+console.log('✅ app.js загружен с поддержкой экспертного режима');
 console.log('🐛 Доступны функции отладки: window.debugQuiz');
