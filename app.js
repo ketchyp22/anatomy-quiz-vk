@@ -1,11 +1,11 @@
-// app.js - Полная версия с интеграцией системы подсказок и экспертного режима
+// app.js - Полная версия с интеграцией системы подсказок, экспертного режима и геймификации (ИСПРАВЛЕННАЯ)
 
 // Глобальная функция для показа гостевого режима
 function showGuestMode() {
     const userInfoElement = document.getElementById('user-info');
     if (!userInfoElement) return;
 
-    currentUserData = {
+    window.currentUserData = {
         id: 'guest' + Math.floor(Math.random() * 10000),
         first_name: 'Гость',
         last_name: '',
@@ -13,8 +13,8 @@ function showGuestMode() {
     };
 
     userInfoElement.innerHTML = `
-        <img src="${currentUserData.photo_100}" alt="${currentUserData.first_name}">
-        <span>${currentUserData.first_name}</span>
+        <img src="${window.currentUserData.photo_100}" alt="${window.currentUserData.first_name}">
+        <span>${window.currentUserData.first_name}</span>
     `;
 
     const userInfoQuizElement = document.getElementById('user-info-quiz');
@@ -22,7 +22,7 @@ function showGuestMode() {
         userInfoQuizElement.innerHTML = userInfoElement.innerHTML;
     }
 
-    console.log('Запущен гостевой режим с ID:', currentUserData.id);
+    console.log('Запущен гостевой режим с ID:', window.currentUserData.id);
 }
 
 // Применение темы VK
@@ -69,7 +69,7 @@ function initVKBridge() {
             })
             .then((userData) => {
                 console.log('Данные пользователя получены:', userData);
-                currentUserData = userData;
+                window.currentUserData = userData;
 
                 const userInfoElement = document.getElementById('user-info');
                 if (userInfoElement) {
@@ -106,23 +106,26 @@ function initVKBridge() {
     }
 }
 
-// Глобальные переменные
-let currentQuestion = 0;
-let score = 0;
-let selectedOption = null;
-let questionsForQuiz = []; // Массив для хранения выбранных вопросов
-const totalQuestionsToShow = 10; // Количество вопросов для показа в одном тесте
-let currentUserData = null; // Данные текущего пользователя
-let currentQuizMode = 'anatomy'; // Текущий режим квиза: anatomy, clinical, pharmacology, first_aid, obstetrics, expert
-let currentDifficulty = 'easy'; // Текущий уровень сложности: easy, hard, expert
-let vkBridgeInstance = null; // Будем хранить инициализированный VK Bridge
-let appLink = window.location.href; // Ссылка на приложение для шаринга
+// 🧠 ИСПРАВЛЕННЫЕ ГЛОБАЛЬНЫЕ ПЕРЕМЕННЫЕ (БЕЗ let/const ДЛЯ ИЗБЕЖАНИЯ ЗАТЕНЕНИЯ)
+var currentQuestion = 0;
+var score = 0;
+var selectedOption = null;
+var questionsForQuiz = []; // Массив для хранения выбранных вопросов
+var totalQuestionsToShow = 10; // Количество вопросов для показа в одном тесте
+var currentUserData = null; // Данные текущего пользователя
+
+// 🔥 КРИТИЧЕСКИ ВАЖНО: Используем var для глобальных переменных режима
+var currentQuizMode = 'anatomy'; // Текущий режим квиза
+var currentDifficulty = 'easy'; // Текущий уровень сложности
+
+var vkBridgeInstance = null; // Будем хранить инициализированный VK Bridge
+var appLink = window.location.href; // Ссылка на приложение для шаринга
 
 // DOM элементы
-let startScreen, quizContainer, resultsContainer;
-let questionElement, optionsElement, progressBar, questionCounter, nextButton, exitQuizButton;
-let scoreElement, userInfoElement, userInfoQuizElement, startQuizButton;
-let shareResultsButton, restartQuizButton;
+var startScreen, quizContainer, resultsContainer;
+var questionElement, optionsElement, progressBar, questionCounter, nextButton, exitQuizButton;
+var scoreElement, userInfoElement, userInfoQuizElement, startQuizButton;
+var shareResultsButton, restartQuizButton;
 
 // Ждем полную загрузку страницы
 document.addEventListener('DOMContentLoaded', function () {
@@ -290,29 +293,36 @@ function selectQuestions() {
         return [];
     }
     
-    console.log(`Выбор вопросов режима ${currentQuizMode}, сложность ${currentDifficulty}`);
+    // 🧠 КРИТИЧЕСКИ ВАЖНО: Синхронизация с глобальными переменными
+    if (window.currentQuizMode === 'expert') {
+        currentQuizMode = 'expert';
+        currentDifficulty = 'expert';
+        console.log('🧠 Обнаружен экспертный режим в глобальных переменных!');
+    }
+    
+    console.log(`🎯 Выбор вопросов режима ${currentQuizMode}, сложность ${currentDifficulty}`);
 
     let filteredQuestions = [];
 
     if (currentQuizMode === 'expert') {
         // Для экспертного режима используем только вопросы с mode: "expert"
         filteredQuestions = window.questions.filter(q => q.mode === 'expert');
-        console.log(`Найдено ${filteredQuestions.length} экспертных вопросов`);
+        console.log(`🧠 Найдено ${filteredQuestions.length} экспертных вопросов`);
     } else {
         // Для обычных режимов используем старую логику
         filteredQuestions = window.questions.filter(q =>
             q.mode === currentQuizMode && q.difficulty === currentDifficulty
         );
-        console.log(`Найдено ${filteredQuestions.length} вопросов для режима ${currentQuizMode}, сложность ${currentDifficulty}`);
+        console.log(`📚 Найдено ${filteredQuestions.length} вопросов для режима ${currentQuizMode}, сложность ${currentDifficulty}`);
     }
 
     if (filteredQuestions.length === 0) {
-        console.warn(`Нет вопросов для режима ${currentQuizMode} и сложности ${currentDifficulty}. Используем все вопросы.`);
+        console.warn(`⚠️ Нет вопросов для режима ${currentQuizMode} и сложности ${currentDifficulty}. Используем все вопросы.`);
         return shuffleArray(window.questions).slice(0, totalQuestionsToShow);
     }
 
     if (filteredQuestions.length <= totalQuestionsToShow) {
-        console.log(`Доступно только ${filteredQuestions.length} вопросов для выбранного режима и сложности`);
+        console.log(`📊 Доступно только ${filteredQuestions.length} вопросов для выбранного режима и сложности`);
         return shuffleArray(filteredQuestions);
     }
 
@@ -321,7 +331,14 @@ function selectQuestions() {
 
 // Начало квиза
 function startQuiz() {
-    console.log("Начало квиза");
+    console.log("🚀 Начало квиза");
+    
+    // 🧠 КРИТИЧЕСКИ ВАЖНО: Синхронизация с глобальными переменными перед стартом
+    if (window.currentQuizMode === 'expert') {
+        currentQuizMode = 'expert';
+        currentDifficulty = 'expert';
+        console.log('🧠 Принудительно установлен экспертный режим перед стартом!');
+    }
     
     // Отправляем событие начала квиза
     document.dispatchEvent(new CustomEvent('quizStarted', {
@@ -340,10 +357,10 @@ function startQuiz() {
     quizContainer.style.display = 'block';
     currentQuestion = 0;
     score = 0;
-    console.log(`Запуск квиза режима ${currentQuizMode}, сложность ${currentDifficulty}`);
+    console.log(`🎯 Запуск квиза режима ${currentQuizMode}, сложность ${currentDifficulty}`);
 
     questionsForQuiz = selectQuestions();
-    console.log(`Выбрано ${questionsForQuiz.length} вопросов для квиза`);
+    console.log(`📝 Выбрано ${questionsForQuiz.length} вопросов для квиза`);
 
     if (questionsForQuiz.length === 0) {
         console.error('Ошибка: не удалось загрузить вопросы для квиза');
@@ -360,7 +377,7 @@ function startQuiz() {
 
 // Загрузка вопроса
 function loadQuestion() {
-    console.log(`Загрузка вопроса ${currentQuestion + 1} из ${questionsForQuiz.length}`);
+    console.log(`📖 Загрузка вопроса ${currentQuestion + 1} из ${questionsForQuiz.length}`);
     
     // Отправляем событие загрузки вопроса для системы подсказок
     document.dispatchEvent(new CustomEvent('questionLoaded', {
@@ -656,6 +673,24 @@ window.getCurrentQuestionData = function() {
     return null;
 };
 
+// 🧠 ДОПОЛНИТЕЛЬНЫЕ ГЛОБАЛЬНЫЕ ФУНКЦИИ ДЛЯ ЭКСПЕРТНОГО РЕЖИМА
+window.setExpertMode = function() {
+    window.currentQuizMode = 'expert';
+    window.currentDifficulty = 'expert';
+    currentQuizMode = 'expert';
+    currentDifficulty = 'expert';
+    console.log('🧠 Экспертный режим установлен глобально');
+};
+
+window.getQuizMode = function() {
+    return {
+        mode: currentQuizMode,
+        difficulty: currentDifficulty,
+        globalMode: window.currentQuizMode,
+        globalDifficulty: window.currentDifficulty
+    };
+};
+
 // Функции для отладки
 window.debugQuiz = {
     getCurrentQuestion: () => currentQuestion,
@@ -665,19 +700,141 @@ window.debugQuiz = {
     getSelectedOption: () => selectedOption,
     getCurrentMode: () => currentQuizMode,
     getCurrentDifficulty: () => currentDifficulty,
+    
+    // 🧠 Экспертный режим
     testExpertMode: () => {
         currentQuizMode = 'expert';
         currentDifficulty = 'expert';
+        window.currentQuizMode = 'expert';
+        window.currentDifficulty = 'expert';
         console.log('🧠 Экспертный режим активирован для тестирования');
         const expertQuestions = selectQuestions();
         console.log(`Найдено ${expertQuestions.length} экспертных вопросов:`, expertQuestions);
     },
+    
+    checkExpertQuestions: () => {
+        const expertQuestions = window.questions ? window.questions.filter(q => q.mode === 'expert') : [];
+        console.log(`🧠 Всего экспертных вопросов в базе: ${expertQuestions.length}`);
+        return expertQuestions;
+    },
+    
+    forceExpertMode: () => {
+        window.setExpertMode();
+        // Активируем кнопку экспертного режима
+        const expertBtn = document.querySelector('.expert-mode-btn, .quiz-mode-btn[data-mode="expert"]');
+        if (expertBtn) {
+            document.querySelectorAll('.quiz-mode-btn').forEach(btn => btn.classList.remove('active'));
+            expertBtn.classList.add('active');
+            
+            // Блокируем выбор сложности
+            const difficultySection = document.querySelector('.difficulty-selection');
+            if (difficultySection) {
+                difficultySection.style.opacity = '0.5';
+                difficultySection.style.pointerEvents = 'none';
+            }
+        }
+        console.log('🧠 Экспертный режим принудительно активирован');
+    },
+    
     skipToResults: () => {
         score = Math.floor(Math.random() * questionsForQuiz.length);
         showResults();
     },
-    resetQuiz: () => resetQuiz()
+    
+    resetQuiz: () => resetQuiz(),
+    
+    getState: () => ({
+        currentQuestion,
+        score,
+        selectedOption,
+        currentQuizMode,
+        currentDifficulty,
+        questionsCount: questionsForQuiz.length,
+        expertQuestionsAvailable: window.questions ? window.questions.filter(q => q.mode === 'expert').length : 0
+    })
 };
 
-console.log('✅ app.js загружен с поддержкой экспертного режима');
+// 🔧 КРИТИЧЕСКИЙ ПАТЧ ДЛЯ СИНХРОНИЗАЦИИ ЭКСПЕРТНОГО РЕЖИМА
+setTimeout(() => {
+    console.log('🔧 Применяем патч синхронизации экспертного режима...');
+    
+    // Функция для синхронизации переменных
+    window.syncExpertMode = function() {
+        if (window.currentQuizMode === 'expert' || window.currentDifficulty === 'expert') {
+            currentQuizMode = 'expert';
+            currentDifficulty = 'expert';
+            console.log('🧠 Синхронизация: экспертный режим активирован');
+            return true;
+        }
+        return false;
+    };
+    
+    // Перехватываем кнопки режимов для синхронизации
+    const modeButtons = document.querySelectorAll('.quiz-mode-btn');
+    modeButtons.forEach(button => {
+        if (button.dataset.mode === 'expert' || button.classList.contains('expert-mode-btn')) {
+            button.addEventListener('click', function() {
+                setTimeout(() => {
+                    window.syncExpertMode();
+                }, 100);
+            });
+        }
+    });
+    
+    // Периодическая проверка синхронизации
+    setInterval(() => {
+        if (window.currentQuizMode === 'expert' && currentQuizMode !== 'expert') {
+            window.syncExpertMode();
+        }
+    }, 1000);
+    
+    console.log('✅ Патч синхронизации применен');
+}, 1500);
+
+// 🔧 ДОПОЛНИТЕЛЬНЫЕ ФУНКЦИИ ДЛЯ ИНТЕГРАЦИИ С СИСТЕМАМИ
+window.addEventListener('load', function() {
+    // Интеграция с системой подсказок
+    if (window.HintsSystem) {
+        console.log('🔗 Интеграция с системой подсказок');
+    }
+    
+    // Интеграция с геймификацией
+    if (window.Gamification) {
+        console.log('🔗 Интеграция с геймификацией');
+    }
+    
+    // Интеграция с VK Share
+    if (window.debugVKShare) {
+        console.log('🔗 Интеграция с VK Share');
+    }
+    
+    // Проверяем экспертные вопросы
+    const expertCount = window.questions ? window.questions.filter(q => q.mode === 'expert').length : 0;
+    console.log(`🧠 Загружено ${expertCount} экспертных вопросов`);
+    
+    if (expertCount === 0) {
+        console.warn('⚠️ Экспертные вопросы не найдены! Убедитесь, что expert-questions.js подключен.');
+    }
+});
+
+// 🔧 ФУНКЦИЯ ДЛЯ МОНИТОРИНГА СОСТОЯНИЯ ЭКСПЕРТНОГО РЕЖИМА
+window.monitorExpertMode = function() {
+    const state = {
+        timestamp: new Date().toISOString(),
+        currentQuizMode: currentQuizMode,
+        currentDifficulty: currentDifficulty,
+        globalCurrentQuizMode: window.currentQuizMode,
+        globalCurrentDifficulty: window.currentDifficulty,
+        expertQuestionsCount: window.questions ? window.questions.filter(q => q.mode === 'expert').length : 0,
+        expertButtonExists: !!document.querySelector('.expert-mode-btn, .quiz-mode-btn[data-mode="expert"]'),
+        expertButtonActive: !!document.querySelector('.expert-mode-btn.active, .quiz-mode-btn[data-mode="expert"].active')
+    };
+    
+    console.table(state);
+    return state;
+};
+
+console.log('✅ app.js загружен с полной поддержкой экспертного режима');
 console.log('🐛 Доступны функции отладки: window.debugQuiz');
+console.log('🔍 Мониторинг экспертного режима: window.monitorExpertMode()');
+console.log('🧠 Принудительная активация: window.debugQuiz.forceExpertMode()');
