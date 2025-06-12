@@ -550,6 +550,7 @@
             .expert-mode-btn.active {
                 background: rgba(255, 255, 255, 0.4) !important;
                 box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.6) !important;
+                transform: scale(1.05) !important;
             }
             
             .expert-label {
@@ -590,6 +591,81 @@
         // Обновляем описания режимов
         if (window.modeDescriptions) {
             window.modeDescriptions['expert'] = '🧠 Экстремально сложные вопросы для профессионалов с многолетним опытом. Только для истинных экспертов медицины!';
+        }
+        
+        // КРИТИЧЕСКИ ВАЖНО: Добавляем обработчик клика для экспертной кнопки
+        const expertButton = expertContainer.querySelector('.expert-mode-btn');
+        if (expertButton) {
+            expertButton.addEventListener('click', function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+                
+                console.log('🧠 Клик по экспертной кнопке!');
+                
+                // Убираем активный класс со всех кнопок режимов
+                document.querySelectorAll('.quiz-mode-btn').forEach(btn => {
+                    btn.classList.remove('active');
+                });
+                
+                // Добавляем активный класс к экспертной кнопке
+                this.classList.add('active');
+                
+                // УСТАНАВЛИВАЕМ ГЛОБАЛЬНЫЕ ПЕРЕМЕННЫЕ
+                if (typeof window.currentQuizMode !== 'undefined') {
+                    window.currentQuizMode = 'expert';
+                } else {
+                    // Если переменная не существует, ждем и пробуем снова
+                    setTimeout(() => {
+                        window.currentQuizMode = 'expert';
+                    }, 100);
+                }
+                
+                if (typeof window.currentDifficulty !== 'undefined') {
+                    window.currentDifficulty = 'expert';
+                } else {
+                    setTimeout(() => {
+                        window.currentDifficulty = 'expert';
+                    }, 100);
+                }
+                
+                // Блокируем выбор сложности
+                const difficultySection = document.querySelector('.difficulty-selection');
+                if (difficultySection) {
+                    difficultySection.style.opacity = '0.5';
+                    difficultySection.style.pointerEvents = 'none';
+                }
+                
+                // Показываем описание экспертного режима
+                const modeDescription = document.getElementById('mode-description');
+                if (modeDescription && window.modeDescriptions) {
+                    modeDescription.textContent = window.modeDescriptions['expert'];
+                    modeDescription.classList.add('active-description');
+                }
+                
+                console.log('✅ Экспертный режим активирован!', {
+                    currentQuizMode: window.currentQuizMode,
+                    currentDifficulty: window.currentDifficulty
+                });
+            });
+            
+            // Добавляем hover-эффект для описания
+            expertButton.addEventListener('mouseover', function() {
+                const modeDescription = document.getElementById('mode-description');
+                if (modeDescription && window.modeDescriptions) {
+                    modeDescription.textContent = window.modeDescriptions['expert'];
+                    modeDescription.classList.add('active-description');
+                }
+            });
+            
+            expertButton.addEventListener('mouseout', function() {
+                // Убираем описание только если экспертный режим не активен
+                if (!this.classList.contains('active')) {
+                    const modeDescription = document.getElementById('mode-description');
+                    if (modeDescription) {
+                        modeDescription.classList.remove('active-description');
+                    }
+                }
+            });
         }
         
         console.log('🔥 Экспертный режим успешно добавлен в интерфейс');
