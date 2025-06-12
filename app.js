@@ -184,50 +184,110 @@ function initializeApp() {
         });
     });
 
-    // ИСПРАВЛЕННЫЙ выбор режима квиза - БЕЗ ДВОЙНОГО ТАПА
+    // ПОЛНОСТЬЮ ИСПРАВЛЕННЫЙ выбор режима квиза - БЕЗ ДВОЙНОГО ТАПА И ЗАЛИПАНИЯ
     quizModeButtons.forEach(button => {
-        // Используем touchstart для мобильных и click для десктопа
-        const eventType = 'ontouchstart' in window ? 'touchstart' : 'click';
-        
-        button.addEventListener(eventType, function (e) {
-            e.preventDefault();
-            e.stopPropagation();
-            
-            console.log('Выбран режим:', this.dataset.mode);
-            
-            quizModeButtons.forEach(btn => btn.classList.remove('active'));
-            this.classList.add('active');
-            currentQuizMode = this.dataset.mode;
-            
-            if (currentQuizMode === 'expert') {
-                currentDifficulty = 'expert';
-                console.log('🧠 ЭКСПЕРТНЫЙ РЕЖИМ АКТИВИРОВАН');
-                
-                // Блокируем выбор сложности
-                const difficultySection = document.querySelector('.difficulty-selection');
-                if (difficultySection) {
-                    difficultySection.style.opacity = '0.5';
-                    difficultySection.style.pointerEvents = 'none';
-                }
-                
-                // УБИРАЕМ показ уведомления в центре экрана
-                // showExpertNotification(); - УДАЛЕНО
-                
-            } else {
-                // Возвращаем возможность выбора сложности
-                const difficultySection = document.querySelector('.difficulty-selection');
-                if (difficultySection) {
-                    difficultySection.style.opacity = '1';
-                    difficultySection.style.pointerEvents = 'auto';
-                }
-                
-                const activeDifficultyBtn = document.querySelector('.difficulty-btn.active');
-                if (activeDifficultyBtn) {
-                    currentDifficulty = activeDifficultyBtn.dataset.difficulty;
-                }
-            }
-        });
+        // Удаляем все старые обработчики
+        const newButton = button.cloneNode(true);
+        button.parentNode.replaceChild(newButton, button);
     });
+
+    // Получаем обновленный список кнопок после клонирования
+    const updatedQuizModeButtons = document.querySelectorAll('.quiz-mode-btn');
+    
+    updatedQuizModeButtons.forEach(button => {
+        button.addEventListener('click', handleModeSelection);
+        
+        // Для мобильных добавляем дополнительную обработку
+        if ('ontouchstart' in window) {
+            button.addEventListener('touchstart', function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+                setTimeout(() => handleModeSelection.call(this, e), 50);
+            });
+        }
+    });
+
+    function handleModeSelection(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        
+        const mode = this.dataset.mode;
+        console.log('🎯 Выбран режим:', mode);
+        
+        // СНАЧАЛА убираем активность со всех кнопок
+        updatedQuizModeButtons.forEach(btn => btn.classList.remove('active'));
+        
+        // ПОТОМ активируем выбранную кнопку
+        this.classList.add('active');
+        
+        // УСТАНАВЛИВАЕМ режим
+        currentQuizMode = mode;
+        window.currentQuizMode = mode; // синхронизируем глобальную переменную
+        
+        if (mode === 'expert') {
+            currentDifficulty = 'expert';
+            window.currentDifficulty = 'expert';
+            console.log('🧠 ЭКСПЕРТНЫЙ РЕЖИМ АКТИВИРОВАН');
+            
+            // Блокируем выбор сложности
+            const difficultySection = document.querySelector('.difficulty-selection');
+            if (difficultySection) {
+                difficultySection.style.opacity = '0.5';
+                difficultySection.style.pointerEvents = 'none';
+            }
+            
+            // Показываем описание экспертного режима (БЕЗ ПОПАПА)
+            const modeDescription = document.getElementById('mode-description');
+            if (modeDescription && window.modeDescriptions) {
+                modeDescription.innerHTML = `
+                    <div style="color: #ee5a24; font-weight: 600; font-size: 16px; margin-bottom: 8px;">
+                        🧠 ЭКСПЕРТНЫЙ РЕЖИМ АКТИВИРОВАН
+                    </div>
+                    <div style="font-size: 14px;">
+                        ${window.modeDescriptions['expert']}
+                    </div>
+                `;
+                modeDescription.classList.add('active-description');
+                modeDescription.style.cssText = `
+                    background: linear-gradient(135deg, rgba(238, 90, 36, 0.1) 0%, rgba(255, 107, 107, 0.1) 100%);
+                    border-left: 4px solid #ee5a24;
+                `;
+            }
+            
+        } else {
+            // ДЛЯ ОБЫЧНЫХ РЕЖИМОВ
+            
+            // Возвращаем возможность выбора сложности
+            const difficultySection = document.querySelector('.difficulty-selection');
+            if (difficultySection) {
+                difficultySection.style.opacity = '1';
+                difficultySection.style.pointerEvents = 'auto';
+            }
+            
+            // Восстанавливаем сложность из активной кнопки
+            const activeDifficultyBtn = document.querySelector('.difficulty-btn.active');
+            if (activeDifficultyBtn) {
+                currentDifficulty = activeDifficultyBtn.dataset.difficulty;
+                window.currentDifficulty = currentDifficulty;
+            } else {
+                // Если нет активной кнопки сложности, ставим easy по умолчанию
+                currentDifficulty = 'easy';
+                window.currentDifficulty = 'easy';
+                const easyBtn = document.querySelector('.difficulty-btn[data-difficulty="easy"]');
+                if (easyBtn) easyBtn.classList.add('active');
+            }
+            
+            // Показываем описание обычного режима
+            const modeDescription = document.getElementById('mode-description');
+            if (modeDescription && window.modeDescriptions) {
+                modeDescription.textContent = window.modeDescriptions[mode] || '';
+                modeDescription.classList.add('active-description');
+                modeDescription.style.cssText = '';
+            }
+            
+            console.log('📚 Выбран обычный режим:', mode, 'сложность:', currentDifficulty);
+        }
+    }
 
     if (startQuizButton) {
         startQuizButton.addEventListener('click', startQuiz);
