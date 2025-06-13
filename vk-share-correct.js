@@ -1,8 +1,8 @@
-// vk-share-correct.js - Правильная реализация шеринга для VK Mini Apps
+// vk-share-correct.js - Исправленная версия без GitHub ссылок
 (function() {
     'use strict';
     
-    console.log('📤 Загружается правильная реализация VK Share...');
+    console.log('📤 Загружается исправленная реализация VK Share...');
 
     // Инициализация при загрузке DOM
     document.addEventListener('DOMContentLoaded', function() {
@@ -10,7 +10,7 @@
     });
 
     function initCorrectVKShare() {
-        console.log('🎯 Инициализируем правильный VK Share');
+        console.log('🎯 Инициализируем исправленный VK Share');
         
         const shareButton = document.getElementById('share-results');
         if (!shareButton) {
@@ -30,7 +30,7 @@
             showShareOptions();
         };
         
-        console.log('✅ Правильный VK Share настроен');
+        console.log('✅ Исправленный VK Share настроен');
     }
 
     function showShareOptions() {
@@ -207,33 +207,24 @@
         }
 
         try {
-            // Генерируем изображение для истории
-            const imageBlob = await generateResultImage(results);
-            
-            // Создаем параметры для истории
+            // Создаем параметры для истории без внешних ссылок
             const storyParams = {
-                background_type: 'image',
-                blob: imageBlob,
-                attachment: {
-                    text: 'Пройти тест',
-                    type: 'url',
-                    url: window.location.href
-                },
+                background_type: 'color',
+                background_color: '#667eea',
                 stickers: [
                     {
                         sticker_type: 'native',
                         sticker: {
                             action_type: 'text',
                             action: {
-                                text: `Я набрал ${results.percentage}% в медицинском квизе! 🩺`,
+                                text: `Я набрал ${results.percentage}% в медицинском квизе! 🩺\n\n${getMotivationText(results.percentage)}`,
                                 style: 'classic',
                                 background_style: 'solid',
                                 selection_color: '#5a67d8'
                             },
                             transform: {
-                                gravity: 'center_bottom',
-                                relation_width: 0.8,
-                                translation_y: -0.2
+                                gravity: 'center',
+                                relation_width: 0.8
                             }
                         }
                     }
@@ -246,19 +237,8 @@
                 console.log('✅ История успешно создана');
                 showSuccessMessage('📸 Редактор историй открыт!');
                 
-                // Подписываемся на события завершения
-                const handleStoryResult = (event) => {
-                    if (event.detail?.type === 'VKWebAppShowStoryBoxLoadFinish') {
-                        console.log('🎉 История опубликована!');
-                        showSuccessMessage('🎉 История опубликована!');
-                        bridge.unsubscribe(handleStoryResult);
-                        
-                        // Награждаем за шеринг
-                        rewardForSharing();
-                    }
-                };
-                
-                bridge.subscribe(handleStoryResult);
+                // Награждаем за шеринг
+                rewardForSharing();
             }
             
         } catch (error) {
@@ -286,9 +266,10 @@
         try {
             const shareText = createShareText(results);
             
+            // ИСПРАВЛЕНО: убираем внешние ссылки
             const shareParams = {
-                link: window.location.href,
                 text: shareText
+                // Не указываем link - VK сам подставит ссылку на приложение
             };
 
             const response = await bridge.send('VKWebAppShare', shareParams);
@@ -358,91 +339,6 @@
         document.body.removeChild(textArea);
     }
 
-    async function generateResultImage(results) {
-        console.log('🖼️ Генерируем изображение результата...');
-        
-        try {
-            const canvas = document.createElement('canvas');
-            const ctx = canvas.getContext('2d');
-            
-            // Размеры для истории VK (соотношение 9:16)
-            canvas.width = 720;
-            canvas.height = 1280;
-            
-            // Градиентный фон
-            const gradient = ctx.createLinearGradient(0, 0, canvas.width, canvas.height);
-            gradient.addColorStop(0, '#667eea');
-            gradient.addColorStop(0.5, '#764ba2');
-            gradient.addColorStop(1, '#667eea');
-            ctx.fillStyle = gradient;
-            ctx.fillRect(0, 0, canvas.width, canvas.height);
-            
-            // Полупрозрачный слой
-            ctx.fillStyle = 'rgba(255, 255, 255, 0.1)';
-            ctx.fillRect(0, 0, canvas.width, canvas.height);
-            
-            // Настройки шрифта
-            ctx.textAlign = 'center';
-            ctx.fillStyle = 'white';
-            
-            // Заголовок
-            ctx.font = 'bold 56px Arial';
-            ctx.fillText('👨‍⚕️ Медицинский Квиз', canvas.width / 2, 200);
-            
-            // Основной результат
-            ctx.font = 'bold 150px Arial';
-            const emoji = getEmoji(results.percentage);
-            ctx.fillText(`${emoji} ${results.percentage}%`, canvas.width / 2, 450);
-            
-            // Детали
-            ctx.font = '40px Arial';
-            ctx.fillText(`Правильных ответов: ${results.correct} из ${results.total}`, canvas.width / 2, 550);
-            
-            // Оценка
-            const grade = getGrade(results.percentage);
-            ctx.font = 'bold 48px Arial';
-            ctx.fillText(grade, canvas.width / 2, 650);
-            
-            // Мотивационный текст
-            ctx.font = '32px Arial';
-            const motivationText = getMotivationText(results.percentage);
-            wrapText(ctx, motivationText, canvas.width / 2, 750, 600, 40);
-            
-            // Призыв к действию
-            ctx.font = '28px Arial';
-            ctx.fillText('🩺 А ты сможешь лучше?', canvas.width / 2, 950);
-            ctx.fillText('Проверь свои знания!', canvas.width / 2, 990);
-            
-            // Конвертируем в Base64
-            return canvas.toDataURL('image/png');
-            
-        } catch (error) {
-            console.error('❌ Ошибка генерации изображения:', error);
-            return null;
-        }
-    }
-
-    // Функция для переноса текста на canvas
-    function wrapText(context, text, x, y, maxWidth, lineHeight) {
-        const words = text.split(' ');
-        let line = '';
-        
-        for (let n = 0; n < words.length; n++) {
-            const testLine = line + words[n] + ' ';
-            const metrics = context.measureText(testLine);
-            const testWidth = metrics.width;
-            
-            if (testWidth > maxWidth && n > 0) {
-                context.fillText(line, x, y);
-                line = words[n] + ' ';
-                y += lineHeight;
-            } else {
-                line = testLine;
-            }
-        }
-        context.fillText(line, x, y);
-    }
-
     function getTestResults() {
         try {
             // Способ 1: Прямой поиск элементов
@@ -485,7 +381,7 @@
         text += `📋 Режим: ${results.mode}\n`;
         text += `🎯 Уровень: ${results.difficulty}\n\n`;
         text += getMotivationText(results.percentage) + '\n\n';
-        text += `🩺 А ты сможешь лучше? Проверь свои медицинские знания!`;
+        text += `🩺 А ты сможешь лучше? Проверь свои медицинские знания в нашем приложении!`;
         
         return text;
     }
@@ -502,12 +398,68 @@
         
         const text = createShareText(results);
         
-        // Простое окно с текстом для копирования
-        const message = `Скопируйте текст и поделитесь результатом:\n\n${text}`;
+        // Создаем модальное окно для копирования
+        const modal = document.createElement('div');
+        modal.style.cssText = `
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 10000;
+        `;
         
-        if (confirm(message)) {
-            copyResultText(results);
-        }
+        const dialog = document.createElement('div');
+        dialog.style.cssText = `
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            max-width: 400px;
+            width: 90%;
+            text-align: center;
+        `;
+        
+        dialog.innerHTML = `
+            <h3 style="margin: 0 0 20px 0; color: #333;">📤 Поделиться результатом</h3>
+            <textarea readonly style="
+                width: 100%; 
+                height: 120px; 
+                padding: 15px; 
+                border: 1px solid #ddd; 
+                border-radius: 10px; 
+                font-size: 14px; 
+                resize: none; 
+                margin-bottom: 20px;
+            ">${text}</textarea>
+            <button onclick="copyToClipboard('${text.replace(/'/g, "\\'")}'); this.parentElement.parentElement.remove();" style="
+                background: #5a67d8; 
+                color: white; 
+                border: none; 
+                padding: 12px 24px; 
+                border-radius: 10px; 
+                cursor: pointer; 
+                margin-right: 10px;
+            ">📋 Скопировать</button>
+            <button onclick="this.parentElement.parentElement.remove();" style="
+                background: #6c757d; 
+                color: white; 
+                border: none; 
+                padding: 12px 24px; 
+                border-radius: 10px; 
+                cursor: pointer;
+            ">Закрыть</button>
+        `;
+        
+        modal.appendChild(dialog);
+        document.body.appendChild(modal);
+        
+        modal.addEventListener('click', (e) => {
+            if (e.target === modal) modal.remove();
+        });
     }
 
     function rewardForSharing() {
@@ -613,6 +565,21 @@
         }, 4000);
     }
 
+    // Глобальная функция для копирования (используется в fallback)
+    window.copyToClipboard = function(text) {
+        try {
+            if (navigator.clipboard && window.isSecureContext) {
+                navigator.clipboard.writeText(text).then(() => {
+                    showSuccessMessage('📋 Текст скопирован!');
+                });
+            } else {
+                fallbackCopy(text);
+            }
+        } catch (error) {
+            fallbackCopy(text);
+        }
+    };
+
     // Функции для отладки
     window.debugVKShare = {
         testShare: () => {
@@ -641,7 +608,7 @@
         }
     };
 
-    console.log('✅ Правильная реализация VK Share загружена');
+    console.log('✅ Исправленная реализация VK Share загружена');
     console.log('🐛 Доступны функции отладки: window.debugVKShare');
     
 })();
