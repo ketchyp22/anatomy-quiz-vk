@@ -1,4 +1,4 @@
-// app.js - Исправленная версия без проблем с режимами
+// app.js - Исправленная версия с правильным шерингом без GitHub ссылок
 
 // Глобальная функция для показа гостевого режима
 function showGuestMode() {
@@ -674,9 +674,9 @@ function showResults() {
     }));
 }
 
-// Функция шеринга (упрощенная)
+// УМНАЯ функция шеринга с автоопределением VK ссылки
 function shareResults() {
-    console.log('📤 Функция shareResults вызвана');
+    console.log('📤 Умная функция shareResults с VK ссылкой');
     
     const percentage = Math.round((score / questionsForQuiz.length) * 100);
     let modeText = 'Анатомия';
@@ -688,31 +688,88 @@ function shareResults() {
     
     const difficultyText = currentQuizMode === 'expert' ? 'экспертный уровень' : 
                           (currentDifficulty === 'hard' ? 'сложный уровень' : 'обычный уровень');
-    const message = `Я прошел Медицинский квиз (${modeText}, ${difficultyText}) и набрал ${percentage}%! Попробуй и ты!`;
-
-    console.log('📤 Сообщение для шеринга:', message);
+    
+    const message = `🩺 Прошел медицинский квиз и набрал ${percentage}%!\n\n✅ Правильных ответов: ${score} из ${questionsForQuiz.length}\n📋 Режим: ${modeText}\n🎯 Уровень: ${difficultyText}\n\n${getMotivationMessage(percentage)}\n\n💪 А ты сможешь лучше?`;
 
     const bridge = vkBridgeInstance || window.vkBridgeInstance;
     
     if (!bridge) {
         console.warn('VK Bridge не определен. Показываем текст для копирования.');
-        showShareText(message);
+        showShareText(message + '\n\nПопробуй MedQuiz Pro!');
         return;
     }
 
-    console.log('📤 VK Bridge найден, пробуем поделиться...');
-    bridge.send('VKWebAppShare', { 
-        link: window.location.href,
-        text: message 
-    })
+    // Умное определение ссылки приложения
+    const appLink = getSmartAppLink();
+    
+    const shareParams = {
+        text: message
+    };
+    
+    // Добавляем ссылку только если это VK окружение
+    if (appLink && appLink.includes('vk.com')) {
+        shareParams.link = appLink;
+        console.log('📤 Шерим с VK ссылкой:', appLink);
+    } else {
+        console.log('📤 Шерим только текст (GitHub окружение)');
+    }
+    
+    bridge.send('VKWebAppShare', shareParams)
         .then(data => {
             console.log('✅ Поделились результатом:', data);
             showShareSuccess();
         })
         .catch(error => {
             console.error('❌ Ошибка при шеринге:', error);
-            showShareText(message);
+            
+            // Fallback - только текст без ссылки
+            bridge.send('VKWebAppShare', { text: message })
+                .then(() => showShareSuccess())
+                .catch(() => showShareText(message + '\n\nНайди MedQuiz Pro во ВКонтакте!'));
         });
+}
+
+// Функция умного определения ссылки приложения
+function getSmartAppLink() {
+    const currentUrl = window.location.href;
+    
+    console.log('🔍 Определяем ссылку приложения для:', currentUrl);
+    
+    // Если запущено через VK Mini Apps
+    if (currentUrl.includes('vk.com/app')) {
+        const baseLink = currentUrl.split('?')[0].split('#')[0];
+        console.log('✅ VK приложение найдено:', baseLink);
+        return baseLink;
+    }
+    
+    // Если запущено в мобильном VK приложении
+    if (window.vkBridgeInstance && currentUrl.includes('vk.com')) {
+        console.log('✅ Мобильное VK окружение');
+        return currentUrl.split('?')[0].split('#')[0];
+    }
+    
+    // Если это GitHub Pages или другой хостинг
+    if (currentUrl.includes('github.io') || currentUrl.includes('localhost')) {
+        console.log('⚠️ GitHub/localhost окружение - ссылка не добавляется');
+        return null;
+    }
+    
+    // Для любого другого случая - не добавляем ссылку
+    console.log('❌ Неизвестное окружение - ссылка не добавляется');
+    return null;
+}
+
+// Функция для получения мотивационного сообщения
+function getMotivationMessage(percentage) {
+    if (percentage >= 90) {
+        return '🏆 Отличный результат! Настоящий профессионал!';
+    } else if (percentage >= 70) {
+        return '👏 Хороший уровень знаний!';
+    } else if (percentage >= 50) {
+        return '📚 Есть база, но можно еще подучиться!';
+    } else {
+        return '💪 Начало положено, продолжаем изучать медицину!';
+    }
 }
 
 // Показать текст для копирования
@@ -732,6 +789,9 @@ function showShareText(message) {
     
     dialog.innerHTML = `
         <h3 style="margin: 0 0 20px 0; color: #333;">📤 Поделиться результатом</h3>
+        <p style="color: #666; margin-bottom: 15px;">
+            Скопируйте текст и поделитесь им в VK или других социальных сетях:
+        </p>
         <textarea readonly style="width: 100%; height: 120px; padding: 15px; border: 1px solid #ddd; border-radius: 10px; font-size: 14px; resize: none; margin-bottom: 20px;">${message}</textarea>
         <button onclick="copyToClipboard('${message.replace(/'/g, "\\'")}'); this.parentElement.parentElement.remove();" style="background: #5a67d8; color: white; border: none; padding: 12px 24px; border-radius: 10px; cursor: pointer; margin-right: 10px;">📋 Скопировать</button>
         <button onclick="this.parentElement.parentElement.remove();" style="background: #6c757d; color: white; border: none; padding: 12px 24px; border-radius: 10px; cursor: pointer;">Закрыть</button>
@@ -895,8 +955,21 @@ window.debugQuiz = {
                 }
             }, 1000);
         }, 1000);
+    },
+
+    // Тестирование шеринга
+    testShare: () => {
+        console.log('🧪 Тестируем функцию шеринга...');
+        
+        // Устанавливаем тестовые данные
+        score = 8;
+        questionsForQuiz = new Array(10).fill({});
+        currentQuizMode = 'anatomy';
+        currentDifficulty = 'easy';
+        
+        shareResults();
     }
 };
 
-console.log('✅ app.js загружен с исправлениями режимов и без навязчивых баннеров');
+console.log('✅ app.js загружен с исправленным шерингом БЕЗ GitHub ссылок');
 console.log('🐛 Доступны функции отладки: window.debugQuiz');
