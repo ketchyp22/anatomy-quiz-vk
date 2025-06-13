@@ -403,7 +403,7 @@ h1 {
 
 /* Режимы квиза с 3D карточками */
 .quiz-mode-selection, .difficulty-selection {
-    margin-bottom: 30px;
+    margin-bottom: 35px;
     text-align: center;
 }
 
@@ -413,6 +413,13 @@ h1 {
     font-size: 22px;
     font-weight: 600;
     text-shadow: 0 2px 10px rgba(0,0,0,0.3);
+}
+
+/* Контейнер для кнопки старта */
+.start-button-container {
+    text-align: center;
+    margin-top: 30px;
+    margin-bottom: 20px;
 }
 
 /* 3D карточки режимов */
@@ -546,8 +553,12 @@ h1 {
     overflow: hidden;
     text-transform: uppercase;
     letter-spacing: 1px;
-    margin: 10px 5px;
+    margin: 25px auto;
     box-shadow: var(--glass-shadow);
+    display: block;
+    width: fit-content;
+    min-width: 280px;
+    text-align: center;
 }
 
 .btn-primary {
@@ -1314,10 +1325,13 @@ h1 {
     
     /* Кнопки действий */
     .btn-primary, .btn-secondary {
-        padding: 14px 20px;
+        padding: 16px 25px;
         font-size: 15px;
         border-radius: 12px;
-        margin: 8px 0;
+        margin: 20px auto;
+        width: 100%;
+        max-width: 280px;
+        min-width: auto;
         /* Упрощаем эффекты */
         transform: none !important;
     }
