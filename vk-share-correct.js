@@ -1,8 +1,8 @@
-// vk-share-correct.js - Исправленная версия без GitHub ссылок
+// vk-share-correct.js - Полностью исправленная версия без GitHub ссылок
 (function() {
     'use strict';
     
-    console.log('📤 Загружается исправленная реализация VK Share...');
+    console.log('📤 Загружается полностью исправленная реализация VK Share...');
 
     // Инициализация при загрузке DOM
     document.addEventListener('DOMContentLoaded', function() {
@@ -106,9 +106,9 @@
                     📸 Поделиться в истории
                 </button>
                 
-                <button id="share-message" style="
+                <button id="share-wall" style="
                     padding: 15px 20px;
-                    background: linear-gradient(135deg, #4CAF50 0%, #45a049 100%);
+                    background: linear-gradient(135deg, #4267B2 0%, #365899 100%);
                     color: white;
                     border: none;
                     border-radius: 12px;
@@ -117,7 +117,7 @@
                     cursor: pointer;
                     transition: transform 0.2s;
                 ">
-                    💬 Поделиться сообщением
+                    📝 Опубликовать на стене
                 </button>
                 
                 <button id="copy-result" style="
@@ -170,9 +170,9 @@
             shareToStory(results);
         };
         
-        dialog.querySelector('#share-message').onclick = () => {
+        dialog.querySelector('#share-wall').onclick = () => {
             closeModal();
-            shareToMessage(results);
+            shareToWall(results);
         };
         
         dialog.querySelector('#copy-result').onclick = () => {
@@ -207,7 +207,7 @@
         }
 
         try {
-            // Создаем параметры для истории без внешних ссылок
+            // Создаем параметры для истории БЕЗ внешних ссылок
             const storyParams = {
                 background_type: 'color',
                 background_color: '#667eea',
@@ -249,13 +249,13 @@
             } else {
                 showSuccessMessage('❌ Не удалось создать историю');
                 // Показываем альтернативные варианты
-                setTimeout(() => shareToMessage(results), 1000);
+                setTimeout(() => shareToWall(results), 1000);
             }
         }
     }
 
-    async function shareToMessage(results) {
-        console.log('💬 Поделиться сообщением VK');
+    async function shareToWall(results) {
+        console.log('📝 Поделиться на стене VK');
         
         const bridge = getBridge();
         if (!bridge) {
@@ -264,36 +264,33 @@
         }
 
         try {
-            const shareText = createShareText(results);
+            const shareText = createShareText(results, false); // БЕЗ призыва к действию с ссылкой
             
-            // ИСПРАВЛЕНО: убираем внешние ссылки
+            // ИСПРАВЛЕНО: Полностью убираем любые ссылки
             const shareParams = {
-                text: shareText
-                // Не указываем link - VK сам подставит ссылку на приложение
+                message: shareText
+                // НЕ передаем attachments, link или любые другие параметры со ссылками
             };
 
-            const response = await bridge.send('VKWebAppShare', shareParams);
+            console.log('📤 Параметры для VKWebAppShowWallPostBox:', shareParams);
+
+            const response = await bridge.send('VKWebAppShowWallPostBox', shareParams);
             
-            if (response) {
-                console.log('✅ Сообщение отправлено:', response);
-                
-                if (response.type === 'message' && response.users) {
-                    showSuccessMessage(`💬 Сообщение отправлено ${response.users.length} пользователям!`);
-                } else if (response.type === 'story') {
-                    showSuccessMessage('📸 Опубликовано в истории!');
-                }
+            if (response && response.post_id) {
+                console.log('✅ Пост опубликован:', response);
+                showSuccessMessage('📝 Пост опубликован на стене!');
                 
                 // Награждаем за шеринг
                 rewardForSharing();
             }
             
         } catch (error) {
-            console.error('❌ Ошибка при отправке сообщения:', error);
+            console.error('❌ Ошибка при публикации на стене:', error);
             
             if (error.error_type === 'client_error' && error.error_data?.error_reason === 'User denied') {
-                showSuccessMessage('ℹ️ Отправка сообщения отменена');
+                showSuccessMessage('ℹ️ Публикация отменена');
             } else {
-                showSuccessMessage('❌ Не удалось отправить сообщение');
+                showSuccessMessage('❌ Не удалось опубликовать пост');
                 // Показываем fallback
                 setTimeout(() => showFallbackShare(), 1000);
             }
@@ -301,7 +298,7 @@
     }
 
     function copyResultText(results) {
-        const text = createShareText(results);
+        const text = createShareText(results, true); // С призывом к действию
         
         try {
             // Современный способ копирования
@@ -372,7 +369,7 @@
         }
     }
 
-    function createShareText(results) {
+    function createShareText(results, includeCallToAction = false) {
         const emoji = getEmoji(results.percentage);
         const grade = getGrade(results.percentage);
         
@@ -380,8 +377,11 @@
         text += `✅ Правильных ответов: ${results.correct} из ${results.total}\n`;
         text += `📋 Режим: ${results.mode}\n`;
         text += `🎯 Уровень: ${results.difficulty}\n\n`;
-        text += getMotivationText(results.percentage) + '\n\n';
-        text += `🩺 А ты сможешь лучше? Проверь свои медицинские знания в нашем приложении!`;
+        text += getMotivationText(results.percentage);
+        
+        if (includeCallToAction) {
+            text += '\n\n🩺 А ты сможешь лучше? Проверь свои медицинские знания!';
+        }
         
         return text;
     }
@@ -396,7 +396,7 @@
         const results = getTestResults();
         if (!results) return;
         
-        const text = createShareText(results);
+        const text = createShareText(results, true);
         
         // Создаем модальное окно для копирования
         const modal = document.createElement('div');
@@ -592,9 +592,9 @@
             shareToStory(results);
         },
         
-        testMessage: () => {
+        testWall: () => {
             const results = getTestResults() || { percentage: 85, correct: 8, total: 10, mode: 'Тест', difficulty: 'Обычный' };
-            shareToMessage(results);
+            shareToWall(results);
         },
         
         getResults: () => {
@@ -608,7 +608,7 @@
         }
     };
 
-    console.log('✅ Исправленная реализация VK Share загружена');
+    console.log('✅ Полностью исправленная реализация VK Share загружена');
     console.log('🐛 Доступны функции отладки: window.debugVKShare');
     
 })();
