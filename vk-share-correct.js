@@ -1,8 +1,8 @@
-// vk-share-correct.js - Полностью исправленная версия без GitHub ссылок
+// vk-share-correct.js - ОКОНЧАТЕЛЬНОЕ РЕШЕНИЕ проблемы с GitHub ссылками
 (function() {
     'use strict';
     
-    console.log('📤 Загружается полностью исправленная реализация VK Share...');
+    console.log('📤 Загружается окончательное решение VK Share без GitHub ссылок...');
 
     // Инициализация при загрузке DOM
     document.addEventListener('DOMContentLoaded', function() {
@@ -10,7 +10,7 @@
     });
 
     function initCorrectVKShare() {
-        console.log('🎯 Инициализируем исправленный VK Share');
+        console.log('🎯 Инициализируем окончательное решение VK Share');
         
         const shareButton = document.getElementById('share-results');
         if (!shareButton) {
@@ -26,11 +26,11 @@
             e.preventDefault();
             e.stopPropagation();
             
-            console.log('📤 Клик по кнопке - делимся результатом через VK Bridge');
+            console.log('📤 Клик по кнопке - делимся результатом');
             showShareOptions();
         };
         
-        console.log('✅ Исправленный VK Share настроен');
+        console.log('✅ Окончательное решение VK Share настроено');
     }
 
     function showShareOptions() {
@@ -38,7 +38,7 @@
         const results = getTestResults();
         if (!results) {
             console.error('❌ Не удалось получить результаты теста');
-            showFallbackShare();
+            showTextOnlyShare();
             return;
         }
 
@@ -106,7 +106,7 @@
                     📸 Поделиться в истории
                 </button>
                 
-                <button id="share-wall" style="
+                <button id="share-text-only" style="
                     padding: 15px 20px;
                     background: linear-gradient(135deg, #4267B2 0%, #365899 100%);
                     color: white;
@@ -117,7 +117,7 @@
                     cursor: pointer;
                     transition: transform 0.2s;
                 ">
-                    📝 Опубликовать на стене
+                    💬 Поделиться текстом
                 </button>
                 
                 <button id="copy-result" style="
@@ -170,9 +170,9 @@
             shareToStory(results);
         };
         
-        dialog.querySelector('#share-wall').onclick = () => {
+        dialog.querySelector('#share-text-only').onclick = () => {
             closeModal();
-            shareToWall(results);
+            shareTextOnly(results);
         };
         
         dialog.querySelector('#copy-result').onclick = () => {
@@ -198,16 +198,16 @@
     }
 
     async function shareToStory(results) {
-        console.log('📸 Поделиться в истории VK');
+        console.log('📸 Поделиться в истории VK (без ссылок)');
         
         const bridge = getBridge();
         if (!bridge) {
-            showFallbackShare();
+            showTextOnlyShare();
             return;
         }
 
         try {
-            // Создаем параметры для истории БЕЗ внешних ссылок
+            // Создаем параметры для истории БЕЗ ссылок
             const storyParams = {
                 background_type: 'color',
                 background_color: '#667eea',
@@ -217,14 +217,14 @@
                         sticker: {
                             action_type: 'text',
                             action: {
-                                text: `Я набрал ${results.percentage}% в медицинском квизе! 🩺\n\n${getMotivationText(results.percentage)}`,
+                                text: `Прошел медицинский квиз! 🩺\n\nРезультат: ${results.percentage}%\n${results.correct} из ${results.total} правильных\n\n${getMotivationText(results.percentage)}`,
                                 style: 'classic',
                                 background_style: 'solid',
                                 selection_color: '#5a67d8'
                             },
                             transform: {
                                 gravity: 'center',
-                                relation_width: 0.8
+                                relation_width: 0.9
                             }
                         }
                     }
@@ -248,51 +248,58 @@
                 showSuccessMessage('ℹ️ Создание истории отменено');
             } else {
                 showSuccessMessage('❌ Не удалось создать историю');
-                // Показываем альтернативные варианты
-                setTimeout(() => shareToWall(results), 1000);
+                // Показываем альтернативный вариант
+                setTimeout(() => shareTextOnly(results), 1000);
             }
         }
     }
 
-    async function shareToWall(results) {
-        console.log('📝 Поделиться на стене VK');
+    async function shareTextOnly(results) {
+        console.log('💬 Поделиться только текстом (без ссылок)');
         
         const bridge = getBridge();
         if (!bridge) {
-            showFallbackShare();
+            showTextOnlyShare();
             return;
         }
 
         try {
-            const shareText = createShareText(results, false); // БЕЗ призыва к действию с ссылкой
+            const shareText = createShareText(results, false); // БЕЗ призыва к действию
             
-            // ИСПРАВЛЕНО: Полностью убираем любые ссылки
+            // РЕШЕНИЕ ПРОБЛЕМЫ: используем VKWebAppShare только с текстом, БЕЗ link
             const shareParams = {
-                message: shareText
-                // НЕ передаем attachments, link или любые другие параметры со ссылками
+                text: shareText
+                // ВАЖНО: НЕ передаем параметр link! 
+                // Если link не указан, VK будет использовать ссылку на текущий домен (GitHub)
+                // Поэтому используем только text
             };
 
-            console.log('📤 Параметры для VKWebAppShowWallPostBox:', shareParams);
+            console.log('📤 Параметры для VKWebAppShare (только текст):', shareParams);
 
-            const response = await bridge.send('VKWebAppShowWallPostBox', shareParams);
+            const response = await bridge.send('VKWebAppShare', shareParams);
             
-            if (response && response.post_id) {
-                console.log('✅ Пост опубликован:', response);
-                showSuccessMessage('📝 Пост опубликован на стене!');
+            if (response && response.type) {
+                console.log('✅ Сообщение отправлено:', response);
+                
+                if (response.type === 'message' && response.users) {
+                    showSuccessMessage(`💬 Сообщение отправлено ${response.users.length} пользователям!`);
+                } else if (response.type === 'story') {
+                    showSuccessMessage('📸 Опубликовано в истории!');
+                }
                 
                 // Награждаем за шеринг
                 rewardForSharing();
             }
             
         } catch (error) {
-            console.error('❌ Ошибка при публикации на стене:', error);
+            console.error('❌ Ошибка при отправке сообщения:', error);
             
             if (error.error_type === 'client_error' && error.error_data?.error_reason === 'User denied') {
-                showSuccessMessage('ℹ️ Публикация отменена');
+                showSuccessMessage('ℹ️ Отправка сообщения отменена');
             } else {
-                showSuccessMessage('❌ Не удалось опубликовать пост');
+                showSuccessMessage('❌ Не удалось отправить сообщение');
                 // Показываем fallback
-                setTimeout(() => showFallbackShare(), 1000);
+                setTimeout(() => showTextOnlyShare(), 1000);
             }
         }
     }
@@ -390,8 +397,8 @@
         return window.vkBridgeInstance || window.vkBridge || (typeof vkBridge !== 'undefined' ? vkBridge : null);
     }
 
-    function showFallbackShare() {
-        console.log('📋 Показываем резервный вариант шеринга');
+    function showTextOnlyShare() {
+        console.log('📋 Показываем вариант только с текстом');
         
         const results = getTestResults();
         if (!results) return;
@@ -425,6 +432,9 @@
         
         dialog.innerHTML = `
             <h3 style="margin: 0 0 20px 0; color: #333;">📤 Поделиться результатом</h3>
+            <p style="color: #666; margin-bottom: 15px;">
+                Скопируйте текст и поделитесь им в VK или других социальных сетях:
+            </p>
             <textarea readonly style="
                 width: 100%; 
                 height: 120px; 
@@ -435,7 +445,7 @@
                 resize: none; 
                 margin-bottom: 20px;
             ">${text}</textarea>
-            <button onclick="copyToClipboard('${text.replace(/'/g, "\\'")}'); this.parentElement.parentElement.remove();" style="
+            <button onclick="copyToClipboard('${text.replace(/'/g, "\\'")}');" style="
                 background: #5a67d8; 
                 color: white; 
                 border: none; 
@@ -565,7 +575,7 @@
         }, 4000);
     }
 
-    // Глобальная функция для копирования (используется в fallback)
+    // Глобальная функция для копирования (используется в showTextOnlyShare)
     window.copyToClipboard = function(text) {
         try {
             if (navigator.clipboard && window.isSecureContext) {
@@ -592,9 +602,9 @@
             shareToStory(results);
         },
         
-        testWall: () => {
+        testTextOnly: () => {
             const results = getTestResults() || { percentage: 85, correct: 8, total: 10, mode: 'Тест', difficulty: 'Обычный' };
-            shareToWall(results);
+            shareTextOnly(results);
         },
         
         getResults: () => {
@@ -608,7 +618,7 @@
         }
     };
 
-    console.log('✅ Полностью исправленная реализация VK Share загружена');
+    console.log('✅ Окончательное решение VK Share загружено');
     console.log('🐛 Доступны функции отладки: window.debugVKShare');
     
 })();
