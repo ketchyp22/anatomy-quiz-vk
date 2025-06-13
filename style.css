@@ -1144,100 +1144,411 @@ h1 {
     background-clip: padding-box;
 }
 
-/* Адаптивность для мобильных устройств */
-@media (max-width: 768px) {
+/* ==================== МОБИЛЬНАЯ АДАПТИВНОСТЬ ==================== */
+
+/* Планшеты и небольшие ноутбуки */
+@media (max-width: 1024px) {
     body {
         padding: 15px;
     }
     
-    #start-screen, #quiz-container, #results-container {
-        padding: 25px;
-        margin: 10px auto;
-    }
-    
-    h1 {
-        font-size: 32px;
-        margin-bottom: 25px;
-    }
-    
     .medical-icon {
-        width: 40px;
-        height: 40px;
-        font-size: 20px;
-    }
-    
-    .quiz-mode-btn {
-        padding: 15px 20px;
-        margin: 5px;
-        font-size: 15px;
-        display: block;
-        width: 100%;
-        margin-bottom: 10px;
-    }
-    
-    .difficulty-btn {
-        padding: 12px 20px;
-        margin: 5px;
-        display: block;
-        width: 100%;
-        margin-bottom: 10px;
-    }
-    
-    .stats-card {
-        grid-template-columns: repeat(2, 1fr);
-        gap: 15px;
-        padding: 20px;
-    }
-    
-    .stat-item {
-        padding: 12px;
-    }
-    
-    .stat-number {
+        width: 50px;
+        height: 50px;
         font-size: 24px;
     }
     
-    .user-info {
-        padding: 12px 16px;
+    #start-screen, #quiz-container, #results-container {
+        max-width: 600px;
+        padding: 30px;
+    }
+}
+
+/* Мобильные устройства - основные исправления */
+@media (max-width: 768px) {
+    body {
+        padding: 10px;
+        font-size: 14px;
+    }
+    
+    /* Контейнеры */
+    #start-screen, #quiz-container, #results-container {
+        padding: 20px;
+        margin: 10px auto;
+        border-radius: 16px;
+        max-width: 100%;
+    }
+    
+    /* Заголовки */
+    h1 {
+        font-size: clamp(24px, 6vw, 32px);
         margin-bottom: 20px;
     }
     
+    h2 {
+        font-size: 18px;
+        margin: 15px 0 12px;
+    }
+    
+    /* Отключаем слишком тяжелые эффекты на мобильных */
+    .medical-icon {
+        width: 35px;
+        height: 35px;
+        font-size: 18px;
+        opacity: 0.3;
+        animation: none; /* Отключаем анимацию */
+    }
+    
+    .animated-bg {
+        animation: none; /* Отключаем тяжелую анимацию фона */
+    }
+    
+    /* Статистика - делаем 2x2 */
+    .stats-card {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 12px;
+        padding: 15px;
+    }
+    
+    .stat-item {
+        padding: 10px;
+        border-radius: 10px;
+    }
+    
+    .stat-number {
+        font-size: 20px;
+        margin-bottom: 5px;
+    }
+    
+    .stat-label {
+        font-size: 11px;
+    }
+    
+    .progress-ring {
+        width: 60px;
+        height: 60px;
+        margin: 0 auto 10px;
+    }
+    
+    /* Информация о пользователе */
+    .user-info {
+        padding: 10px 15px;
+        margin-bottom: 15px;
+        border-radius: 12px;
+    }
+    
     .user-info img {
-        width: 40px;
-        height: 40px;
-        margin-right: 12px;
+        width: 35px;
+        height: 35px;
+        margin-right: 10px;
     }
     
     .user-info span {
-        font-size: 16px;
+        font-size: 15px;
+    }
+    
+    /* Кнопки режимов - вертикальная компоновка */
+    .quiz-mode-btn {
+        display: block;
+        width: 100%;
+        padding: 15px 20px;
+        margin: 8px 0;
+        font-size: 15px;
+        border-radius: 12px;
+        /* Упрощаем эффекты для мобильных */
+        transform: none !important;
+    }
+    
+    .quiz-mode-btn:hover {
+        transform: none !important;
+        box-shadow: var(--glass-shadow) !important;
+    }
+    
+    /* Кнопки сложности */
+    .difficulty-btn {
+        display: block;
+        width: 100%;
+        padding: 12px 20px;
+        margin: 6px 0;
+        font-size: 14px;
+        border-radius: 10px;
+    }
+    
+    /* Экспертный режим */
+    .expert-mode-container {
+        padding: 20px;
+        margin-top: 15px;
+        border-radius: 12px;
+        /* Упрощаем анимацию */
+        animation: none;
+    }
+    
+    .expert-mode-container::before {
+        animation: none; /* Отключаем тяжелую анимацию */
+    }
+    
+    .expert-label {
+        font-size: 12px;
+        margin-bottom: 10px;
+        animation: none;
+    }
+    
+    .expert-mode-btn {
+        padding: 15px 20px !important;
+        font-size: 14px !important;
+    }
+    
+    .expert-description {
+        font-size: 12px;
+        margin-top: 8px;
+    }
+    
+    /* Описание режимов */
+    .mode-description {
+        padding: 15px;
+        font-size: 13px;
+        margin-top: 15px;
+        border-radius: 10px;
+        min-height: 40px;
+    }
+    
+    /* Кнопки действий */
+    .btn-primary, .btn-secondary {
+        padding: 14px 20px;
+        font-size: 15px;
+        border-radius: 12px;
+        margin: 8px 0;
+        /* Упрощаем эффекты */
+        transform: none !important;
+    }
+    
+    .btn-primary:hover, .btn-secondary:hover {
+        transform: none !important;
+    }
+    
+    /* Квиз */
+    .question-counter {
+        font-size: 14px;
+        margin-bottom: 10px;
+    }
+    
+    #progress-bar-container {
+        height: 8px;
+        margin-bottom: 20px;
+        border-radius: 6px;
+    }
+    
+    #progress-bar {
+        border-radius: 6px;
     }
     
     .question {
-        font-size: 20px;
-        padding: 20px;
+        font-size: 18px;
+        padding: 18px;
+        margin-bottom: 20px;
+        border-radius: 12px;
+        line-height: 1.5;
+    }
+    
+    /* Варианты ответов */
+    .options {
+        gap: 12px;
+        margin-bottom: 20px;
     }
     
     .option {
-        padding: 18px 20px;
+        padding: 15px 18px;
+        font-size: 15px;
+        border-radius: 10px;
+        line-height: 1.4;
+        /* Упрощаем эффекты */
+        transform: none !important;
+    }
+    
+    .option:hover {
+        transform: none !important;
+    }
+    
+    /* Кнопки квиза */
+    .quiz-buttons {
+        flex-direction: column;
+        gap: 10px;
+    }
+    
+    /* Результаты */
+    .score-percentage {
+        font-size: clamp(48px, 12vw, 64px);
+        margin: 15px 0;
+    }
+    
+    .score-text {
         font-size: 16px;
+        margin: 15px 0 20px;
+    }
+    
+    .result-text {
+        padding: 15px;
+        margin-top: 15px;
+        font-size: 15px;
+        border-radius: 10px;
+        line-height: 1.4;
+    }
+    
+    .badges-container {
+        gap: 8px;
+        margin-bottom: 15px;
+    }
+    
+    .difficulty-badge {
+        padding: 6px 12px;
+        font-size: 12px;
+        border-radius: 12px;
+    }
+    
+    /* Кнопки результатов */
+    .results-buttons {
+        gap: 10px;
+    }
+    
+    /* Автор */
+    .author-credit {
+        padding: 12px;
+        margin-top: 20px;
+        font-size: 12px;
+        border-radius: 8px;
+    }
+    
+    /* Пульсирующая линия - упрощаем */
+    .card-pulse {
+        height: 30px;
+        opacity: 0.4;
+    }
+    
+    .pulse-line-path {
+        stroke-width: 2;
+        animation: none; /* Отключаем для экономии батареи */
+    }
+}
+
+/* Очень маленькие экраны */
+@media (max-width: 480px) {
+    body {
+        padding: 8px;
+    }
+    
+    #start-screen, #quiz-container, #results-container {
+        padding: 15px;
+        border-radius: 12px;
+    }
+    
+    h1 {
+        font-size: clamp(20px, 5vw, 28px);
+        margin-bottom: 15px;
+    }
+    
+    /* Статистика в одну колонку на очень маленьких экранах */
+    .stats-card {
+        grid-template-columns: 1fr;
+        gap: 10px;
+        padding: 12px;
+    }
+    
+    .stat-item {
+        padding: 8px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+    
+    .progress-ring {
+        display: none; /* Скрываем на маленьких экранах */
+    }
+    
+    .stat-number {
+        font-size: 18px;
+        margin-bottom: 0;
+    }
+    
+    .quiz-mode-btn {
+        padding: 12px 15px;
+        font-size: 14px;
+        margin: 6px 0;
+    }
+    
+    .difficulty-btn {
+        padding: 10px 15px;
+        font-size: 13px;
+    }
+    
+    .expert-mode-container {
+        padding: 15px;
+    }
+    
+    .expert-label {
+        font-size: 11px;
+    }
+    
+    .expert-mode-btn {
+        padding: 12px 15px !important;
+        font-size: 13px !important;
+    }
+    
+    .question {
+        font-size: 16px;
+        padding: 15px;
+    }
+    
+    .option {
+        padding: 12px 15px;
+        font-size: 14px;
     }
     
     .score-percentage {
-        font-size: 64px;
-        margin: 20px 0;
-    }
-    
-    .quiz-buttons {
-        flex-direction: column;
-    }
-    
-    .results-buttons {
-        gap: 12px;
+        font-size: clamp(36px, 10vw, 48px);
     }
     
     .btn-primary, .btn-secondary {
-        padding: 15px 25px;
-        font-size: 16px;
+        padding: 12px 18px;
+        font-size: 14px;
+    }
+}
+
+/* Ландшафтная ориентация на мобильных */
+@media (max-width: 768px) and (orientation: landscape) {
+    .medical-icons {
+        display: none; /* Скрываем частицы в ландшафте */
+    }
+    
+    #start-screen, #quiz-container, #results-container {
+        padding: 15px;
+    }
+    
+    h1 {
+        font-size: 24px;
+        margin-bottom: 15px;
+    }
+    
+    .stats-card {
+        grid-template-columns: repeat(4, 1fr);
+        gap: 8px;
+    }
+    
+    .stat-item {
+        padding: 8px;
+    }
+    
+    .quiz-mode-btn {
+        display: inline-block;
+        width: calc(50% - 4px);
+        margin: 4px 2px;
+        padding: 10px 15px;
+        font-size: 13px;
+    }
+    
+    .difficulty-btn {
+        display: inline-block;
+        width: calc(50% - 4px);
+        margin: 4px 2px;
     }
 }
 
