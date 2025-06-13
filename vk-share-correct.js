@@ -1,16 +1,42 @@
-// vk-share-correct.js - ОКОНЧАТЕЛЬНОЕ РЕШЕНИЕ проблемы с GitHub ссылками
+// vk-share-fixed.js - ОКОНЧАТЕЛЬНОЕ ИСПРАВЛЕНИЕ шеринга для VK приложений
 (function() {
     'use strict';
     
-    console.log('📤 Загружается окончательное решение VK Share без GitHub ссылок...');
+    console.log('📤 Загружается исправленный VK Share для мини-приложений...');
+
+    // Определяем тип окружения
+    function detectEnvironment() {
+        const url = window.location.href;
+        
+        // Проверяем, запущено ли в VK
+        if (url.includes('vk.com/app') || url.includes('vk.com/apps')) {
+            return 'vk_app';
+        }
+        
+        // Проверяем наличие VK Bridge
+        const bridge = window.vkBridgeInstance || window.vkBridge || (typeof vkBridge !== 'undefined' ? vkBridge : null);
+        if (bridge) {
+            return 'vk_mobile';
+        }
+        
+        // GitHub или другой хостинг
+        if (url.includes('github.io') || url.includes('localhost')) {
+            return 'external';
+        }
+        
+        return 'unknown';
+    }
 
     // Инициализация при загрузке DOM
     document.addEventListener('DOMContentLoaded', function() {
-        setTimeout(initCorrectVKShare, 1000);
+        setTimeout(initVKShare, 1000);
     });
 
-    function initCorrectVKShare() {
-        console.log('🎯 Инициализируем окончательное решение VK Share');
+    function initVKShare() {
+        console.log('🎯 Инициализируем VK Share');
+        
+        const environment = detectEnvironment();
+        console.log('🌍 Обнаружено окружение:', environment);
         
         const shareButton = document.getElementById('share-results');
         if (!shareButton) {
@@ -18,38 +44,258 @@
             return;
         }
 
-        // Обновляем текст кнопки
         shareButton.innerHTML = '📤 Поделиться результатом';
-
-        // Заменяем обработчик кнопки
         shareButton.onclick = function(e) {
             e.preventDefault();
             e.stopPropagation();
             
-            console.log('📤 Клик по кнопке - делимся результатом');
-            showShareOptions();
+            console.log('📤 Клик по кнопке - окружение:', environment);
+            
+            if (environment === 'external') {
+                // Если запущено не в VK - показываем только копирование
+                showCopyOnlyOption();
+            } else {
+                // Если в VK - показываем все варианты
+                showVKShareOptions();
+            }
         };
         
-        console.log('✅ Окончательное решение VK Share настроено');
+        console.log('✅ VK Share настроен для окружения:', environment);
     }
 
-    function showShareOptions() {
-        // Получаем результаты теста
+    function showVKShareOptions() {
         const results = getTestResults();
         if (!results) {
             console.error('❌ Не удалось получить результаты теста');
-            showTextOnlyShare();
+            showCopyOnlyOption();
             return;
         }
 
-        console.log('📊 Результаты для шеринга:', results);
-
-        // Показываем варианты шеринга
-        showShareModal(results);
+        console.log('📊 Результаты для VK шеринга:', results);
+        showVKShareModal(results);
     }
 
-    function showShareModal(results) {
-        // Создаем модальное окно с вариантами шеринга
+    function showVKShareModal(results) {
+        const modal = createModal(`
+            <div style="margin-bottom: 25px;">
+                <h3 style="margin: 0 0 10px 0; color: #333; font-size: 24px;">
+                    🎉 Поделиться в VK
+                </h3>
+                <div style="font-size: 48px; margin: 15px 0; color: #10B981;">
+                    ${getEmoji(results.percentage)} ${results.percentage}%
+                </div>
+                <p style="color: #666; margin: 0;">
+                    ${results.correct} из ${results.total} правильных ответов
+                </p>
+            </div>
+            
+            <div style="display: flex; flex-direction: column; gap: 15px; margin-bottom: 20px;">
+                <button id="share-vk-post" style="
+                    padding: 15px 20px;
+                    background: linear-gradient(135deg, #4267B2 0%, #365899 100%);
+                    color: white;
+                    border: none;
+                    border-radius: 12px;
+                    font-size: 16px;
+                    font-weight: 600;
+                    cursor: pointer;
+                ">
+                    📝 Опубликовать запись
+                </button>
+                
+                <button id="share-vk-message" style="
+                    padding: 15px 20px;
+                    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                    color: white;
+                    border: none;
+                    border-radius: 12px;
+                    font-size: 16px;
+                    font-weight: 600;
+                    cursor: pointer;
+                ">
+                    💬 Отправить сообщение
+                </button>
+                
+                <button id="copy-text" style="
+                    padding: 12px 20px;
+                    background: #f8f9fa;
+                    color: #333;
+                    border: 1px solid #dee2e6;
+                    border-radius: 12px;
+                    font-size: 14px;
+                    cursor: pointer;
+                ">
+                    📋 Скопировать текст
+                </button>
+            </div>
+            
+            <button id="close-modal" style="
+                width: 100%;
+                padding: 12px;
+                background: #6c757d;
+                color: white;
+                border: none;
+                border-radius: 10px;
+                cursor: pointer;
+            ">
+                Закрыть
+            </button>
+        `);
+        
+        // Обработчики
+        modal.querySelector('#share-vk-post').onclick = () => {
+            closeModal(modal);
+            shareVKPost(results);
+        };
+        
+        modal.querySelector('#share-vk-message').onclick = () => {
+            closeModal(modal);
+            shareVKMessage(results);
+        };
+        
+        modal.querySelector('#copy-text').onclick = () => {
+            copyResultText(results);
+        };
+        
+        modal.querySelector('#close-modal').onclick = () => closeModal(modal);
+    }
+
+    function showCopyOnlyOption() {
+        console.log('📋 Показываем только опцию копирования (внешнее окружение)');
+        
+        const results = getTestResults();
+        if (!results) return;
+        
+        const text = createShareText(results, true);
+        
+        const modal = createModal(`
+            <h3 style="margin: 0 0 20px 0; color: #333;">📤 Поделиться результатом</h3>
+            <p style="color: #666; margin-bottom: 15px;">
+                Скопируйте текст и поделитесь им в VK или других социальных сетях:
+            </p>
+            <textarea readonly id="share-text" style="
+                width: 100%; 
+                height: 120px; 
+                padding: 15px; 
+                border: 1px solid #ddd; 
+                border-radius: 10px; 
+                font-size: 14px; 
+                resize: none; 
+                margin-bottom: 20px;
+                font-family: inherit;
+            ">${text}</textarea>
+            <div style="display: flex; gap: 10px;">
+                <button onclick="copyToClipboard('${text.replace(/'/g, "\\'")}');" style="
+                    flex: 1;
+                    background: #5a67d8; 
+                    color: white; 
+                    border: none; 
+                    padding: 12px 24px; 
+                    border-radius: 10px; 
+                    cursor: pointer;
+                ">📋 Скопировать</button>
+                <button id="close-modal" style="
+                    flex: 1;
+                    background: #6c757d; 
+                    color: white; 
+                    border: none; 
+                    padding: 12px 24px; 
+                    border-radius: 10px; 
+                    cursor: pointer;
+                ">Закрыть</button>
+            </div>
+        `);
+        
+        modal.querySelector('#close-modal').onclick = () => closeModal(modal);
+        
+        // Автовыделение текста при клике на textarea
+        modal.querySelector('#share-text').onclick = function() {
+            this.select();
+        };
+    }
+
+    // ИСПРАВЛЕННАЯ функция для публикации записи в VK
+    async function shareVKPost(results) {
+        console.log('📝 Публикуем запись в VK (БЕЗ ссылки на GitHub)');
+        
+        const bridge = getBridge();
+        if (!bridge) {
+            showCopyOnlyOption();
+            return;
+        }
+
+        try {
+            const shareText = createShareText(results, false);
+            
+            // КЛЮЧЕВОЕ ИСПРАВЛЕНИЕ: используем VKWebAppShowWallPostBox вместо VKWebAppShare
+            const response = await bridge.send('VKWebAppShowWallPostBox', {
+                message: shareText
+                // НЕ передаем никаких ссылок!
+            });
+            
+            if (response.post_id) {
+                console.log('✅ Запись опубликована:', response);
+                showSuccessMessage('📝 Запись опубликована на стене!');
+                rewardForSharing();
+            }
+            
+        } catch (error) {
+            console.error('❌ Ошибка при публикации записи:', error);
+            
+            if (error.error_type === 'client_error' && error.error_data?.error_reason === 'User denied') {
+                showSuccessMessage('ℹ️ Публикация отменена');
+            } else {
+                showSuccessMessage('❌ Не удалось опубликовать запись');
+                setTimeout(() => shareVKMessage(results), 1000);
+            }
+        }
+    }
+
+    // ИСПРАВЛЕННАЯ функция для отправки сообщения
+    async function shareVKMessage(results) {
+        console.log('💬 Отправляем сообщение в VK (БЕЗ ссылки)');
+        
+        const bridge = getBridge();
+        if (!bridge) {
+            showCopyOnlyOption();
+            return;
+        }
+
+        try {
+            const shareText = createShareText(results, false);
+            
+            // КЛЮЧЕВОЕ ИСПРАВЛЕНИЕ: используем VKWebAppShare только с текстом
+            const response = await bridge.send('VKWebAppShare', {
+                text: shareText
+                // НЕ добавляем параметр link!
+            });
+            
+            if (response && response.type) {
+                console.log('✅ Сообщение отправлено:', response);
+                
+                if (response.type === 'message' && response.users) {
+                    showSuccessMessage(`💬 Сообщение отправлено ${response.users.length} пользователям!`);
+                } else {
+                    showSuccessMessage('💬 Сообщение отправлено!');
+                }
+                
+                rewardForSharing();
+            }
+            
+        } catch (error) {
+            console.error('❌ Ошибка при отправке сообщения:', error);
+            
+            if (error.error_type === 'client_error' && error.error_data?.error_reason === 'User denied') {
+                showSuccessMessage('ℹ️ Отправка отменена');
+            } else {
+                showSuccessMessage('❌ Не удалось отправить сообщение');
+                setTimeout(() => showCopyOnlyOption(), 1000);
+            }
+        }
+    }
+
+    // Вспомогательные функции
+    function createModal(content) {
         const modal = document.createElement('div');
         modal.style.cssText = `
             position: fixed;
@@ -78,237 +324,104 @@
             text-align: center;
         `;
         
-        dialog.innerHTML = `
-            <div style="margin-bottom: 25px;">
-                <h3 style="margin: 0 0 10px 0; color: #333; font-size: 24px;">
-                    🎉 Поделиться результатом
-                </h3>
-                <div style="font-size: 48px; margin: 15px 0; color: #10B981;">
-                    ${getEmoji(results.percentage)} ${results.percentage}%
-                </div>
-                <p style="color: #666; margin: 0;">
-                    ${results.correct} из ${results.total} правильных ответов
-                </p>
-            </div>
-            
-            <div style="display: flex; flex-direction: column; gap: 15px; margin-bottom: 20px;">
-                <button id="share-story" style="
-                    padding: 15px 20px;
-                    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-                    color: white;
-                    border: none;
-                    border-radius: 12px;
-                    font-size: 16px;
-                    font-weight: 600;
-                    cursor: pointer;
-                    transition: transform 0.2s;
-                ">
-                    📸 Поделиться в истории
-                </button>
-                
-                <button id="share-text-only" style="
-                    padding: 15px 20px;
-                    background: linear-gradient(135deg, #4267B2 0%, #365899 100%);
-                    color: white;
-                    border: none;
-                    border-radius: 12px;
-                    font-size: 16px;
-                    font-weight: 600;
-                    cursor: pointer;
-                    transition: transform 0.2s;
-                ">
-                    💬 Поделиться текстом
-                </button>
-                
-                <button id="copy-result" style="
-                    padding: 12px 20px;
-                    background: #f8f9fa;
-                    color: #333;
-                    border: 1px solid #dee2e6;
-                    border-radius: 12px;
-                    font-size: 14px;
-                    cursor: pointer;
-                    transition: transform 0.2s;
-                ">
-                    📋 Скопировать текст
-                </button>
-            </div>
-            
-            <button id="close-share" style="
-                width: 100%;
-                padding: 12px;
-                background: #6c757d;
-                color: white;
-                border: none;
-                border-radius: 10px;
-                cursor: pointer;
-            ">
-                Закрыть
-            </button>
-        `;
+        dialog.innerHTML = content;
         
-        // Добавляем стили
-        const style = document.createElement('style');
-        style.textContent = `
-            @keyframes fadeIn {
-                from { opacity: 0; }
-                to { opacity: 1; }
-            }
-            @keyframes slideIn {
-                from { transform: translateY(-50px); opacity: 0; }
-                to { transform: translateY(0); opacity: 1; }
-            }
-        `;
-        document.head.appendChild(style);
+        // Добавляем стили анимации
+        if (!document.getElementById('modal-styles')) {
+            const style = document.createElement('style');
+            style.id = 'modal-styles';
+            style.textContent = `
+                @keyframes fadeIn {
+                    from { opacity: 0; }
+                    to { opacity: 1; }
+                }
+                @keyframes slideIn {
+                    from { transform: translateY(-50px); opacity: 0; }
+                    to { transform: translateY(0); opacity: 1; }
+                }
+                @keyframes fadeOut {
+                    from { opacity: 1; }
+                    to { opacity: 0; }
+                }
+            `;
+            document.head.appendChild(style);
+        }
         
         modal.appendChild(dialog);
         document.body.appendChild(modal);
         
-        // Обработчики событий
-        dialog.querySelector('#share-story').onclick = () => {
-            closeModal();
-            shareToStory(results);
-        };
-        
-        dialog.querySelector('#share-text-only').onclick = () => {
-            closeModal();
-            shareTextOnly(results);
-        };
-        
-        dialog.querySelector('#copy-result').onclick = () => {
-            copyResultText(results);
-        };
-        
-        dialog.querySelector('#close-share').onclick = closeModal;
+        // Закрытие по клику на фон
         modal.onclick = (e) => {
-            if (e.target === modal) closeModal();
+            if (e.target === modal) closeModal(modal);
         };
         
-        function closeModal() {
-            modal.style.animation = 'fadeOut 0.3s ease';
+        return dialog;
+    }
+
+    function closeModal(modal) {
+        const modalElement = modal.closest ? modal.closest('[style*="position: fixed"]') : modal.parentElement;
+        if (modalElement) {
+            modalElement.style.animation = 'fadeOut 0.3s ease';
             setTimeout(() => {
-                if (modal.parentNode) {
-                    modal.parentNode.removeChild(modal);
-                }
-                if (style.parentNode) {
-                    style.parentNode.removeChild(style);
+                if (modalElement.parentNode) {
+                    modalElement.parentNode.removeChild(modalElement);
                 }
             }, 300);
         }
     }
 
-    async function shareToStory(results) {
-        console.log('📸 Поделиться в истории VK (без ссылок)');
-        
-        const bridge = getBridge();
-        if (!bridge) {
-            showTextOnlyShare();
-            return;
-        }
-
+    function getTestResults() {
         try {
-            // Создаем параметры для истории БЕЗ ссылок
-            const storyParams = {
-                background_type: 'color',
-                background_color: '#667eea',
-                stickers: [
-                    {
-                        sticker_type: 'native',
-                        sticker: {
-                            action_type: 'text',
-                            action: {
-                                text: `Прошел медицинский квиз! 🩺\n\nРезультат: ${results.percentage}%\n${results.correct} из ${results.total} правильных\n\n${getMotivationText(results.percentage)}`,
-                                style: 'classic',
-                                background_style: 'solid',
-                                selection_color: '#5a67d8'
-                            },
-                            transform: {
-                                gravity: 'center',
-                                relation_width: 0.9
-                            }
-                        }
-                    }
-                ]
-            };
-
-            const response = await bridge.send('VKWebAppShowStoryBox', storyParams);
+            const percentageEl = document.getElementById('percentage');
+            const correctEl = document.getElementById('correct-answers');
+            const totalEl = document.getElementById('total-questions-result');
             
-            if (response.result) {
-                console.log('✅ История успешно создана');
-                showSuccessMessage('📸 Редактор историй открыт!');
+            if (percentageEl && correctEl && totalEl) {
+                const percentage = parseInt(percentageEl.textContent) || 0;
+                const correct = parseInt(correctEl.textContent) || 0;
+                const total = parseInt(totalEl.textContent) || 0;
                 
-                // Награждаем за шеринг
-                rewardForSharing();
+                const modeEl = document.getElementById('mode-badge');
+                const difficultyEl = document.getElementById('difficulty-badge');
+                
+                return {
+                    percentage,
+                    correct,
+                    total,
+                    mode: modeEl ? modeEl.textContent : 'Медицинский квиз',
+                    difficulty: difficultyEl ? difficultyEl.textContent : 'Обычный'
+                };
             }
+            
+            return null;
             
         } catch (error) {
-            console.error('❌ Ошибка при создании истории:', error);
-            
-            if (error.error_type === 'client_error' && error.error_data?.error_reason === 'User denied') {
-                showSuccessMessage('ℹ️ Создание истории отменено');
-            } else {
-                showSuccessMessage('❌ Не удалось создать историю');
-                // Показываем альтернативный вариант
-                setTimeout(() => shareTextOnly(results), 1000);
-            }
+            console.error('❌ Ошибка получения результатов:', error);
+            return null;
         }
     }
 
-    async function shareTextOnly(results) {
-        console.log('💬 Поделиться только текстом (без ссылок)');
+    function createShareText(results, includeCallToAction = false) {
+        const emoji = getEmoji(results.percentage);
+        const grade = getGrade(results.percentage);
         
-        const bridge = getBridge();
-        if (!bridge) {
-            showTextOnlyShare();
-            return;
+        let text = `${emoji} ${grade}! Прошел медицинский квиз и набрал ${results.percentage}%!\n\n`;
+        text += `✅ Правильных ответов: ${results.correct} из ${results.total}\n`;
+        text += `📋 Режим: ${results.mode}\n`;
+        text += `🎯 Уровень: ${results.difficulty}\n\n`;
+        text += getMotivationText(results.percentage);
+        
+        if (includeCallToAction) {
+            text += '\n\n🩺 А ты сможешь лучше? Проверь свои медицинские знания в MedQuiz Pro!';
         }
-
-        try {
-            const shareText = createShareText(results, false); // БЕЗ призыва к действию
-            
-            // РЕШЕНИЕ ПРОБЛЕМЫ: используем VKWebAppShare только с текстом, БЕЗ link
-            const shareParams = {
-                text: shareText
-                // ВАЖНО: НЕ передаем параметр link! 
-                // Если link не указан, VK будет использовать ссылку на текущий домен (GitHub)
-                // Поэтому используем только text
-            };
-
-            console.log('📤 Параметры для VKWebAppShare (только текст):', shareParams);
-
-            const response = await bridge.send('VKWebAppShare', shareParams);
-            
-            if (response && response.type) {
-                console.log('✅ Сообщение отправлено:', response);
-                
-                if (response.type === 'message' && response.users) {
-                    showSuccessMessage(`💬 Сообщение отправлено ${response.users.length} пользователям!`);
-                } else if (response.type === 'story') {
-                    showSuccessMessage('📸 Опубликовано в истории!');
-                }
-                
-                // Награждаем за шеринг
-                rewardForSharing();
-            }
-            
-        } catch (error) {
-            console.error('❌ Ошибка при отправке сообщения:', error);
-            
-            if (error.error_type === 'client_error' && error.error_data?.error_reason === 'User denied') {
-                showSuccessMessage('ℹ️ Отправка сообщения отменена');
-            } else {
-                showSuccessMessage('❌ Не удалось отправить сообщение');
-                // Показываем fallback
-                setTimeout(() => showTextOnlyShare(), 1000);
-            }
-        }
+        
+        return text;
     }
 
     function copyResultText(results) {
-        const text = createShareText(results, true); // С призывом к действию
+        const text = createShareText(results, true);
         
         try {
-            // Современный способ копирования
             if (navigator.clipboard && window.isSecureContext) {
                 navigator.clipboard.writeText(text).then(() => {
                     showSuccessMessage('📋 Текст скопирован!');
@@ -343,137 +456,11 @@
         document.body.removeChild(textArea);
     }
 
-    function getTestResults() {
-        try {
-            // Способ 1: Прямой поиск элементов
-            const percentageEl = document.getElementById('percentage');
-            const correctEl = document.getElementById('correct-answers');
-            const totalEl = document.getElementById('total-questions-result');
-            
-            if (percentageEl && correctEl && totalEl) {
-                const percentage = parseInt(percentageEl.textContent) || 0;
-                const correct = parseInt(correctEl.textContent) || 0;
-                const total = parseInt(totalEl.textContent) || 0;
-                
-                // Дополнительная информация
-                const modeEl = document.getElementById('mode-badge');
-                const difficultyEl = document.getElementById('difficulty-badge');
-                
-                return {
-                    percentage,
-                    correct,
-                    total,
-                    mode: modeEl ? modeEl.textContent : 'Медицинский квиз',
-                    difficulty: difficultyEl ? difficultyEl.textContent : 'Обычный'
-                };
-            }
-            
-            return null;
-            
-        } catch (error) {
-            console.error('❌ Ошибка получения результатов:', error);
-            return null;
-        }
-    }
-
-    function createShareText(results, includeCallToAction = false) {
-        const emoji = getEmoji(results.percentage);
-        const grade = getGrade(results.percentage);
-        
-        let text = `${emoji} ${grade}! Прошел медицинский квиз и набрал ${results.percentage}%!\n\n`;
-        text += `✅ Правильных ответов: ${results.correct} из ${results.total}\n`;
-        text += `📋 Режим: ${results.mode}\n`;
-        text += `🎯 Уровень: ${results.difficulty}\n\n`;
-        text += getMotivationText(results.percentage);
-        
-        if (includeCallToAction) {
-            text += '\n\n🩺 А ты сможешь лучше? Проверь свои медицинские знания!';
-        }
-        
-        return text;
-    }
-
     function getBridge() {
         return window.vkBridgeInstance || window.vkBridge || (typeof vkBridge !== 'undefined' ? vkBridge : null);
     }
 
-    function showTextOnlyShare() {
-        console.log('📋 Показываем вариант только с текстом');
-        
-        const results = getTestResults();
-        if (!results) return;
-        
-        const text = createShareText(results, true);
-        
-        // Создаем модальное окно для копирования
-        const modal = document.createElement('div');
-        modal.style.cssText = `
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0, 0, 0, 0.8);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            z-index: 10000;
-        `;
-        
-        const dialog = document.createElement('div');
-        dialog.style.cssText = `
-            background: white;
-            border-radius: 20px;
-            padding: 30px;
-            max-width: 400px;
-            width: 90%;
-            text-align: center;
-        `;
-        
-        dialog.innerHTML = `
-            <h3 style="margin: 0 0 20px 0; color: #333;">📤 Поделиться результатом</h3>
-            <p style="color: #666; margin-bottom: 15px;">
-                Скопируйте текст и поделитесь им в VK или других социальных сетях:
-            </p>
-            <textarea readonly style="
-                width: 100%; 
-                height: 120px; 
-                padding: 15px; 
-                border: 1px solid #ddd; 
-                border-radius: 10px; 
-                font-size: 14px; 
-                resize: none; 
-                margin-bottom: 20px;
-            ">${text}</textarea>
-            <button onclick="copyToClipboard('${text.replace(/'/g, "\\'")}');" style="
-                background: #5a67d8; 
-                color: white; 
-                border: none; 
-                padding: 12px 24px; 
-                border-radius: 10px; 
-                cursor: pointer; 
-                margin-right: 10px;
-            ">📋 Скопировать</button>
-            <button onclick="this.parentElement.parentElement.remove();" style="
-                background: #6c757d; 
-                color: white; 
-                border: none; 
-                padding: 12px 24px; 
-                border-radius: 10px; 
-                cursor: pointer;
-            ">Закрыть</button>
-        `;
-        
-        modal.appendChild(dialog);
-        document.body.appendChild(modal);
-        
-        modal.addEventListener('click', (e) => {
-            if (e.target === modal) modal.remove();
-        });
-    }
-
     function rewardForSharing() {
-        // Награждаем пользователя за шеринг
         if (window.Gamification && window.Gamification.stats) {
             const stats = window.Gamification.stats;
             
@@ -555,10 +542,6 @@
                     from { transform: translateX(0); opacity: 1; }
                     to { transform: translateX(100%); opacity: 0; }
                 }
-                @keyframes fadeOut {
-                    from { opacity: 1; }
-                    to { opacity: 0; }
-                }
             `;
             document.head.appendChild(style);
         }
@@ -575,7 +558,7 @@
         }, 4000);
     }
 
-    // Глобальная функция для копирования (используется в showTextOnlyShare)
+    // Глобальная функция для копирования
     window.copyToClipboard = function(text) {
         try {
             if (navigator.clipboard && window.isSecureContext) {
@@ -592,33 +575,14 @@
 
     // Функции для отладки
     window.debugVKShare = {
-        testShare: () => {
-            console.log('🧪 Тестируем VK шеринг...');
-            showShareOptions();
-        },
-        
-        testStory: () => {
-            const results = getTestResults() || { percentage: 85, correct: 8, total: 10, mode: 'Тест', difficulty: 'Обычный' };
-            shareToStory(results);
-        },
-        
-        testTextOnly: () => {
-            const results = getTestResults() || { percentage: 85, correct: 8, total: 10, mode: 'Тест', difficulty: 'Обычный' };
-            shareTextOnly(results);
-        },
-        
-        getResults: () => {
-            return getTestResults();
-        },
-        
-        checkBridge: () => {
-            const bridge = getBridge();
-            console.log('VK Bridge доступен:', !!bridge);
-            return !!bridge;
-        }
+        detectEnv: detectEnvironment,
+        testShare: showVKShareOptions,
+        testCopy: showCopyOnlyOption,
+        getResults: getTestResults,
+        checkBridge: () => !!getBridge()
     };
 
-    console.log('✅ Окончательное решение VK Share загружено');
+    console.log('✅ Исправленный VK Share загружен');
     console.log('🐛 Доступны функции отладки: window.debugVKShare');
     
 })();
