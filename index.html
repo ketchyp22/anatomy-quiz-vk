@@ -4,72 +4,62 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>MedQuiz Pro - Профессиональное медицинское тестирование</title>
+    
+    <!-- Шрифты -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    
+    <!-- Основные стили -->
     <link rel="stylesheet" href="style.css">
     <link rel="stylesheet" href="gamification.css">
     <link rel="stylesheet" href="hints-system.css">
+    
+    <!-- VK Bridge -->
     <script src="https://unpkg.com/@vkontakte/vk-bridge/dist/browser.min.js"></script>
+    
+    <!-- Three.js для 3D -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     
     <!-- Метаданные для социальных сетей -->
     <meta property="og:title" content="MedQuiz Pro – проверь свои медицинские знания!">
-    <meta property="og:description" content="Современный медицинский квиз с Glassmorphism дизайном. Анатомия, клиника, фармакология, первая помощь, акушерство и ЭКСПЕРТНЫЙ уровень!">
+    <meta property="og:description" content="Современный медицинский квиз с 3D графикой. Анатомия, клиника, фармакология, первая помощь, акушерство и ЭКСПЕРТНЫЙ уровень!">
     <meta property="og:image" content="https://vk.com/images/camera_100.png">
     <meta name="theme-color" content="#667eea">
     <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>👨‍⚕️</text></svg>">
 </head>
 <body>
-    <!-- Анимированный фон с градиентами -->
-    <div class="animated-bg"></div>
-    
-    <!-- Плавающие медицинские иконки с 3D эффектами -->
-    <div class="medical-icons">
-        <div class="medical-icon icon1"></div>
-        <div class="medical-icon icon2"></div>
-        <div class="medical-icon icon3"></div>
-        <div class="medical-icon icon4"></div>
-        <div class="medical-icon icon5"></div>
-        <div class="medical-icon icon6"></div>
-    </div>
-    
-    <!-- Главный экран выбора с Glassmorphism -->
+    <!-- Главный экран выбора -->
     <div id="start-screen">
         <!-- Информация о пользователе -->
         <div id="user-info" class="user-info">
             <!-- Данные пользователя будут добавлены автоматически -->
         </div>
         
-        <!-- Заголовок с 3D эффектом -->
+        <!-- Заголовок -->
         <h1><span class="doctor-emoji">👨‍⚕️</span> MedQuiz Pro</h1>
         
-        <!-- Статистика геймификации с прогресс-кольцами -->
+        <!-- Статистика геймификации -->
         <div id="gamification-stats" class="gamification-stats">
             <div class="stats-card">
                 <div class="stat-item">
-                    <div class="progress-ring">
-                        <svg>
-                            <circle class="bg" cx="40" cy="40" r="36"></circle>
-                            <circle class="progress" cx="40" cy="40" r="36"></circle>
-                        </svg>
-                    </div>
-                    <span class="stat-number" id="total-quizzes-stat">89</span>
+                    <span class="stat-number" id="total-quizzes-stat">0</span>
                     <span class="stat-label">Пройдено тестов</span>
                 </div>
                 <div class="stat-item">
-                    <span class="stat-number" id="current-streak-stat">12🔥</span>
+                    <span class="stat-number" id="current-streak-stat">0🔥</span>
                     <span class="stat-label">Текущая серия</span>
                 </div>
                 <div class="stat-item">
-                    <span class="stat-number" id="best-streak-stat">23⭐</span>
+                    <span class="stat-number" id="best-streak-stat">0⭐</span>
                     <span class="stat-label">Лучшая серия</span>
                 </div>
                 <div class="stat-item">
-                    <span class="stat-number">76%</span>
+                    <span class="stat-number">0%</span>
                     <span class="stat-label">Средний результат</span>
                 </div>
             </div>
         </div>
         
-        <!-- Выбор уровня сложности с неоморфизмом -->
+        <!-- Выбор уровня сложности -->
         <div class="difficulty-selection">
             <h2>Выберите уровень сложности:</h2>
             <button class="difficulty-btn active" data-difficulty="easy">
@@ -80,7 +70,7 @@
             </button>
         </div>
         
-        <!-- Режимы квиза с 3D карточками -->
+        <!-- Режимы квиза -->
         <div class="quiz-mode-selection">
             <h2>Выберите режим:</h2>
             <button class="quiz-mode-btn active" data-mode="anatomy">
@@ -104,7 +94,7 @@
                 Акушерство
             </button>
             
-            <!-- Экспертный режим с особыми эффектами -->
+            <!-- Экспертный режим -->
             <div class="expert-mode-container">
                 <div class="expert-label">🧠 ЭКСПЕРТНЫЙ УРОВЕНЬ 🧠</div>
                 <button class="quiz-mode-btn expert-mode-btn" data-mode="expert">
@@ -122,7 +112,7 @@
             </div>
         </div>
         
-        <!-- Кнопка старта с эффектами -->
+        <!-- Кнопка старта -->
         <button id="start-quiz" class="btn-primary">
             🚀 Начать тестирование
         </button>
@@ -131,16 +121,9 @@
         <div class="author-credit">
             <p>© 2025 · <a href="https://vk.com/id837477864" target="_blank">Разработчик</a></p>
         </div>
-        
-        <!-- Пульсирующая линия внизу -->
-        <div class="card-pulse">
-            <svg class="pulse-line-svg" viewBox="0 0 150 40" preserveAspectRatio="none">
-                <path class="pulse-line-path" d="M0,20 L10,20 L15,20 L20,10 L25,30 L30,20 L35,20 L40,20 L45,20 L50,20 L55,10 L60,30 L65,20 L70,20 L75,20 L80,20 L85,20 L90,10 L95,30 L100,20 L105,20 L110,20 L115,20 L120,20 L125,10 L130,30 L135,20 L140,20 L150,20"></path>
-            </svg>
-        </div>
     </div>
 
-    <!-- Экран прохождения квиза с Glassmorphism -->
+    <!-- Экран прохождения квиза -->
     <div id="quiz-container" style="display: none;">
         <!-- Информация о пользователе в квизе -->
         <div id="user-info-quiz" class="user-info">
@@ -150,20 +133,17 @@
         <!-- Счетчик вопросов -->
         <div id="question-counter" class="question-counter">Вопрос 1 из 10</div>
         
-        <!-- Прогресс-бар с анимацией -->
+        <!-- Прогресс-бар -->
         <div id="progress-bar-container">
             <div id="progress-bar"></div>
         </div>
-        
-        <!-- Таймер (если используется) -->
-        <div id="timer" class="timer" style="display: none;"></div>
         
         <!-- Контейнер вопроса -->
         <div id="question" class="question">
             Загрузка вопроса...
         </div>
         
-        <!-- Варианты ответов с 3D эффектами -->
+        <!-- Варианты ответов -->
         <div id="options" class="options">
             <!-- Варианты будут добавлены динамически -->
         </div>
@@ -177,16 +157,9 @@
                 ❌ Выйти из квиза
             </button>
         </div>
-        
-        <!-- Пульсирующая линия -->
-        <div class="card-pulse">
-            <svg class="pulse-line-svg" viewBox="0 0 150 40" preserveAspectRatio="none">
-                <path class="pulse-line-path" d="M0,20 L10,20 L15,20 L20,10 L25,30 L30,20 L35,20 L40,20 L45,20 L50,20 L55,10 L60,30 L65,20 L70,20 L75,20 L80,20 L85,20 L90,10 L95,30 L100,20 L105,20 L110,20 L115,20 L120,20 L125,10 L130,30 L135,20 L140,20 L150,20"></path>
-            </svg>
-        </div>
     </div>
 
-    <!-- Экран результатов с современными эффектами -->
+    <!-- Экран результатов -->
     <div id="results-container" style="display: none;">
         <!-- Заголовок результатов -->
         <h1><span class="doctor-emoji">👨‍⚕️</span> Результаты теста</h1>
@@ -225,18 +198,6 @@
                 🔄 Пройти еще раз
             </button>
         </div>
-        
-        <!-- Пульсирующая линия -->
-        <div class="card-pulse">
-            <svg class="pulse-line-svg" viewBox="0 0 150 40" preserveAspectRatio="none">
-                <path class="pulse-line-path" d="M0,20 L10,20 L15,20 L20,10 L25,30 L30,20 L35,20 L40,20 L45,20 L50,20 L55,10 L60,30 L65,20 L70,20 L75,20 L80,20 L85,20 L90,10 L95,30 L100,20 L105,20 L110,20 L115,20 L120,20 L125,10 L130,30 L135,20 L140,20 L150,20"></path>
-            </svg>
-        </div>
-    </div>
-
-    <!-- Контейнер для подсказок (будет добавлен автоматически) -->
-    <div id="tooltip-container" class="tooltip-container" style="display: none;">
-        <div class="tooltip-content"></div>
     </div>
 
     <!-- ==================== СКРИПТЫ ==================== -->
@@ -258,128 +219,7 @@
         window.currentQuizMode = 'anatomy';
         window.currentDifficulty = 'easy';
         
-        console.log('🚀 MedQuiz Pro загружается с современным дизайном...');
-        
-        // Инициализация современных эффектов
-        document.addEventListener('DOMContentLoaded', function() {
-            initModernEffects();
-            setupModeInteractions();
-        });
-        
-        // Современные эффекты и анимации
-        function initModernEffects() {
-            // Анимация появления элементов
-            const observer = new IntersectionObserver((entries) => {
-                entries.forEach(entry => {
-                    if (entry.isIntersecting) {
-                        entry.target.style.opacity = '1';
-                        entry.target.style.transform = 'translateY(0)';
-                    }
-                });
-            });
-            
-            // Наблюдаем за всеми анимируемыми элементами
-            document.querySelectorAll('.quiz-mode-btn, .stat-item, .difficulty-btn').forEach(el => {
-                el.style.opacity = '0';
-                el.style.transform = 'translateY(30px)';
-                el.style.transition = 'all 0.6s ease-out';
-                observer.observe(el);
-            });
-            
-            // Параллакс эффект для медицинских иконок
-            let mouseX = 0, mouseY = 0;
-            document.addEventListener('mousemove', (e) => {
-                mouseX = e.clientX / window.innerWidth;
-                mouseY = e.clientY / window.innerHeight;
-                
-                const icons = document.querySelectorAll('.medical-icon');
-                icons.forEach((icon, index) => {
-                    const speed = (index + 1) * 0.02;
-                    const x = mouseX * speed * 50;
-                    const y = mouseY * speed * 50;
-                    icon.style.transform = `translate(${x}px, ${y}px)`;
-                });
-            });
-            
-            console.log('✨ Современные эффекты инициализированы');
-        }
-        
-        // Интерактивность режимов
-        function setupModeInteractions() {
-            const modeButtons = document.querySelectorAll('.quiz-mode-btn');
-            const modeDescription = document.getElementById('mode-description');
-            
-            modeButtons.forEach(button => {
-                // Обработчик клика
-                button.addEventListener('click', function() {
-                    // Убираем активность с других кнопок
-                    modeButtons.forEach(btn => btn.classList.remove('active'));
-                    
-                    // Активируем текущую кнопку
-                    this.classList.add('active');
-                    
-                    // Получаем режим
-                    const mode = this.dataset.mode;
-                    window.currentQuizMode = mode;
-                    
-                    // Обновляем описание
-                    if (modeDescription && window.modeDescriptions[mode]) {
-                        modeDescription.textContent = window.modeDescriptions[mode];
-                        modeDescription.classList.add('active-description');
-                    }
-                    
-                    // Обрабатываем экспертный режим
-                    if (mode === 'expert') {
-                        window.currentDifficulty = 'expert';
-                        const difficultySection = document.querySelector('.difficulty-selection');
-                        if (difficultySection) {
-                            difficultySection.style.opacity = '0.5';
-                            difficultySection.style.pointerEvents = 'none';
-                        }
-                    } else {
-                        const difficultySection = document.querySelector('.difficulty-selection');
-                        if (difficultySection) {
-                            difficultySection.style.opacity = '1';
-                            difficultySection.style.pointerEvents = 'auto';
-                        }
-                    }
-                    
-                    console.log('Выбран режим:', mode);
-                });
-                
-                // Эффект наведения для описания
-                button.addEventListener('mouseenter', function() {
-                    if (!this.classList.contains('active')) {
-                        const mode = this.dataset.mode;
-                        if (modeDescription && window.modeDescriptions[mode]) {
-                            modeDescription.textContent = window.modeDescriptions[mode];
-                            modeDescription.style.opacity = '0.7';
-                        }
-                    }
-                });
-                
-                button.addEventListener('mouseleave', function() {
-                    if (!this.classList.contains('active')) {
-                        if (modeDescription) {
-                            modeDescription.style.opacity = '0';
-                        }
-                    }
-                });
-            });
-            
-            // Обработчики для кнопок сложности
-            const difficultyButtons = document.querySelectorAll('.difficulty-btn');
-            difficultyButtons.forEach(button => {
-                button.addEventListener('click', function() {
-                    if (window.currentQuizMode === 'expert') return;
-                    
-                    difficultyButtons.forEach(btn => btn.classList.remove('active'));
-                    this.classList.add('active');
-                    window.currentDifficulty = this.dataset.difficulty;
-                    console.log('Выбрана сложность:', window.currentDifficulty);
-                });
-            });
-        }
+        console.log('🚀 MedQuiz Pro загружается с 3D графикой...');
     </script>
     
     <!-- Основные скрипты приложения -->
@@ -407,22 +247,30 @@
     <!-- Правильное решение шеринга для VK -->
     <script src="vk-share-correct.js"></script>
     
+    <!-- 3D СЦЕНА - ГЛАВНАЯ ФИШКА -->
+    <script src="3d-scene.js"></script>
+    
     <!-- Финальная инициализация -->
     <script>
         window.addEventListener('load', function() {
-            console.log('🎉 MedQuiz Pro полностью загружен с современным дизайном');
+            console.log('🎉 MedQuiz Pro полностью загружен с 3D графикой');
             
             // Проверяем ключевые компоненты
             const status = {
+                threeJS: typeof THREE !== 'undefined' ? '✅ Загружен' : '❌ Не загружен',
                 questions: window.questions ? `${window.questions.length} вопросов` : '❌ Не загружены',
                 expertQuestions: window.questions ? `${window.questions.filter(q => q.mode === 'expert').length} экспертных` : '❌ Не загружены',
                 gamification: window.Gamification ? '✅ Загружена' : '❌ Не загружена',
-                hintsSystem: window.HintsSystem ? '✅ Загружена' : '❌ Не загружена',
-                modernDesign: document.querySelector('.medical-icon') ? '✅ Активен' : '❌ Не активен'
+                hintsSystem: window.HintsSystem ? '✅ Загружена' : '❌ Не загружена'
             };
             
             console.log('📋 Статус компонентов:', status);
-            console.log('🔥 Современный медицинский квиз готов!');
+            
+            if (typeof THREE !== 'undefined') {
+                console.log('🎬 3D движок готов к работе!');
+            } else {
+                console.error('❌ 3D движок не загружен - проверьте подключение Three.js');
+            }
         });
     </script>
 </body>
