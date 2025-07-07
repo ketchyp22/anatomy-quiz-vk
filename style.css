@@ -1,4 +1,4 @@
-/* СОВРЕМЕННЫЙ МЕДИЦИНСКИЙ СТИЛЬ */
+/* КОМПАКТНЫЙ МЕДИЦИНСКИЙ СТИЛЬ */
 
 /* ==================== ОСНОВА ==================== */
 :root {
@@ -14,13 +14,12 @@
     --text-muted: rgba(255, 255, 255, 0.6);
     
     /* Стеклянные эффекты */
-    --glass-bg: rgba(255, 255, 255, 0.1);
-    --glass-border: rgba(255, 255, 255, 0.2);
-    --glass-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+    --glass-bg: rgba(255, 255, 255, 0.08);
+    --glass-border: rgba(255, 255, 255, 0.15);
+    --glass-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
     
     /* Анимации */
     --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    --bounce: cubic-bezier(0.68, -0.55, 0.265, 1.55);
 }
 
 /* Базовые стили */
@@ -34,22 +33,22 @@ body {
     font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
     color: var(--text-primary);
     min-height: 100vh;
-    padding: 20px;
+    padding: 16px;
     overflow-x: hidden;
-    background: transparent; /* 3D сцена будет фоном */
+    background: transparent;
 }
 
-/* ==================== КОНТЕЙНЕРЫ ==================== */
+/* ==================== КОМПАКТНЫЕ КОНТЕЙНЕРЫ ==================== */
 
-/* Главные экраны */
+/* Главные экраны - КОМПАКТНО */
 #start-screen, #quiz-container, #results-container {
     background: var(--glass-bg);
     backdrop-filter: blur(20px) saturate(150%);
-    border-radius: 24px;
+    border-radius: 20px;
     border: 1px solid var(--glass-border);
     box-shadow: var(--glass-shadow);
-    padding: 40px;
-    max-width: 800px;
+    padding: 24px;
+    max-width: 480px;
     margin: 0 auto;
     position: relative;
     overflow: hidden;
@@ -63,54 +62,45 @@ body {
     left: 0;
     right: 0;
     height: 1px;
-    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent);
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
 }
 
-/* ==================== ЗАГОЛОВКИ ==================== */
+/* ==================== КОМПАКТНЫЙ ЗАГОЛОВОК ==================== */
 
 h1 {
-    font-size: clamp(32px, 5vw, 48px);
+    font-size: 28px;
     font-weight: 800;
     text-align: center;
-    margin-bottom: 40px;
+    margin-bottom: 20px;
     background: linear-gradient(135deg, #ffffff 0%, #e2e8f0 100%);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
-    text-shadow: 0 4px 20px rgba(0,0,0,0.3);
-    position: relative;
 }
 
 h2 {
-    font-size: 24px;
+    font-size: 18px;
     font-weight: 600;
-    margin-bottom: 24px;
+    margin-bottom: 16px;
     text-align: center;
     color: var(--text-primary);
 }
 
-/* Медицинская иконка в заголовке */
 .doctor-emoji {
     font-size: 0.8em;
-    margin-right: 12px;
-    animation: pulse 2s ease-in-out infinite;
+    margin-right: 8px;
 }
 
-@keyframes pulse {
-    0%, 100% { transform: scale(1); }
-    50% { transform: scale(1.05); }
-}
-
-/* ==================== ПОЛЬЗОВАТЕЛЬ ==================== */
+/* ==================== КОМПАКТНАЯ ИНФО О ПОЛЬЗОВАТЕЛЕ ==================== */
 
 .user-info {
     display: flex;
     align-items: center;
-    margin-bottom: 30px;
-    padding: 16px 24px;
+    margin-bottom: 20px;
+    padding: 12px 16px;
     background: rgba(255, 255, 255, 0.05);
     backdrop-filter: blur(10px);
-    border-radius: 20px;
+    border-radius: 16px;
     border: 1px solid rgba(255, 255, 255, 0.1);
     width: fit-content;
     margin-left: auto;
@@ -118,76 +108,93 @@ h2 {
 }
 
 .user-info img {
-    width: 48px;
-    height: 48px;
+    width: 36px;
+    height: 36px;
     border-radius: 50%;
-    margin-right: 16px;
+    margin-right: 12px;
     border: 2px solid rgba(255, 255, 255, 0.2);
-    transition: var(--transition);
-}
-
-.user-info img:hover {
-    transform: scale(1.05);
-    border-color: var(--primary-blue);
 }
 
 .user-info span {
     font-weight: 600;
-    font-size: 16px;
+    font-size: 14px;
 }
 
-/* ==================== СТАТИСТИКА ==================== */
+/* ==================== МИНИ СТАТИСТИКА ==================== */
 
 .gamification-stats {
-    margin: 30px 0;
-    animation: slideIn 0.6s ease-out;
+    margin: 16px 0;
 }
 
 .stats-card {
     background: rgba(255, 255, 255, 0.05);
     backdrop-filter: blur(15px);
-    border-radius: 20px;
-    padding: 24px;
+    border-radius: 16px;
+    padding: 16px;
     border: 1px solid rgba(255, 255, 255, 0.1);
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
-    gap: 20px;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 12px;
 }
 
 .stat-item {
     text-align: center;
-    padding: 16px;
+    padding: 8px;
     background: rgba(255, 255, 255, 0.05);
-    border-radius: 16px;
-    transition: var(--transition);
-}
-
-.stat-item:hover {
-    background: rgba(255, 255, 255, 0.1);
-    transform: translateY(-2px);
+    border-radius: 12px;
 }
 
 .stat-number {
-    font-size: 28px;
-    font-weight: 800;
+    font-size: 16px;
+    font-weight: 700;
     color: var(--success-green);
     display: block;
-    margin-bottom: 8px;
-    text-shadow: 0 0 20px rgba(22, 163, 74, 0.4);
+    margin-bottom: 4px;
 }
 
 .stat-label {
-    font-size: 12px;
+    font-size: 10px;
     color: var(--text-secondary);
     font-weight: 500;
     text-transform: uppercase;
-    letter-spacing: 0.5px;
+    letter-spacing: 0.3px;
 }
 
-/* ==================== КНОПКИ РЕЖИМОВ ==================== */
+/* ==================== КОМПАКТНЫЕ КНОПКИ СЛОЖНОСТИ ==================== */
+
+.difficulty-selection {
+    margin-bottom: 20px;
+}
+
+.difficulty-btn {
+    background: var(--glass-bg);
+    border: 1px solid var(--glass-border);
+    border-radius: 12px;
+    padding: 10px 16px;
+    margin: 4px;
+    color: var(--text-primary);
+    font-weight: 600;
+    font-size: 14px;
+    cursor: pointer;
+    transition: var(--transition);
+    display: inline-block;
+}
+
+.difficulty-btn:hover {
+    background: rgba(255, 255, 255, 0.1);
+    border-color: var(--primary-blue);
+}
+
+.difficulty-btn.active {
+    background: rgba(37, 99, 235, 0.2);
+    border-color: var(--primary-blue);
+    box-shadow: 0 0 12px rgba(37, 99, 235, 0.3);
+}
+
+/* ==================== КОМПАКТНЫЕ РЕЖИМЫ ==================== */
 
 .quiz-mode-selection {
-    margin-bottom: 40px;
+    margin-bottom: 24px;
 }
 
 .quiz-mode-btn {
@@ -196,29 +203,27 @@ h2 {
     background: var(--glass-bg);
     backdrop-filter: blur(15px);
     border: 1px solid var(--glass-border);
-    border-radius: 20px;
-    padding: 20px 24px;
-    margin: 12px 0;
+    border-radius: 16px;
+    padding: 14px 16px;
+    margin: 8px 0;
     color: var(--text-primary);
-    font-size: 18px;
+    font-size: 16px;
     font-weight: 600;
     cursor: pointer;
     transition: var(--transition);
-    position: relative;
-    overflow: hidden;
     text-align: left;
     display: flex;
     align-items: center;
+    position: relative;
+    overflow: hidden;
 }
 
-/* Эмодзи в кнопках */
 .mode-emoji {
-    font-size: 24px;
-    margin-right: 16px;
+    font-size: 20px;
+    margin-right: 12px;
     filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3));
 }
 
-/* Эффект свечения при наведении */
 .quiz-mode-btn::before {
     content: '';
     position: absolute;
@@ -235,42 +240,35 @@ h2 {
 }
 
 .quiz-mode-btn:hover {
-    background: rgba(255, 255, 255, 0.15);
+    background: rgba(255, 255, 255, 0.12);
     border-color: var(--primary-blue);
-    transform: translateY(-3px);
-    box-shadow: 
-        0 12px 24px rgba(0, 0, 0, 0.2),
-        0 0 0 1px rgba(37, 99, 235, 0.3);
+    transform: translateY(-2px);
 }
 
 .quiz-mode-btn.active {
     background: rgba(37, 99, 235, 0.2);
     border-color: var(--primary-blue);
-    box-shadow: 
-        0 0 20px rgba(37, 99, 235, 0.4),
-        0 8px 16px rgba(0, 0, 0, 0.2);
+    box-shadow: 0 0 16px rgba(37, 99, 235, 0.4);
 }
 
-/* ==================== ЭКСПЕРТНЫЙ РЕЖИМ ==================== */
+/* ==================== КОМПАКТНЫЙ ЭКСПЕРТНЫЙ РЕЖИМ ==================== */
 
 .expert-mode-container {
-    margin-top: 24px;
-    padding: 24px;
+    margin-top: 16px;
+    padding: 16px;
     background: linear-gradient(135deg, 
         rgba(220, 38, 38, 0.1) 0%, 
         rgba(185, 28, 28, 0.1) 100%);
-    border-radius: 20px;
+    border-radius: 16px;
     border: 1px solid rgba(220, 38, 38, 0.3);
-    position: relative;
-    overflow: hidden;
 }
 
 .expert-label {
     text-align: center;
-    font-size: 14px;
+    font-size: 12px;
     font-weight: 700;
     color: var(--medical-red);
-    margin-bottom: 16px;
+    margin-bottom: 12px;
     text-transform: uppercase;
     letter-spacing: 1px;
 }
@@ -281,72 +279,34 @@ h2 {
     color: #ff6b6b !important;
 }
 
-.expert-mode-btn:hover {
-    background: rgba(220, 38, 38, 0.25) !important;
-    box-shadow: 0 0 25px rgba(220, 38, 38, 0.4) !important;
-}
-
 .expert-description {
     text-align: center;
-    font-size: 13px;
+    font-size: 11px;
     color: var(--text-muted);
-    margin-top: 12px;
+    margin-top: 8px;
     font-style: italic;
 }
 
-/* ==================== УРОВНИ СЛОЖНОСТИ ==================== */
-
-.difficulty-selection {
-    margin-bottom: 32px;
-}
-
-.difficulty-btn {
-    background: var(--glass-bg);
-    border: 2px solid var(--glass-border);
-    border-radius: 16px;
-    padding: 16px 24px;
-    margin: 8px;
-    color: var(--text-primary);
-    font-weight: 600;
-    cursor: pointer;
-    transition: var(--bounce);
-    display: inline-block;
-}
-
-.difficulty-btn:hover {
-    background: rgba(255, 255, 255, 0.1);
-    border-color: var(--primary-blue);
-    transform: translateY(-2px);
-}
-
-.difficulty-btn.active {
-    background: rgba(37, 99, 235, 0.2);
-    border-color: var(--primary-blue);
-    box-shadow: 0 0 15px rgba(37, 99, 235, 0.3);
-}
-
-/* ==================== ОСНОВНЫЕ КНОПКИ ==================== */
+/* ==================== КОМПАКТНАЯ КНОПКА СТАРТА ==================== */
 
 .btn-primary, .btn-secondary {
     border: none;
-    border-radius: 16px;
-    padding: 16px 32px;
+    border-radius: 14px;
+    padding: 14px 24px;
     font-size: 16px;
     font-weight: 700;
     cursor: pointer;
     transition: var(--transition);
-    position: relative;
-    overflow: hidden;
     display: block;
-    margin: 20px auto;
-    min-width: 200px;
+    margin: 16px auto;
+    width: 100%;
     text-align: center;
 }
 
 .btn-primary {
     background: linear-gradient(135deg, var(--medical-red) 0%, #b91c1c 100%);
     color: white;
-    box-shadow: 0 8px 20px rgba(220, 38, 38, 0.3);
+    box-shadow: 0 6px 16px rgba(220, 38, 38, 0.3);
 }
 
 .btn-secondary {
@@ -357,151 +317,137 @@ h2 {
 }
 
 .btn-primary:hover, .btn-secondary:hover {
-    transform: translateY(-3px) scale(1.02);
-    box-shadow: 
-        0 12px 30px rgba(220, 38, 38, 0.4),
-        0 0 0 1px rgba(255, 255, 255, 0.1);
+    transform: translateY(-2px) scale(1.01);
+    box-shadow: 0 8px 20px rgba(220, 38, 38, 0.4);
 }
 
-/* ==================== КВИЗ ==================== */
+/* ==================== УБИРАЕМ ОПИСАНИЕ РЕЖИМОВ ==================== */
+
+.mode-description {
+    display: none !important;
+}
+
+/* ==================== КОМПАКТНАЯ ИНФО ОБ АВТОРЕ ==================== */
+
+.author-credit {
+    text-align: center;
+    margin-top: 16px;
+    padding: 8px;
+    font-size: 11px;
+    color: var(--text-muted);
+    opacity: 0.7;
+}
+
+.author-credit a {
+    color: var(--primary-blue);
+    text-decoration: none;
+}
+
+/* ==================== КВИЗ ЭКРАН ==================== */
 
 .question-counter {
     text-align: right;
-    margin-bottom: 16px;
+    margin-bottom: 12px;
     color: var(--text-secondary);
     font-weight: 500;
+    font-size: 14px;
 }
 
 #progress-bar-container {
-    height: 8px;
+    height: 6px;
     background: rgba(255, 255, 255, 0.1);
-    border-radius: 8px;
-    margin-bottom: 24px;
+    border-radius: 6px;
+    margin-bottom: 20px;
     overflow: hidden;
 }
 
 #progress-bar {
     height: 100%;
-    background: linear-gradient(90deg, 
-        var(--success-green) 0%, 
-        var(--primary-blue) 100%);
-    border-radius: 8px;
+    background: linear-gradient(90deg, var(--success-green) 0%, var(--primary-blue) 100%);
+    border-radius: 6px;
     width: 0%;
     transition: width 0.8s ease;
-    position: relative;
 }
 
 .question {
-    margin-bottom: 24px;
-    font-size: 20px;
-    line-height: 1.6;
+    margin-bottom: 20px;
+    font-size: 18px;
+    line-height: 1.5;
     font-weight: 500;
-    padding: 24px;
-    border-radius: 16px;
+    padding: 20px;
+    border-radius: 14px;
     background: rgba(255, 255, 255, 0.05);
     border: 1px solid rgba(255, 255, 255, 0.1);
-    border-left: 4px solid var(--primary-blue);
+    border-left: 3px solid var(--primary-blue);
 }
 
-/* Варианты ответов */
 .options {
     display: flex;
     flex-direction: column;
-    gap: 12px;
-    margin-bottom: 24px;
+    gap: 10px;
+    margin-bottom: 20px;
 }
 
 .option {
     background: var(--glass-bg);
     backdrop-filter: blur(15px);
-    padding: 18px 20px;
+    padding: 16px 18px;
     border-radius: 12px;
     border: 1px solid var(--glass-border);
     cursor: pointer;
     transition: var(--transition);
-    font-size: 16px;
+    font-size: 15px;
     font-weight: 500;
-    position: relative;
 }
 
 .option:hover {
     background: rgba(255, 255, 255, 0.1);
     border-color: var(--primary-blue);
-    transform: translateX(8px);
+    transform: translateX(4px);
 }
 
 .option.selected {
     background: rgba(37, 99, 235, 0.2);
     border-color: var(--primary-blue);
-    box-shadow: 0 0 15px rgba(37, 99, 235, 0.3);
+    box-shadow: 0 0 12px rgba(37, 99, 235, 0.3);
 }
 
 .option.correct {
     background: rgba(22, 163, 74, 0.2);
     border-color: var(--success-green);
-    animation: correctPulse 1s ease-out;
 }
 
 .option.wrong {
     background: rgba(220, 38, 38, 0.2);
     border-color: var(--medical-red);
-    animation: wrongShake 0.5s ease-out;
-}
-
-@keyframes correctPulse {
-    0% { box-shadow: 0 0 0 0 rgba(22, 163, 74, 0.7); }
-    70% { box-shadow: 0 0 0 20px rgba(22, 163, 74, 0); }
-    100% { box-shadow: 0 0 0 0 rgba(22, 163, 74, 0); }
-}
-
-@keyframes wrongShake {
-    0%, 100% { transform: translateX(0); }
-    10%, 30%, 50%, 70%, 90% { transform: translateX(-8px); }
-    20%, 40%, 60%, 80% { transform: translateX(8px); }
 }
 
 /* ==================== РЕЗУЛЬТАТЫ ==================== */
 
-.score {
-    text-align: center;
-    margin-bottom: 32px;
-}
-
 .score-percentage {
-    font-size: 72px;
+    font-size: 56px;
     font-weight: 900;
-    margin: 24px 0;
+    margin: 20px 0;
     background: linear-gradient(135deg, var(--success-green), var(--primary-blue));
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
     line-height: 1;
-    animation: scoreReveal 1s ease-out;
-}
-
-@keyframes scoreReveal {
-    from {
-        opacity: 0;
-        transform: scale(0.3);
-    }
-    to {
-        opacity: 1;
-        transform: scale(1);
-    }
+    text-align: center;
 }
 
 .badges-container {
     display: flex;
     justify-content: center;
-    gap: 12px;
-    margin-bottom: 20px;
+    gap: 8px;
+    margin-bottom: 16px;
     flex-wrap: wrap;
 }
 
 .difficulty-badge {
-    padding: 8px 16px;
-    border-radius: 20px;
-    font-size: 12px;
+    padding: 6px 12px;
+    border-radius: 16px;
+    font-size: 11px;
     font-weight: 600;
     text-transform: uppercase;
     background: var(--glass-bg);
@@ -521,51 +467,26 @@ h2 {
     color: #ff6b6b;
 }
 
-/* ==================== ОПИСАНИЕ РЕЖИМОВ ==================== */
-
-.mode-description {
-    margin-top: 20px;
-    padding: 20px;
-    border-radius: 16px;
-    background: rgba(255, 255, 255, 0.05);
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    font-size: 14px;
-    color: var(--text-secondary);
-    text-align: center;
-    min-height: 60px;
+.quiz-buttons {
     display: flex;
-    align-items: center;
-    justify-content: center;
-    opacity: 0;
-    transition: var(--transition);
+    gap: 10px;
+    margin-top: 20px;
 }
 
-.mode-description.active-description {
-    opacity: 1;
-    background: rgba(37, 99, 235, 0.1);
-    border-color: var(--primary-blue);
-    color: var(--text-primary);
+.quiz-buttons .btn-primary,
+.quiz-buttons .btn-secondary {
+    flex: 1;
+    margin: 0;
+    padding: 12px 16px;
+    font-size: 14px;
 }
 
-/* ==================== АНИМАЦИИ ==================== */
-
-@keyframes slideIn {
-    from {
-        opacity: 0;
-        transform: translateY(30px);
-    }
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
+.results-buttons {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-top: 20px;
 }
-
-/* Появление элементов по очереди */
-.quiz-mode-btn:nth-child(1) { animation: slideIn 0.6s ease-out 0.1s both; }
-.quiz-mode-btn:nth-child(2) { animation: slideIn 0.6s ease-out 0.2s both; }
-.quiz-mode-btn:nth-child(3) { animation: slideIn 0.6s ease-out 0.3s both; }
-.quiz-mode-btn:nth-child(4) { animation: slideIn 0.6s ease-out 0.4s both; }
-.quiz-mode-btn:nth-child(5) { animation: slideIn 0.6s ease-out 0.5s both; }
 
 /* ==================== АДАПТИВНОСТЬ ==================== */
 
@@ -575,49 +496,52 @@ h2 {
     }
     
     #start-screen, #quiz-container, #results-container {
-        padding: 24px;
+        padding: 20px;
         border-radius: 16px;
+        max-width: 100%;
     }
     
     h1 {
-        font-size: clamp(24px, 6vw, 32px);
-        margin-bottom: 24px;
+        font-size: 24px;
+        margin-bottom: 16px;
     }
     
     .stats-card {
         grid-template-columns: repeat(2, 1fr);
-        gap: 12px;
-        padding: 16px;
+        gap: 8px;
+        padding: 12px;
+    }
+    
+    .stat-number {
+        font-size: 14px;
+    }
+    
+    .stat-label {
+        font-size: 9px;
     }
     
     .quiz-mode-btn {
-        padding: 16px 20px;
-        font-size: 16px;
+        padding: 12px 14px;
+        font-size: 15px;
     }
     
     .mode-emoji {
-        font-size: 20px;
-        margin-right: 12px;
+        font-size: 18px;
+        margin-right: 10px;
     }
     
     .question {
-        font-size: 18px;
-        padding: 20px;
+        font-size: 16px;
+        padding: 16px;
     }
     
     .option {
-        padding: 16px 18px;
-        font-size: 15px;
+        padding: 14px 16px;
+        font-size: 14px;
     }
     
     .score-percentage {
-        font-size: 48px;
-    }
-    
-    .btn-primary, .btn-secondary {
-        padding: 14px 24px;
-        font-size: 15px;
-        min-width: 160px;
+        font-size: 42px;
     }
 }
 
@@ -631,20 +555,22 @@ h2 {
         justify-content: space-between;
         align-items: center;
         text-align: left;
+        padding: 6px 12px;
     }
     
     .stat-number {
         margin-bottom: 0;
-        font-size: 24px;
+        font-size: 14px;
     }
     
     .difficulty-btn {
         display: block;
         width: 100%;
-        margin: 6px 0;
+        margin: 4px 0;
+        text-align: center;
     }
     
     .expert-mode-container {
-        padding: 20px 16px;
+        padding: 12px;
     }
 }
