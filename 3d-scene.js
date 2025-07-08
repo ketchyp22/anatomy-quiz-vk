@@ -1,21 +1,21 @@
-// ПОЛНОСТЬЮ ИСПРАВЛЕННЫЙ 3d-scene.js с правильными текстурами РАФика
+// ПОЛНОСТЬЮ ИСПРАВЛЕННЫЙ 3d-scene.js с ПРАВИЛЬНЫМИ именами файлов
 class SimpleAmbulanceBackground {
     constructor() {
         this.scene = null;
         this.camera = null;
         this.renderer = null;
-        this.ambulance = null;
+        this.rafModel = null; // ИЗМЕНЕНО: ambulance -> rafModel
         this.emergencyLights = [];
         this.init();
     }
 
     init() {
-        console.log('🚑 Загружаем РАФик с правильными текстурами...');
+        console.log('🚑 Загружаем РАФ2031 с ПРАВИЛЬНЫМИ именами файлов...');
         this.createScene();
         this.createCamera();
         this.createRenderer();
         this.createLighting();
-        this.loadAmbulance();
+        this.loadRaf(); // ИЗМЕНЕНО: loadAmbulance -> loadRaf
         this.animate();
     }
 
@@ -81,11 +81,11 @@ class SimpleAmbulanceBackground {
         sideLight.position.set(-10, 3, 0);
         this.scene.add(sideLight);
         
-        console.log('💡 Установлено многоточечное освещение для РАФика');
+        console.log('💡 Установлено многоточечное освещение для РАФ2031');
     }
 
-    loadAmbulance() {
-        console.log('📦 Загружаем РАФик из файлов: raf22031.3ds + текстуры...');
+    loadRaf() { // ИЗМЕНЕНО: loadAmbulance -> loadRaf
+        console.log('📦 Загружаем РАФ2031 из файлов: raf2031.3ds + текстуры...');
         
         // Создаем загрузчик с правильной настройкой для ВАШИХ текстур
         const loadingManager = new THREE.LoadingManager();
@@ -94,15 +94,15 @@ class SimpleAmbulanceBackground {
         loadingManager.setURLModifier((url) => {
             console.log('🔍 TDSLoader запрашивает:', url);
             
-            // Если запрашивается текстура
-            if (url.includes('raf22031') && (url.includes('.jpg') || url.includes('.JPG'))) {
-                const texturePath = './Models/raf22031.JPG';
+            // ИСПРАВЛЕНО: raf22031 -> raf2031
+            if (url.includes('raf2031') && (url.includes('.jpg') || url.includes('.JPG'))) {
+                const texturePath = './Models/raf2031.JPG';
                 console.log('🖼️ Перенаправляем на JPG текстуру:', texturePath);
                 return texturePath;
             }
             
-            if (url.includes('raf22031') && (url.includes('.bmp') || url.includes('.BMP'))) {
-                const texturePath = './Models/raf22031.bmp';
+            if (url.includes('raf2031') && (url.includes('.bmp') || url.includes('.BMP'))) {
+                const texturePath = './Models/raf2031.bmp';
                 console.log('🖼️ Перенаправляем на BMP текстуру:', texturePath);
                 return texturePath;
             }
@@ -119,7 +119,7 @@ class SimpleAmbulanceBackground {
         });
         
         loadingManager.onLoad = () => {
-            console.log('✅ ВСЕ файлы РАФика загружены!');
+            console.log('✅ ВСЕ файлы РАФ2031 загружены!');
         };
         
         loadingManager.onProgress = (url, loaded, total) => {
@@ -127,7 +127,7 @@ class SimpleAmbulanceBackground {
         };
         
         loadingManager.onError = (url) => {
-            console.error('❌ Ошибка загрузки файла РАФика:', url);
+            console.error('❌ Ошибка загрузки файла РАФ2031:', url);
         };
         
         this.loadTDSLoader()
@@ -179,23 +179,23 @@ class SimpleAmbulanceBackground {
         // Устанавливаем базовый путь к ВАШИМ файлам
         loader.setResourcePath('./Models/');
         
-        console.log('🔍 Загружаем raf22031.3ds из папки Models/...');
+        console.log('🔍 Загружаем raf2031.3ds из папки Models/...');
         
         loader.load(
-            './Models/raf22031.3ds',
+            './Models/raf2031.3ds', // ИСПРАВЛЕНО: raf22031.3ds -> raf2031.3ds
             (object) => {
-                console.log('🎉 RAF22031.3DS ЗАГРУЖЕН УСПЕШНО!');
-                console.log('📊 Объект РАФика:', object);
+                console.log('🎉 RAF2031.3DS ЗАГРУЖЕН УСПЕШНО!');
+                console.log('📊 Объект РАФ2031:', object);
                 this.setupRaf(object);
             },
             (progress) => {
                 if (progress.total > 0) {
                     const percent = (progress.loaded / progress.total * 100).toFixed(1);
-                    console.log(`⏳ Загрузка raf22031.3ds: ${percent}%`);
+                    console.log(`⏳ Загрузка raf2031.3ds: ${percent}%`);
                 }
             },
             (error) => {
-                console.error('❌ Ошибка загрузки raf22031.3ds:', error);
+                console.error('❌ Ошибка загрузки raf2031.3ds:', error);
                 console.log('🔄 Пробуем альтернативный способ - создание простого РАФика...');
                 this.createProperRaf();
             }
@@ -204,15 +204,15 @@ class SimpleAmbulanceBackground {
 
     // Новый метод - создание правильного РАФика если .3ds не работает
     createProperRaf() {
-        console.log('🔧 Создаем правильную модель РАФ-22031...');
+        console.log('🔧 Создаем правильную модель РАФ-2031...');
         
         const group = new THREE.Group();
         const textureLoader = new THREE.TextureLoader();
         
         // Загружаем текстуру
-        textureLoader.load('./Models/raf22031.JPG', 
+        textureLoader.load('./Models/raf2031.JPG', // ИСПРАВЛЕНО: raf22031.JPG -> raf2031.JPG
             (texture) => {
-                console.log('🖼️ Текстура загружена для создания РАФика');
+                console.log('🖼️ Текстура загружена для создания РАФ2031');
                 
                 texture.flipY = false;
                 texture.wrapS = THREE.RepeatWrapping;
@@ -310,20 +310,20 @@ class SimpleAmbulanceBackground {
         group.add(windshield);
         
         // Устанавливаем РАФик
-        this.ambulance = group;
-        this.ambulance.scale.set(0.8, 0.8, 0.8);
-        this.ambulance.position.y = 0;
+        this.rafModel = group; // ИЗМЕНЕНО: ambulance -> rafModel
+        this.rafModel.scale.set(0.8, 0.8, 0.8);
+        this.rafModel.position.y = 0;
         
-        this.scene.add(this.ambulance);
+        this.scene.add(this.rafModel);
         this.addRafLights();
         
-        console.log('✅ Правильный РАФ-22031 создан!');
+        console.log('✅ Правильный РАФ-2031 создан!');
     }
 
     setupRaf(object) {
-        this.ambulance = object;
+        this.rafModel = object; // ИЗМЕНЕНО: ambulance -> rafModel
         
-        console.log('🎨 Настройка РАФика с правильными текстурами...');
+        console.log('🎨 Настройка РАФ2031 с правильными текстурами...');
         
         // Автомасштабирование
         const box = new THREE.Box3().setFromObject(object);
@@ -331,21 +331,21 @@ class SimpleAmbulanceBackground {
         const maxSize = Math.max(size.x, size.y, size.z);
         const scale = 4 / maxSize;
         
-        this.ambulance.scale.setScalar(scale);
+        this.rafModel.scale.setScalar(scale);
         
         // Центрирование
         const center = box.getCenter(new THREE.Vector3());
-        this.ambulance.position.sub(center.multiplyScalar(scale));
-        this.ambulance.position.y = 0;
+        this.rafModel.position.sub(center.multiplyScalar(scale));
+        this.rafModel.position.y = 0;
         
         // ВАЖНО: правильная ориентация для РАФа
-        this.ambulance.rotation.x = 0;
-        this.ambulance.rotation.y = 0; // Попробуйте Math.PI если смотрит не туда
-        this.ambulance.rotation.z = 0;
+        this.rafModel.rotation.x = 0;
+        this.rafModel.rotation.y = 0;
+        this.rafModel.rotation.z = 0;
         
         // Обработка всех материалов с исправлением текстур
         let meshCount = 0;
-        this.ambulance.traverse((child) => {
+        this.rafModel.traverse((child) => {
             if (child.isMesh) {
                 meshCount++;
                 child.castShadow = true;
@@ -367,7 +367,7 @@ class SimpleAmbulanceBackground {
         
         // Принудительное обновление всех материалов через секунду
         setTimeout(() => {
-            this.ambulance.traverse((child) => {
+            this.rafModel.traverse((child) => {
                 if (child.isMesh && child.material) {
                     if (Array.isArray(child.material)) {
                         child.material.forEach(mat => {
@@ -383,12 +383,12 @@ class SimpleAmbulanceBackground {
             console.log('🔄 Принудительное обновление материалов выполнено');
         }, 1000);
         
-        console.log(`📊 Обработано ${meshCount} мешей РАФика`);
+        console.log(`📊 Обработано ${meshCount} мешей РАФ2031`);
         
-        this.scene.add(this.ambulance);
+        this.scene.add(this.rafModel);
         this.addRafLights();
         
-        console.log('✅ РАФ-22031 готов к показу с правильными текстурами!');
+        console.log('✅ РАФ-2031 готов к показу с правильными текстурами!');
     }
 
     enhanceRafMaterial(material, name) {
@@ -402,10 +402,10 @@ class SimpleAmbulanceBackground {
         // Пробуем загрузить текстуру синхронно
         Promise.all([
             new Promise((resolve) => {
-                textureLoader.load('./Models/raf22031.JPG', resolve, undefined, () => resolve(null));
+                textureLoader.load('./Models/raf2031.JPG', resolve, undefined, () => resolve(null)); // ИСПРАВЛЕНО
             }),
             new Promise((resolve) => {
-                textureLoader.load('./Models/raf22031.bmp', resolve, undefined, () => resolve(null));
+                textureLoader.load('./Models/raf2031.bmp', resolve, undefined, () => resolve(null)); // ИСПРАВЛЕНО
             })
         ]).then(([jpgTexture, bmpTexture]) => {
             const texture = jpgTexture || bmpTexture;
@@ -414,7 +414,7 @@ class SimpleAmbulanceBackground {
                 console.log(`🖼️ Применяем текстуру к "${name}"`);
                 
                 // ПРАВИЛЬНЫЕ настройки текстуры
-                texture.flipY = true; // Пробуем с true
+                texture.flipY = true;
                 texture.wrapS = THREE.ClampToEdgeWrapping;
                 texture.wrapT = THREE.ClampToEdgeWrapping;
                 texture.minFilter = THREE.LinearFilter;
@@ -453,11 +453,11 @@ class SimpleAmbulanceBackground {
                 if (name && typeof name === 'string') {
                     const lowerName = name.toLowerCase();
                     if (lowerName.includes('red') || lowerName.includes('краcн')) color = 0xff0000;
-                    if (lowerName.includes('blue') || lowerName.includes('син")) color = 0x0000ff;
+                    if (lowerName.includes('blue') || lowerName.includes('син')) color = 0x0000ff;
                     if (lowerName.includes('black') || lowerName.includes('черн')) color = 0x333333;
-                    if (lowerName.includes('white') || lowerName.includes('бел")) color = 0xffffff;
-                    if (lowerName.includes('body') || lowerName.includes('кузов")) color = 0xf0f0f0;
-                    if (lowerName.includes('glass') || lowerName.includes('стекло")) color = 0x87ceeb;
+                    if (lowerName.includes('white') || lowerName.includes('бел')) color = 0xffffff;
+                    if (lowerName.includes('body') || lowerName.includes('кузов')) color = 0xf0f0f0;
+                    if (lowerName.includes('glass') || lowerName.includes('стекло')) color = 0x87ceeb;
                 }
                 
                 material.color.setHex(color);
@@ -474,7 +474,7 @@ class SimpleAmbulanceBackground {
         
         // Пробуем загрузить основную текстуру РАФа
         textureLoader.load(
-            './Models/raf22031.JPG',
+            './Models/raf2031.JPG', // ИСПРАВЛЕНО: raf22031.JPG -> raf2031.JPG
             (texture) => {
                 console.log(`🖼️ Загружена JPG текстура для "${name}"`);
                 
@@ -499,7 +499,7 @@ class SimpleAmbulanceBackground {
                 
                 // Fallback на BMP
                 textureLoader.load(
-                    './Models/raf22031.bmp',
+                    './Models/raf2031.bmp', // ИСПРАВЛЕНО: raf22031.bmp -> raf2031.bmp
                     (texture) => {
                         console.log(`🖼️ Загружена BMP текстура для "${name}"`);
                         
@@ -527,7 +527,7 @@ class SimpleAmbulanceBackground {
     }
 
     addRafLights() {
-        if (!this.ambulance) return;
+        if (!this.rafModel) return; // ИЗМЕНЕНО: ambulance -> rafModel
         
         console.log('🚨 Добавляем мигалки на РАФ...');
         
@@ -545,7 +545,7 @@ class SimpleAmbulanceBackground {
             shininess: 100
         });
         
-        const box = new THREE.Box3().setFromObject(this.ambulance);
+        const box = new THREE.Box3().setFromObject(this.rafModel);
         const size = box.getSize(new THREE.Vector3());
         
         this.emergencyLights = [];
@@ -563,7 +563,7 @@ class SimpleAmbulanceBackground {
                 Math.sin(angle) * size.z * 0.2
             );
             
-            this.ambulance.add(light);
+            this.rafModel.add(light);
             this.emergencyLights.push(light);
         }
         
@@ -575,9 +575,9 @@ class SimpleAmbulanceBackground {
         
         const time = Date.now() * 0.001;
         
-        if (this.ambulance) {
+        if (this.rafModel) { // ИЗМЕНЕНО: ambulance -> rafModel
             // Легкое вращение РАФа
-            this.ambulance.rotation.y = Math.sin(time * 0.2) * 0.1;
+            this.rafModel.rotation.y = Math.sin(time * 0.2) * 0.1;
             
             // Мигание огней РАФа
             if (this.emergencyLights && this.emergencyLights.length > 0) {
@@ -600,23 +600,23 @@ class SimpleAmbulanceBackground {
 }
 
 // ПРИНУДИТЕЛЬНЫЙ автозапуск (DOM уже загружен к моменту загрузки этого скрипта)
-console.log('🚑 ПРИНУДИТЕЛЬНЫЙ запуск РАФ-22031...');
+console.log('🚑 ПРИНУДИТЕЛЬНЫЙ запуск РАФ-2031...');
 
-function forceStartAmbulance() {
+function forceStartRaf() { // ИЗМЕНЕНО: forceStartAmbulance -> forceStartRaf
     if (typeof THREE === 'undefined') {
         console.error('❌ Three.js не загружен!');
         return false;
     }
     
-    if (window.ambulanceBackground) {
+    if (window.rafBackground) { // ИЗМЕНЕНО: ambulanceBackground -> rafBackground
         console.log('⚠️ 3D РАФик уже создан');
         return true;
     }
     
     try {
         console.log('🚑 Создаем SimpleAmbulanceBackground...');
-        window.ambulanceBackground = new SimpleAmbulanceBackground();
-        console.log('✅ РАФ-22031 создан с исправленными текстурами!');
+        window.rafBackground = new SimpleAmbulanceBackground(); // ИЗМЕНЕНО: ambulanceBackground -> rafBackground
+        console.log('✅ РАФ-2031 создан с исправленными текстурами!');
         return true;
     } catch (error) {
         console.error('❌ Ошибка создания РАФа:', error);
@@ -625,28 +625,28 @@ function forceStartAmbulance() {
 }
 
 // Запускаем немедленно
-setTimeout(forceStartAmbulance, 100);
+setTimeout(forceStartRaf, 100);
 
 // Дублируем для надежности
 if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', forceStartAmbulance);
+    document.addEventListener('DOMContentLoaded', forceStartRaf);
 } else {
     // DOM уже загружен
-    setTimeout(forceStartAmbulance, 200);
+    setTimeout(forceStartRaf, 200);
 }
 
 // Третья попытка через секунду
 setTimeout(() => {
-    if (!window.ambulanceBackground) {
+    if (!window.rafBackground) { // ИЗМЕНЕНО: ambulanceBackground -> rafBackground
         console.log('🔄 Финальная попытка запуска 3D РАФика...');
-        forceStartAmbulance();
+        forceStartRaf();
     }
 }, 1000);
 
 // Адаптация под изменение размера окна
 window.addEventListener('resize', function() {
-    if (window.ambulanceBackground) {
-        const bg = window.ambulanceBackground;
+    if (window.rafBackground) { // ИЗМЕНЕНО: ambulanceBackground -> rafBackground
+        const bg = window.rafBackground;
         bg.camera.aspect = window.innerWidth / window.innerHeight;
         bg.camera.updateProjectionMatrix();
         bg.renderer.setSize(window.innerWidth, window.innerHeight);
@@ -654,10 +654,10 @@ window.addEventListener('resize', function() {
 });
 
 // Функции для отладки
-window.debugAmbulance = {
+window.debugRaf = { // ИЗМЕНЕНО: debugAmbulance -> debugRaf
     forceStart: () => {
         console.log('🔧 Принудительный запуск 3D РАФика...');
-        return forceStartAmbulance();
+        return forceStartRaf();
     },
     
     checkThreeJS: () => {
@@ -672,16 +672,16 @@ window.debugAmbulance = {
     },
     
     checkModel: () => {
-        if (window.ambulanceBackground && window.ambulanceBackground.ambulance) {
+        if (window.rafBackground && window.rafBackground.rafModel) { // ИЗМЕНЕНО
             console.log('✅ Модель РАФика загружена');
-            console.log('Позиция:', window.ambulanceBackground.ambulance.position);
-            console.log('Масштаб:', window.ambulanceBackground.ambulance.scale);
-            console.log('Поворот:', window.ambulanceBackground.ambulance.rotation);
-            console.log('Структура:', window.ambulanceBackground.ambulance);
+            console.log('Позиция:', window.rafBackground.rafModel.position);
+            console.log('Масштаб:', window.rafBackground.rafModel.scale);
+            console.log('Поворот:', window.rafBackground.rafModel.rotation);
+            console.log('Структура:', window.rafBackground.rafModel);
             
             // Информация о материалах
             let materialCount = 0;
-            window.ambulanceBackground.ambulance.traverse((child) => {
+            window.rafBackground.rafModel.traverse((child) => {
                 if (child.isMesh) {
                     materialCount++;
                     console.log(`Материал ${materialCount}:`, child.material);
@@ -692,15 +692,15 @@ window.debugAmbulance = {
             });
         } else {
             console.log('❌ Модель РАФика НЕ загружена');
-            console.log('Попробуйте: window.debugAmbulance.forceStart()');
+            console.log('Попробуйте: window.debugRaf.forceStart()');
         }
     },
     
     testPaths: () => {
         const paths = [
-            './Models/raf22031.3ds',
-            './Models/raf22031.JPG',
-            './Models/raf22031.bmp'
+            './Models/raf2031.3ds', // ИСПРАВЛЕНО: raf22031 -> raf2031
+            './Models/raf2031.JPG',  // ИСПРАВЛЕНО: raf22031 -> raf2031
+            './Models/raf2031.bmp'   // ИСПРАВЛЕНО: raf22031 -> raf2031
         ];
         
         console.log('🔍 Тестируем пути к файлам РАФика:');
@@ -720,15 +720,22 @@ window.debugAmbulance = {
     },
     
     info: () => {
-        console.log('=== ДИАГНОСТИКА РАФ-22031 ===');
-        window.debugAmbulance.checkThreeJS();
-        window.debugAmbulance.check3DSLoader();
-        window.debugAmbulance.checkModel();
-        console.log('Принудительный запуск: window.debugAmbulance.forceStart()');
-        console.log('Проверка путей: window.debugAmbulance.testPaths()');
+        console.log('=== ДИАГНОСТИКА РАФ-2031 ===');
+        window.debugRaf.checkThreeJS();
+        window.debugRaf.check3DSLoader();
+        window.debugRaf.checkModel();
+        console.log('Принудительный запуск: window.debugRaf.forceStart()');
+        console.log('Проверка путей: window.debugRaf.testPaths()');
     }
 };
 
-console.log('✅ 3D РАФ-22031 с исправленными текстурами готов к загрузке');
-console.log('🐛 Диагностика: window.debugAmbulance.info()');
-console.log('🔍 Проверка путей: window.debugAmbulance.testPaths()');
+console.log('✅ 3D РАФ-2031 с исправленными именами файлов готов к загрузке');
+console.log('🐛 Диагностика: window.debugRaf.info()');
+console.log('🔍 Проверка путей: window.debugRaf.testPaths()');
+
+// Дополнительная проверка файлов при загрузке
+console.log('🔍 ИСПРАВЛЕННЫЕ пути к файлам:');
+console.log('📦 3D модель: ./Models/raf2031.3ds');
+console.log('🖼️ JPG текстура: ./Models/raf2031.JPG');
+console.log('🖼️ BMP текстура: ./Models/raf2031.bmp');
+console.log('🔧 Дополнительный файл: ./Models/raf2031.x');
