@@ -196,9 +196,128 @@ class SimpleAmbulanceBackground {
             },
             (error) => {
                 console.error('❌ Ошибка загрузки raf22031.3ds:', error);
-                console.error('🔍 Убедитесь что файл ./Models/raf22031.3ds доступен');
+                console.log('🔄 Пробуем альтернативный способ - создание простого РАФика...');
+                this.createProperRaf();
             }
         );
+    }
+
+    // Новый метод - создание правильного РАФика если .3ds не работает
+    createProperRaf() {
+        console.log('🔧 Создаем правильную модель РАФ-22031...');
+        
+        const group = new THREE.Group();
+        const textureLoader = new THREE.TextureLoader();
+        
+        // Загружаем текстуру
+        textureLoader.load('./Models/raf22031.JPG', 
+            (texture) => {
+                console.log('🖼️ Текстура загружена для создания РАФика');
+                
+                texture.flipY = false;
+                texture.wrapS = THREE.RepeatWrapping;
+                texture.wrapT = THREE.RepeatWrapping;
+                
+                const material = new THREE.MeshPhongMaterial({
+                    map: texture,
+                    side: THREE.DoubleSide
+                });
+                
+                this.buildRafGeometry(group, material);
+            },
+            undefined,
+            () => {
+                console.log('⚠️ Текстура не загрузилась, создаем цветного РАФика');
+                const materials = {
+                    body: new THREE.MeshPhongMaterial({ color: 0xffffff, shininess: 50 }),
+                    red: new THREE.MeshPhongMaterial({ color: 0xff0000, shininess: 30 }),
+                    black: new THREE.MeshPhongMaterial({ color: 0x333333, shininess: 20 }),
+                    glass: new THREE.MeshPhongMaterial({ color: 0x87ceeb, transparent: true, opacity: 0.7 })
+                };
+                
+                this.buildRafGeometry(group, materials);
+            }
+        );
+    }
+
+    buildRafGeometry(group, materials) {
+        // Основной кузов РАФика
+        const bodyGeometry = new THREE.BoxGeometry(5, 2, 2.2);
+        const bodyMaterial = materials.body || materials;
+        const body = new THREE.Mesh(bodyGeometry, bodyMaterial);
+        body.position.y = 1;
+        group.add(body);
+        
+        // Кабина водителя
+        const cabGeometry = new THREE.BoxGeometry(2.2, 1.8, 2.2);
+        const cabMaterial = materials.body || materials;
+        const cab = new THREE.Mesh(cabGeometry, cabMaterial);
+        cab.position.set(-2, 2.4, 0);
+        group.add(cab);
+        
+        // Красные полосы (как на реальном РАФе)
+        const stripeGeometry = new THREE.BoxGeometry(4.8, 0.3, 0.05);
+        const stripeMaterial = materials.red || new THREE.MeshPhongMaterial({ color: 0xff0000 });
+        
+        // Верхняя полоса
+        const stripe1 = new THREE.Mesh(stripeGeometry, stripeMaterial);
+        stripe1.position.set(0, 1.5, 1.15);
+        group.add(stripe1);
+        
+        // Нижняя полоса
+        const stripe2 = new THREE.Mesh(stripeGeometry, stripeMaterial);
+        stripe2.position.set(0, 0.5, 1.15);
+        group.add(stripe2);
+        
+        // Полосы с другой стороны
+        const stripe3 = stripe1.clone();
+        stripe3.position.z = -1.15;
+        group.add(stripe3);
+        
+        const stripe4 = stripe2.clone();
+        stripe4.position.z = -1.15;
+        group.add(stripe4);
+        
+        // Колеса
+        const wheelGeometry = new THREE.CylinderGeometry(0.5, 0.5, 0.3, 16);
+        const wheelMaterial = materials.black || new THREE.MeshPhongMaterial({ color: 0x333333 });
+        
+        const wheelPositions = [
+            [-1.8, 0.5, -1.4],
+            [-1.8, 0.5, 1.4],
+            [1.8, 0.5, -1.4],
+            [1.8, 0.5, 1.4]
+        ];
+        
+        wheelPositions.forEach(pos => {
+            const wheel = new THREE.Mesh(wheelGeometry, wheelMaterial);
+            wheel.position.set(...pos);
+            wheel.rotation.z = Math.PI / 2;
+            group.add(wheel);
+        });
+        
+        // Стекла
+        const glassGeometry = new THREE.PlaneGeometry(1.8, 1.4);
+        const glassMaterial = materials.glass || new THREE.MeshPhongMaterial({ 
+            color: 0x87ceeb, 
+            transparent: true, 
+            opacity: 0.7 
+        });
+        
+        // Лобовое стекло
+        const windshield = new THREE.Mesh(glassGeometry, glassMaterial);
+        windshield.position.set(-2, 2.4, 1.15);
+        group.add(windshield);
+        
+        // Устанавливаем РАФик
+        this.ambulance = group;
+        this.ambulance.scale.set(0.8, 0.8, 0.8);
+        this.ambulance.position.y = 0;
+        
+        this.scene.add(this.ambulance);
+        this.addRafLights();
+        
+        console.log('✅ Правильный РАФ-22031 создан!');
     }
 
     setupRaf(object) {
@@ -275,47 +394,79 @@ class SimpleAmbulanceBackground {
     enhanceRafMaterial(material, name) {
         if (!material) return;
         
-        console.log(`🔧 Исправляем наложение текстур для "${name}":`, material);
+        console.log(`🔧 КАРДИНАЛЬНО исправляем материал "${name}":`, material);
         
-        // Базовые настройки для .3ds материалов
-        material.side = THREE.DoubleSide;
-        material.needsUpdate = true;
+        // ПРИНУДИТЕЛЬНО заменяем материал на новый с правильными настройками
+        const textureLoader = new THREE.TextureLoader();
         
-        // Если есть текстура - исправляем ее настройки
-        if (material.map) {
-            console.log('🖼️ Исправляем существующую текстуру');
+        // Пробуем загрузить текстуру синхронно
+        Promise.all([
+            new Promise((resolve) => {
+                textureLoader.load('./Models/raf22031.JPG', resolve, undefined, () => resolve(null));
+            }),
+            new Promise((resolve) => {
+                textureLoader.load('./Models/raf22031.bmp', resolve, undefined, () => resolve(null));
+            })
+        ]).then(([jpgTexture, bmpTexture]) => {
+            const texture = jpgTexture || bmpTexture;
             
-            // ВАЖНЫЕ настройки для правильного отображения .3ds текстур
-            material.map.needsUpdate = true;
-            material.map.flipY = false; // Для .3ds файлов ОБЯЗАТЕЛЬНО
-            material.map.wrapS = THREE.RepeatWrapping;
-            material.map.wrapT = THREE.RepeatWrapping;
-            
-            // Фильтрация для четкости
-            material.map.minFilter = THREE.LinearFilter;
-            material.map.magFilter = THREE.LinearFilter;
-            material.map.generateMipmaps = false; // Отключаем для лучшего результата
-            
-            // Цветовое пространство
-            material.map.colorSpace = THREE.SRGBColorSpace;
-            
-        } else {
-            console.log(`📝 Загружаем текстуру для "${name}"`);
-            this.loadRafTextureFixed(material, name);
-        }
-        
-        // Настройки материала для лучшего отображения
-        material.shininess = 30;
-        material.transparent = false;
-        material.alphaTest = 0;
-        
-        // Обеспечиваем правильные цвета
-        if (material.color) {
-            // Не меняем цвет если есть текстура
-            if (!material.map) {
-                material.color.setRGB(1, 1, 1); // Белый базовый цвет
+            if (texture) {
+                console.log(`🖼️ Применяем текстуру к "${name}"`);
+                
+                // ПРАВИЛЬНЫЕ настройки текстуры
+                texture.flipY = true; // Пробуем с true
+                texture.wrapS = THREE.ClampToEdgeWrapping;
+                texture.wrapT = THREE.ClampToEdgeWrapping;
+                texture.minFilter = THREE.LinearFilter;
+                texture.magFilter = THREE.LinearFilter;
+                texture.generateMipmaps = false;
+                
+                // Полностью заменяем материал
+                const newMaterial = new THREE.MeshPhongMaterial({
+                    map: texture,
+                    color: 0xffffff,
+                    shininess: 30,
+                    side: THREE.DoubleSide,
+                    transparent: false
+                });
+                
+                // Применяем новый материал к мешу
+                if (material.parent) {
+                    material.parent.material = newMaterial;
+                } else {
+                    // Копируем свойства в существующий материал
+                    material.map = texture;
+                    material.color.setRGB(1, 1, 1);
+                    material.shininess = 30;
+                    material.side = THREE.DoubleSide;
+                    material.transparent = false;
+                    material.needsUpdate = true;
+                }
+                
+                console.log(`✅ Новый материал применен к "${name}"`);
+            } else {
+                console.log(`⚠️ Текстуры не найдены для "${name}", используем цветной материал`);
+                
+                // Создаем цветной материал по имени меша
+                let color = 0xffffff; // Белый по умолчанию
+                
+                if (name && typeof name === 'string') {
+                    const lowerName = name.toLowerCase();
+                    if (lowerName.includes('red') || lowerName.includes('краcн')) color = 0xff0000;
+                    if (lowerName.includes('blue') || lowerName.includes('син")) color = 0x0000ff;
+                    if (lowerName.includes('black') || lowerName.includes('черн')) color = 0x333333;
+                    if (lowerName.includes('white') || lowerName.includes('бел")) color = 0xffffff;
+                    if (lowerName.includes('body') || lowerName.includes('кузов")) color = 0xf0f0f0;
+                    if (lowerName.includes('glass') || lowerName.includes('стекло")) color = 0x87ceeb;
+                }
+                
+                material.color.setHex(color);
+                material.shininess = 50;
+                material.side = THREE.DoubleSide;
+                material.transparent = false;
+                material.needsUpdate = true;
             }
-        }
+        });
     }
 
     loadRafTextureFixed(material, name) {
@@ -448,24 +599,49 @@ class SimpleAmbulanceBackground {
     }
 }
 
-// Автозапуск
-document.addEventListener('DOMContentLoaded', function() {
-    console.log('🚑 Запуск РАФ-22031 с исправленными текстурами...');
-    
+// ПРИНУДИТЕЛЬНЫЙ автозапуск (DOM уже загружен к моменту загрузки этого скрипта)
+console.log('🚑 ПРИНУДИТЕЛЬНЫЙ запуск РАФ-22031...');
+
+function forceStartAmbulance() {
     if (typeof THREE === 'undefined') {
         console.error('❌ Three.js не загружен!');
-        return;
+        return false;
     }
     
-    setTimeout(() => {
-        try {
-            window.ambulanceBackground = new SimpleAmbulanceBackground();
-            console.log('✅ РАФ-22031 создан с исправленными текстурами!');
-        } catch (error) {
-            console.error('❌ Ошибка создания РАФа:', error);
-        }
-    }, 500);
-});
+    if (window.ambulanceBackground) {
+        console.log('⚠️ 3D РАФик уже создан');
+        return true;
+    }
+    
+    try {
+        console.log('🚑 Создаем SimpleAmbulanceBackground...');
+        window.ambulanceBackground = new SimpleAmbulanceBackground();
+        console.log('✅ РАФ-22031 создан с исправленными текстурами!');
+        return true;
+    } catch (error) {
+        console.error('❌ Ошибка создания РАФа:', error);
+        return false;
+    }
+}
+
+// Запускаем немедленно
+setTimeout(forceStartAmbulance, 100);
+
+// Дублируем для надежности
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', forceStartAmbulance);
+} else {
+    // DOM уже загружен
+    setTimeout(forceStartAmbulance, 200);
+}
+
+// Третья попытка через секунду
+setTimeout(() => {
+    if (!window.ambulanceBackground) {
+        console.log('🔄 Финальная попытка запуска 3D РАФика...');
+        forceStartAmbulance();
+    }
+}, 1000);
 
 // Адаптация под изменение размера окна
 window.addEventListener('resize', function() {
@@ -479,6 +655,11 @@ window.addEventListener('resize', function() {
 
 // Функции для отладки
 window.debugAmbulance = {
+    forceStart: () => {
+        console.log('🔧 Принудительный запуск 3D РАФика...');
+        return forceStartAmbulance();
+    },
+    
     checkThreeJS: () => {
         console.log('Three.js доступен:', typeof THREE !== 'undefined');
         if (typeof THREE !== 'undefined') {
@@ -511,6 +692,7 @@ window.debugAmbulance = {
             });
         } else {
             console.log('❌ Модель РАФика НЕ загружена');
+            console.log('Попробуйте: window.debugAmbulance.forceStart()');
         }
     },
     
@@ -542,7 +724,8 @@ window.debugAmbulance = {
         window.debugAmbulance.checkThreeJS();
         window.debugAmbulance.check3DSLoader();
         window.debugAmbulance.checkModel();
-        console.log('Для проверки путей: window.debugAmbulance.testPaths()');
+        console.log('Принудительный запуск: window.debugAmbulance.forceStart()');
+        console.log('Проверка путей: window.debugAmbulance.testPaths()');
     }
 };
 
