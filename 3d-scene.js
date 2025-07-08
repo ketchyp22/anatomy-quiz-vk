@@ -195,7 +195,13 @@ class SimpleAmbulanceBackground {
         this.rafModel.position.sub(center.multiplyScalar(scale));
         this.rafModel.position.y = 0;
         
+        // ИСПРАВЛЯЕМ ОРИЕНТАЦИЮ МОДЕЛИ
+        this.rafModel.rotation.x = 0;
+        this.rafModel.rotation.y = Math.PI; // Поворачиваем на 180 градусов
+        this.rafModel.rotation.z = 0;
+        
         console.log(`📍 Позиция модели: ${this.rafModel.position.x.toFixed(2)}, ${this.rafModel.position.y.toFixed(2)}, ${this.rafModel.position.z.toFixed(2)}`);
+        console.log(`🔄 Поворот модели: ${this.rafModel.rotation.x.toFixed(2)}, ${this.rafModel.rotation.y.toFixed(2)}, ${this.rafModel.rotation.z.toFixed(2)}`);
         
         // Загружаем текстуры
         this.loadTextures();
@@ -253,24 +259,44 @@ class SimpleAmbulanceBackground {
     applyTextureToModel(texture) {
         console.log('🎨 ПРИМЕНЯЕМ ТЕКСТУРУ К МОДЕЛИ...');
         
-        // Настройки текстуры
-        texture.flipY = false;
+        // ЭКСПЕРИМЕНТАЛЬНЫЕ настройки текстуры для исправления UV
+        texture.flipY = true;  // Пробуем перевернуть
         texture.wrapS = THREE.RepeatWrapping;
         texture.wrapT = THREE.RepeatWrapping;
+        texture.repeat.set(1, 1);  // Масштаб 1:1
+        texture.offset.set(0, 0);  // Без смещения
+        texture.rotation = 0;      // Без поворота
         texture.minFilter = THREE.LinearFilter;
         texture.magFilter = THREE.LinearFilter;
+        texture.generateMipmaps = false;
+        
+        console.log('🔧 Настройки текстуры:');
+        console.log(`   flipY: ${texture.flipY}`);
+        console.log(`   repeat: ${texture.repeat.x}, ${texture.repeat.y}`);
+        console.log(`   offset: ${texture.offset.x}, ${texture.offset.y}`);
+        console.log(`   rotation: ${texture.rotation}`);
         
         // Применяем ко всем мешам
         let texturedMeshes = 0;
         this.rafModel.traverse((child) => {
             if (child.isMesh && child.material) {
+                console.log(`🔍 Обрабатываем меш: "${child.name}"`);
+                
                 if (Array.isArray(child.material)) {
-                    child.material.forEach(mat => {
+                    child.material.forEach((mat, index) => {
+                        console.log(`   Материал ${index}:`, mat);
                         mat.map = texture;
+                        mat.color.setRGB(1, 1, 1); // Белый цвет для чистой текстуры
+                        mat.transparent = false;
+                        mat.side = THREE.DoubleSide; // Двусторонний рендеринг
                         mat.needsUpdate = true;
                     });
                 } else {
+                    console.log(`   Одиночный материал:`, child.material);
                     child.material.map = texture;
+                    child.material.color.setRGB(1, 1, 1);
+                    child.material.transparent = false;
+                    child.material.side = THREE.DoubleSide;
                     child.material.needsUpdate = true;
                 }
                 texturedMeshes++;
@@ -279,6 +305,14 @@ class SimpleAmbulanceBackground {
         });
         
         console.log(`✅ Текстура применена к ${texturedMeshes} мешам`);
+        
+        // ДОПОЛНИТЕЛЬНО: пробуем разные варианты UV если выглядит плохо
+        setTimeout(() => {
+            console.log('🔄 Если текстура выглядит неправильно, попробуйте:');
+            console.log('   window.debugRaf.fixTexture("flipY") - перевернуть');
+            console.log('   window.debugRaf.fixTexture("rotate") - повернуть');
+            console.log('   window.debugRaf.fixTexture("scale") - изменить масштаб');
+        }, 2000);
     }
 
     addEmergencyLights() {
@@ -325,8 +359,8 @@ class SimpleAmbulanceBackground {
         const time = Date.now() * 0.001;
         
         if (this.rafModel) {
-            // Легкое покачивание
-            this.rafModel.rotation.y = Math.sin(time * 0.3) * 0.05;
+            // Легкое покачивание (убираем пока для отладки)
+            // this.rafModel.rotation.y = Math.PI + Math.sin(time * 0.3) * 0.05;
             
             // Мигание огней
             if (this.emergencyLights) {
@@ -337,9 +371,10 @@ class SimpleAmbulanceBackground {
             }
         }
         
-        // Движение камеры
+        // Движение камеры вокруг модели
         this.camera.position.x = 8 + Math.sin(time * 0.2) * 1;
         this.camera.position.y = 3 + Math.sin(time * 0.3) * 0.5;
+        this.camera.position.z = 8 + Math.cos(time * 0.2) * 1;
         this.camera.lookAt(0, 0, 0);
         
         this.renderer.render(this.scene, this.camera);
@@ -395,6 +430,46 @@ window.debugRaf = {
         console.log('TDSLoader:', typeof THREE?.TDSLoader !== 'undefined' ? '✅' : '❌');
         console.log('Модель загружена:', window.rafBackground?.rafModel ? '✅' : '❌');
         console.log('Проверка файлов: window.debugRaf.checkFiles()');
+    },
+    
+    // НОВАЯ ФУНКЦИЯ: исправление текстур
+    fixTexture: (mode) => {
+        if (!window.rafBackground?.rafModel) {
+            console.log('❌ Модель не загружена');
+            return;
+        }
+        
+        window.rafBackground.rafModel.traverse((child) => {
+            if (child.isMesh && child.material && child.material.map) {
+                const texture = child.material.map;
+                
+                switch(mode) {
+                    case 'flipY':
+                        texture.flipY = !texture.flipY;
+                        console.log('🔄 Переворачиваем текстуру, flipY:', texture.flipY);
+                        break;
+                    case 'rotate':
+                        texture.rotation += Math.PI / 2;
+                        console.log('🔄 Поворачиваем текстуру на 90°, rotation:', texture.rotation);
+                        break;
+                    case 'scale':
+                        texture.repeat.x = texture.repeat.x === 1 ? -1 : 1;
+                        texture.repeat.y = texture.repeat.y === 1 ? -1 : 1;
+                        console.log('🔄 Меняем масштаб текстуры, repeat:', texture.repeat.x, texture.repeat.y);
+                        break;
+                    case 'reset':
+                        texture.flipY = false;
+                        texture.rotation = 0;
+                        texture.repeat.set(1, 1);
+                        texture.offset.set(0, 0);
+                        console.log('🔄 Сброс текстуры к начальным настройкам');
+                        break;
+                }
+                
+                texture.needsUpdate = true;
+                child.material.needsUpdate = true;
+            }
+        });
     }
 };
 
