@@ -1,21 +1,21 @@
-// ПОЛНОСТЬЮ ИСПРАВЛЕННЫЙ 3d-scene.js с ПРАВИЛЬНЫМИ именами файлов
+// ТОЛЬКО ЗАГРУЗКА .3DS ФАЙЛА - НИКАКИХ РЕЗЕРВНЫХ МОДЕЛЕЙ!
 class SimpleAmbulanceBackground {
     constructor() {
         this.scene = null;
         this.camera = null;
         this.renderer = null;
-        this.rafModel = null; // ИЗМЕНЕНО: ambulance -> rafModel
+        this.rafModel = null;
         this.emergencyLights = [];
         this.init();
     }
 
     init() {
-        console.log('🚑 Загружаем РАФ2031 с ПРАВИЛЬНЫМИ именами файлов...');
+        console.log('🚑 ЗАГРУЖАЕМ ТОЛЬКО .3DS ФАЙЛ - БЕЗ АЛЬТЕРНАТИВ!');
         this.createScene();
         this.createCamera();
         this.createRenderer();
         this.createLighting();
-        this.loadRaf(); // ИЗМЕНЕНО: loadAmbulance -> loadRaf
+        this.loadOnlyRealModel();
         this.animate();
     }
 
@@ -54,520 +54,269 @@ class SimpleAmbulanceBackground {
     }
 
     createLighting() {
-        // Яркое солнечное освещение
         const sunLight = new THREE.DirectionalLight(0xffffff, 1.5);
         sunLight.position.set(10, 10, 5);
         sunLight.castShadow = true;
-        sunLight.shadow.mapSize.width = 2048;
-        sunLight.shadow.mapSize.height = 2048;
         this.scene.add(sunLight);
 
-        // Яркий окружающий свет
         const ambientLight = new THREE.AmbientLight(0xffffff, 1.0);
         this.scene.add(ambientLight);
-
-        // Дополнительная подсветка спереди
-        const frontLight = new THREE.DirectionalLight(0xffffff, 0.8);
-        frontLight.position.set(0, 5, 10);
-        this.scene.add(frontLight);
-
-        // Подсветка сзади
-        const backLight = new THREE.DirectionalLight(0xffffff, 0.6);
-        backLight.position.set(0, 5, -10);
-        this.scene.add(backLight);
-
-        // Боковая подсветка
-        const sideLight = new THREE.DirectionalLight(0xffffff, 0.4);
-        sideLight.position.set(-10, 3, 0);
-        this.scene.add(sideLight);
-        
-        console.log('💡 Установлено многоточечное освещение для РАФ2031');
     }
 
-    loadRaf() { // ИЗМЕНЕНО: loadAmbulance -> loadRaf
-        console.log('📦 Загружаем РАФ2031 из файлов: raf2031.3ds + текстуры...');
+    loadOnlyRealModel() {
+        console.log('🎯 ЗАГРУЖАЕМ ТОЛЬКО РЕАЛЬНУЮ МОДЕЛЬ raf2031.3ds');
         
-        // Создаем загрузчик с правильной настройкой для ВАШИХ текстур
-        const loadingManager = new THREE.LoadingManager();
-        
-        // Настройка для работы с ВАШИМИ конкретными файлами
-        loadingManager.setURLModifier((url) => {
-            console.log('🔍 TDSLoader запрашивает:', url);
-            
-            // ИСПРАВЛЕНО: raf22031 -> raf2031
-            if (url.includes('raf2031') && (url.includes('.jpg') || url.includes('.JPG'))) {
-                const texturePath = './Models/raf2031.JPG';
-                console.log('🖼️ Перенаправляем на JPG текстуру:', texturePath);
-                return texturePath;
-            }
-            
-            if (url.includes('raf2031') && (url.includes('.bmp') || url.includes('.BMP'))) {
-                const texturePath = './Models/raf2031.bmp';
-                console.log('🖼️ Перенаправляем на BMP текстуру:', texturePath);
-                return texturePath;
-            }
-            
-            // Общий случай - ищем в папке Models
-            if (url.match(/\.(jpg|jpeg|png|bmp|tga|dds)$/i)) {
-                const filename = url.split('/').pop().split('\\').pop();
-                const texturePath = './Models/' + filename;
-                console.log('🖼️ Общее перенаправление текстуры:', texturePath);
-                return texturePath;
-            }
-            
-            return url;
+        // Сначала убеждаемся что TDSLoader доступен
+        this.ensureTDSLoader().then(() => {
+            console.log('✅ TDSLoader готов, загружаем .3ds файл');
+            this.loadRealRaf();
+        }).catch((error) => {
+            console.error('❌ TDSLoader недоступен:', error);
+            console.error('❌ БЕЗ TDSLoader .3ds ФАЙЛ НЕ ЗАГРУЗИТСЯ!');
         });
-        
-        loadingManager.onLoad = () => {
-            console.log('✅ ВСЕ файлы РАФ2031 загружены!');
-        };
-        
-        loadingManager.onProgress = (url, loaded, total) => {
-            console.log(`⏳ Загружено ${loaded}/${total}: ${url}`);
-        };
-        
-        loadingManager.onError = (url) => {
-            console.error('❌ Ошибка загрузки файла РАФ2031:', url);
-        };
-        
-        this.loadTDSLoader()
-            .then(() => {
-                this.loadRaf3DS(loadingManager);
-            })
-            .catch((error) => {
-                console.error('❌ Не удалось загрузить TDSLoader:', error);
-            });
     }
 
-    loadTDSLoader() {
+    ensureTDSLoader() {
         return new Promise((resolve, reject) => {
+            // Если уже есть - отлично
             if (typeof THREE.TDSLoader !== 'undefined') {
                 console.log('✅ TDSLoader уже доступен');
                 resolve();
                 return;
             }
 
-            console.log('🔄 Загружаем TDSLoader для .3ds файла...');
+            console.log('🔄 Загружаем TDSLoader...');
             
             const script = document.createElement('script');
             script.src = 'https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/TDSLoader.js';
             
             script.onload = () => {
+                console.log('📦 TDSLoader скрипт загружен');
+                
+                // Ждем когда станет доступен
                 let attempts = 0;
                 const checkLoader = () => {
                     attempts++;
                     if (typeof THREE.TDSLoader !== 'undefined') {
-                        console.log('✅ TDSLoader готов для загрузки .3ds');
+                        console.log('✅ TDSLoader готов к работе');
                         resolve();
-                    } else if (attempts < 20) {
+                    } else if (attempts < 50) {
                         setTimeout(checkLoader, 100);
                     } else {
-                        reject(new Error('TDSLoader не стал доступен'));
+                        reject(new Error('TDSLoader не стал доступен после загрузки'));
                     }
                 };
                 setTimeout(checkLoader, 100);
             };
             
-            script.onerror = () => reject(new Error('Ошибка загрузки TDSLoader'));
+            script.onerror = () => {
+                reject(new Error('Не удалось загрузить TDSLoader'));
+            };
+            
             document.head.appendChild(script);
         });
     }
 
-    loadRaf3DS(loadingManager) {
-        const loader = new THREE.TDSLoader(loadingManager);
+    loadRealRaf() {
+        console.log('🚑 ЗАГРУЖАЕМ raf2031.3ds...');
         
-        // Устанавливаем базовый путь к ВАШИМ файлам
+        const loader = new THREE.TDSLoader();
+        
+        // Настройки загрузчика
         loader.setResourcePath('./Models/');
         
-        console.log('🔍 Загружаем raf2031.3ds из папки Models/...');
-        
+        // Загружаем файл
         loader.load(
-            './Models/raf2031.3ds', // ИСПРАВЛЕНО: raf22031.3ds -> raf2031.3ds
+            './Models/raf2031.3ds',
             (object) => {
-                console.log('🎉 RAF2031.3DS ЗАГРУЖЕН УСПЕШНО!');
-                console.log('📊 Объект РАФ2031:', object);
-                this.setupRaf(object);
+                console.log('🎉 RAF2031.3DS ЗАГРУЖЕН!');
+                console.log('📊 Загруженный объект:', object);
+                console.log('📊 Количество детей:', object.children.length);
+                
+                this.setupLoadedModel(object);
             },
             (progress) => {
-                if (progress.total > 0) {
+                if (progress.lengthComputable) {
                     const percent = (progress.loaded / progress.total * 100).toFixed(1);
-                    console.log(`⏳ Загрузка raf2031.3ds: ${percent}%`);
+                    console.log(`⏳ Загрузка: ${percent}%`);
+                } else {
+                    console.log(`⏳ Загружено байт: ${progress.loaded}`);
                 }
             },
             (error) => {
-                console.error('❌ Ошибка загрузки raf2031.3ds:', error);
-                console.log('🔄 Пробуем альтернативный способ - создание простого РАФика...');
-                this.createProperRaf();
+                console.error('❌ ОШИБКА ЗАГРУЗКИ .3DS ФАЙЛА:');
+                console.error('❌ Ошибка:', error);
+                console.error('❌ Проверьте:');
+                console.error('   1. Файл ./Models/raf2031.3ds существует');
+                console.error('   2. Файл не поврежден');
+                console.error('   3. Путь правильный');
+                console.error('   4. Нет CORS ошибок');
             }
         );
     }
 
-    // Новый метод - создание правильного РАФика если .3ds не работает
-    createProperRaf() {
-        console.log('🔧 Создаем правильную модель РАФ-2031...');
+    setupLoadedModel(object) {
+        console.log('🎨 НАСТРАИВАЕМ ЗАГРУЖЕННУЮ МОДЕЛЬ...');
         
-        const group = new THREE.Group();
-        const textureLoader = new THREE.TextureLoader();
+        this.rafModel = object;
         
-        // Загружаем текстуру
-        textureLoader.load('./Models/raf2031.JPG', // ИСПРАВЛЕНО: raf22031.JPG -> raf2031.JPG
-            (texture) => {
-                console.log('🖼️ Текстура загружена для создания РАФ2031');
+        // Анализируем что загрузилось
+        let meshCount = 0;
+        object.traverse((child) => {
+            if (child.isMesh) {
+                meshCount++;
+                console.log(`🔍 Меш ${meshCount}: "${child.name}"`);
+                console.log(`   Геометрия:`, child.geometry);
+                console.log(`   Материал:`, child.material);
                 
-                texture.flipY = false;
-                texture.wrapS = THREE.RepeatWrapping;
-                texture.wrapT = THREE.RepeatWrapping;
-                
-                const material = new THREE.MeshPhongMaterial({
-                    map: texture,
-                    side: THREE.DoubleSide
-                });
-                
-                this.buildRafGeometry(group, material);
-            },
-            undefined,
-            () => {
-                console.log('⚠️ Текстура не загрузилась, создаем цветного РАФика');
-                const materials = {
-                    body: new THREE.MeshPhongMaterial({ color: 0xffffff, shininess: 50 }),
-                    red: new THREE.MeshPhongMaterial({ color: 0xff0000, shininess: 30 }),
-                    black: new THREE.MeshPhongMaterial({ color: 0x333333, shininess: 20 }),
-                    glass: new THREE.MeshPhongMaterial({ color: 0x87ceeb, transparent: true, opacity: 0.7 })
-                };
-                
-                this.buildRafGeometry(group, materials);
+                // Включаем тени
+                child.castShadow = true;
+                child.receiveShadow = true;
             }
-        );
-    }
-
-    buildRafGeometry(group, materials) {
-        // Основной кузов РАФика
-        const bodyGeometry = new THREE.BoxGeometry(5, 2, 2.2);
-        const bodyMaterial = materials.body || materials;
-        const body = new THREE.Mesh(bodyGeometry, bodyMaterial);
-        body.position.y = 1;
-        group.add(body);
-        
-        // Кабина водителя
-        const cabGeometry = new THREE.BoxGeometry(2.2, 1.8, 2.2);
-        const cabMaterial = materials.body || materials;
-        const cab = new THREE.Mesh(cabGeometry, cabMaterial);
-        cab.position.set(-2, 2.4, 0);
-        group.add(cab);
-        
-        // Красные полосы (как на реальном РАФе)
-        const stripeGeometry = new THREE.BoxGeometry(4.8, 0.3, 0.05);
-        const stripeMaterial = materials.red || new THREE.MeshPhongMaterial({ color: 0xff0000 });
-        
-        // Верхняя полоса
-        const stripe1 = new THREE.Mesh(stripeGeometry, stripeMaterial);
-        stripe1.position.set(0, 1.5, 1.15);
-        group.add(stripe1);
-        
-        // Нижняя полоса
-        const stripe2 = new THREE.Mesh(stripeGeometry, stripeMaterial);
-        stripe2.position.set(0, 0.5, 1.15);
-        group.add(stripe2);
-        
-        // Полосы с другой стороны
-        const stripe3 = stripe1.clone();
-        stripe3.position.z = -1.15;
-        group.add(stripe3);
-        
-        const stripe4 = stripe2.clone();
-        stripe4.position.z = -1.15;
-        group.add(stripe4);
-        
-        // Колеса
-        const wheelGeometry = new THREE.CylinderGeometry(0.5, 0.5, 0.3, 16);
-        const wheelMaterial = materials.black || new THREE.MeshPhongMaterial({ color: 0x333333 });
-        
-        const wheelPositions = [
-            [-1.8, 0.5, -1.4],
-            [-1.8, 0.5, 1.4],
-            [1.8, 0.5, -1.4],
-            [1.8, 0.5, 1.4]
-        ];
-        
-        wheelPositions.forEach(pos => {
-            const wheel = new THREE.Mesh(wheelGeometry, wheelMaterial);
-            wheel.position.set(...pos);
-            wheel.rotation.z = Math.PI / 2;
-            group.add(wheel);
         });
         
-        // Стекла
-        const glassGeometry = new THREE.PlaneGeometry(1.8, 1.4);
-        const glassMaterial = materials.glass || new THREE.MeshPhongMaterial({ 
-            color: 0x87ceeb, 
-            transparent: true, 
-            opacity: 0.7 
-        });
+        console.log(`📊 Всего найдено мешей: ${meshCount}`);
         
-        // Лобовое стекло
-        const windshield = new THREE.Mesh(glassGeometry, glassMaterial);
-        windshield.position.set(-2, 2.4, 1.15);
-        group.add(windshield);
-        
-        // Устанавливаем РАФик
-        this.rafModel = group; // ИЗМЕНЕНО: ambulance -> rafModel
-        this.rafModel.scale.set(0.8, 0.8, 0.8);
-        this.rafModel.position.y = 0;
-        
-        this.scene.add(this.rafModel);
-        this.addRafLights();
-        
-        console.log('✅ Правильный РАФ-2031 создан!');
-    }
-
-    setupRaf(object) {
-        this.rafModel = object; // ИЗМЕНЕНО: ambulance -> rafModel
-        
-        console.log('🎨 Настройка РАФ2031 с правильными текстурами...');
-        
-        // Автомасштабирование
+        // Масштабирование и позиционирование
         const box = new THREE.Box3().setFromObject(object);
         const size = box.getSize(new THREE.Vector3());
         const maxSize = Math.max(size.x, size.y, size.z);
+        
+        console.log(`📏 Размер модели: ${size.x.toFixed(2)} x ${size.y.toFixed(2)} x ${size.z.toFixed(2)}`);
+        console.log(`📏 Максимальный размер: ${maxSize.toFixed(2)}`);
+        
+        // Масштабируем до разумного размера
         const scale = 4 / maxSize;
-        
         this.rafModel.scale.setScalar(scale);
+        console.log(`📏 Применен масштаб: ${scale.toFixed(3)}`);
         
-        // Центрирование
+        // Центрируем
         const center = box.getCenter(new THREE.Vector3());
         this.rafModel.position.sub(center.multiplyScalar(scale));
         this.rafModel.position.y = 0;
         
-        // ВАЖНО: правильная ориентация для РАФа
-        this.rafModel.rotation.x = 0;
-        this.rafModel.rotation.y = 0;
-        this.rafModel.rotation.z = 0;
+        console.log(`📍 Позиция модели: ${this.rafModel.position.x.toFixed(2)}, ${this.rafModel.position.y.toFixed(2)}, ${this.rafModel.position.z.toFixed(2)}`);
         
-        // Обработка всех материалов с исправлением текстур
-        let meshCount = 0;
-        this.rafModel.traverse((child) => {
-            if (child.isMesh) {
-                meshCount++;
-                child.castShadow = true;
-                child.receiveShadow = true;
-                
-                console.log(`🔍 Обрабатываем меш ${meshCount}: "${child.name || 'без имени'}"`);
-                
-                if (child.material) {
-                    if (Array.isArray(child.material)) {
-                        child.material.forEach((material, index) => {
-                            this.enhanceRafMaterial(material, `${child.name}_${index}`);
-                        });
-                    } else {
-                        this.enhanceRafMaterial(child.material, child.name);
-                    }
-                }
-            }
-        });
+        // Загружаем текстуры
+        this.loadTextures();
         
-        // Принудительное обновление всех материалов через секунду
-        setTimeout(() => {
-            this.rafModel.traverse((child) => {
-                if (child.isMesh && child.material) {
-                    if (Array.isArray(child.material)) {
-                        child.material.forEach(mat => {
-                            mat.needsUpdate = true;
-                            if (mat.map) mat.map.needsUpdate = true;
-                        });
-                    } else {
-                        child.material.needsUpdate = true;
-                        if (child.material.map) child.material.map.needsUpdate = true;
-                    }
-                }
-            });
-            console.log('🔄 Принудительное обновление материалов выполнено');
-        }, 1000);
-        
-        console.log(`📊 Обработано ${meshCount} мешей РАФ2031`);
-        
+        // Добавляем в сцену
         this.scene.add(this.rafModel);
-        this.addRafLights();
         
-        console.log('✅ РАФ-2031 готов к показу с правильными текстурами!');
+        // Добавляем мигалки
+        this.addEmergencyLights();
+        
+        console.log('✅ МОДЕЛЬ РАФ-2031 ГОТОВА!');
     }
 
-    enhanceRafMaterial(material, name) {
-        if (!material) return;
+    loadTextures() {
+        console.log('🖼️ ЗАГРУЖАЕМ ТЕКСТУРЫ...');
         
-        console.log(`🔧 КАРДИНАЛЬНО исправляем материал "${name}":`, material);
-        
-        // ПРИНУДИТЕЛЬНО заменяем материал на новый с правильными настройками
         const textureLoader = new THREE.TextureLoader();
         
-        // Пробуем загрузить текстуру синхронно
-        Promise.all([
-            new Promise((resolve) => {
-                textureLoader.load('./Models/raf2031.JPG', resolve, undefined, () => resolve(null)); // ИСПРАВЛЕНО
-            }),
-            new Promise((resolve) => {
-                textureLoader.load('./Models/raf2031.bmp', resolve, undefined, () => resolve(null)); // ИСПРАВЛЕНО
-            })
-        ]).then(([jpgTexture, bmpTexture]) => {
-            const texture = jpgTexture || bmpTexture;
-            
-            if (texture) {
-                console.log(`🖼️ Применяем текстуру к "${name}"`);
-                
-                // ПРАВИЛЬНЫЕ настройки текстуры
-                texture.flipY = true;
-                texture.wrapS = THREE.ClampToEdgeWrapping;
-                texture.wrapT = THREE.ClampToEdgeWrapping;
-                texture.minFilter = THREE.LinearFilter;
-                texture.magFilter = THREE.LinearFilter;
-                texture.generateMipmaps = false;
-                
-                // Полностью заменяем материал
-                const newMaterial = new THREE.MeshPhongMaterial({
-                    map: texture,
-                    color: 0xffffff,
-                    shininess: 30,
-                    side: THREE.DoubleSide,
-                    transparent: false
-                });
-                
-                // Применяем новый материал к мешу
-                if (material.parent) {
-                    material.parent.material = newMaterial;
-                } else {
-                    // Копируем свойства в существующий материал
-                    material.map = texture;
-                    material.color.setRGB(1, 1, 1);
-                    material.shininess = 30;
-                    material.side = THREE.DoubleSide;
-                    material.transparent = false;
-                    material.needsUpdate = true;
-                }
-                
-                console.log(`✅ Новый материал применен к "${name}"`);
-            } else {
-                console.log(`⚠️ Текстуры не найдены для "${name}", используем цветной материал`);
-                
-                // Создаем цветной материал по имени меша
-                let color = 0xffffff; // Белый по умолчанию
-                
-                if (name && typeof name === 'string') {
-                    const lowerName = name.toLowerCase();
-                    if (lowerName.includes('red') || lowerName.includes('краcн')) color = 0xff0000;
-                    if (lowerName.includes('blue') || lowerName.includes('син')) color = 0x0000ff;
-                    if (lowerName.includes('black') || lowerName.includes('черн')) color = 0x333333;
-                    if (lowerName.includes('white') || lowerName.includes('бел')) color = 0xffffff;
-                    if (lowerName.includes('body') || lowerName.includes('кузов')) color = 0xf0f0f0;
-                    if (lowerName.includes('glass') || lowerName.includes('стекло')) color = 0x87ceeb;
-                }
-                
-                material.color.setHex(color);
-                material.shininess = 50;
-                material.side = THREE.DoubleSide;
-                material.transparent = false;
-                material.needsUpdate = true;
-            }
-        });
-    }
-
-    loadRafTextureFixed(material, name) {
-        const textureLoader = new THREE.TextureLoader();
-        
-        // Пробуем загрузить основную текстуру РАФа
+        // Сначала пробуем JPG
         textureLoader.load(
-            './Models/raf2031.JPG', // ИСПРАВЛЕНО: raf22031.JPG -> raf2031.JPG
+            './Models/raf2031.JPG',
             (texture) => {
-                console.log(`🖼️ Загружена JPG текстура для "${name}"`);
-                
-                // ПРАВИЛЬНЫЕ настройки для .3ds текстур
-                texture.flipY = false; // КРИТИЧЕСКИ ВАЖНО для .3ds
-                texture.wrapS = THREE.RepeatWrapping;
-                texture.wrapT = THREE.RepeatWrapping;
-                texture.minFilter = THREE.LinearFilter;
-                texture.magFilter = THREE.LinearFilter;
-                texture.generateMipmaps = false;
-                texture.colorSpace = THREE.SRGBColorSpace;
-                
-                // Применяем к материалу
-                material.map = texture;
-                material.needsUpdate = true;
-                
-                console.log(`✅ Текстура применена к "${name}"`);
+                console.log('✅ Текстура raf2031.JPG загружена');
+                this.applyTextureToModel(texture);
             },
-            undefined,
+            (progress) => {
+                console.log('⏳ Загрузка текстуры JPG...');
+            },
             (error) => {
-                console.log(`⚠️ JPG не загрузилась, пробуем BMP для "${name}"`);
-                
-                // Fallback на BMP
-                textureLoader.load(
-                    './Models/raf2031.bmp', // ИСПРАВЛЕНО: raf22031.bmp -> raf2031.bmp
-                    (texture) => {
-                        console.log(`🖼️ Загружена BMP текстура для "${name}"`);
-                        
-                        // Те же настройки для BMP
-                        texture.flipY = false;
-                        texture.wrapS = THREE.RepeatWrapping;
-                        texture.wrapT = THREE.RepeatWrapping;
-                        texture.minFilter = THREE.LinearFilter;
-                        texture.magFilter = THREE.LinearFilter;
-                        texture.generateMipmaps = false;
-                        texture.colorSpace = THREE.SRGBColorSpace;
-                        
-                        material.map = texture;
-                        material.needsUpdate = true;
-                        
-                        console.log(`✅ BMP текстура применена к "${name}"`);
-                    },
-                    undefined,
-                    (error) => {
-                        console.log(`❌ Не удалось загрузить текстуры для "${name}"`);
-                    }
-                );
+                console.warn('⚠️ JPG текстура не загрузилась, пробуем BMP...');
+                this.tryLoadBMP();
             }
         );
     }
 
-    addRafLights() {
-        if (!this.rafModel) return; // ИЗМЕНЕНО: ambulance -> rafModel
+    tryLoadBMP() {
+        const textureLoader = new THREE.TextureLoader();
         
-        console.log('🚨 Добавляем мигалки на РАФ...');
+        textureLoader.load(
+            './Models/raf2031.bmp',
+            (texture) => {
+                console.log('✅ Текстура raf2031.bmp загружена');
+                this.applyTextureToModel(texture);
+            },
+            (progress) => {
+                console.log('⏳ Загрузка текстуры BMP...');
+            },
+            (error) => {
+                console.warn('⚠️ BMP текстура тоже не загрузилась');
+                console.warn('⚠️ Модель будет без текстур');
+            }
+        );
+    }
+
+    applyTextureToModel(texture) {
+        console.log('🎨 ПРИМЕНЯЕМ ТЕКСТУРУ К МОДЕЛИ...');
         
-        const lightGeometry = new THREE.SphereGeometry(0.08, 12, 12);
+        // Настройки текстуры
+        texture.flipY = false;
+        texture.wrapS = THREE.RepeatWrapping;
+        texture.wrapT = THREE.RepeatWrapping;
+        texture.minFilter = THREE.LinearFilter;
+        texture.magFilter = THREE.LinearFilter;
         
-        const blueMaterial = new THREE.MeshPhongMaterial({
-            color: 0x0066ff,
-            emissive: 0x003388,
-            shininess: 100
+        // Применяем ко всем мешам
+        let texturedMeshes = 0;
+        this.rafModel.traverse((child) => {
+            if (child.isMesh && child.material) {
+                if (Array.isArray(child.material)) {
+                    child.material.forEach(mat => {
+                        mat.map = texture;
+                        mat.needsUpdate = true;
+                    });
+                } else {
+                    child.material.map = texture;
+                    child.material.needsUpdate = true;
+                }
+                texturedMeshes++;
+                console.log(`🖼️ Текстура применена к мешу: ${child.name}`);
+            }
         });
         
-        const redMaterial = new THREE.MeshPhongMaterial({
-            color: 0xff0000,
-            emissive: 0x880000,
-            shininess: 100
+        console.log(`✅ Текстура применена к ${texturedMeshes} мешам`);
+    }
+
+    addEmergencyLights() {
+        console.log('🚨 ДОБАВЛЯЕМ МИГАЛКИ...');
+        
+        const lightGeometry = new THREE.SphereGeometry(0.1, 8, 8);
+        const blueMaterial = new THREE.MeshPhongMaterial({ 
+            color: 0x0066ff, 
+            emissive: 0x003388 
+        });
+        const redMaterial = new THREE.MeshPhongMaterial({ 
+            color: 0xff0000, 
+            emissive: 0x660000 
         });
         
+        // Получаем размеры модели для размещения мигалок
         const box = new THREE.Box3().setFromObject(this.rafModel);
         const size = box.getSize(new THREE.Vector3());
         
         this.emergencyLights = [];
         
-        // Мигалки на крыше РАФа
-        for (let i = 0; i < 6; i++) {
-            const isBlue = i % 2 === 0;
-            const material = isBlue ? blueMaterial.clone() : redMaterial.clone();
+        // Добавляем мигалки на крышу
+        for (let i = 0; i < 4; i++) {
+            const material = i % 2 === 0 ? blueMaterial.clone() : redMaterial.clone();
             const light = new THREE.Mesh(lightGeometry, material);
             
-            const angle = (i / 6) * Math.PI * 2;
+            const angle = (i / 4) * Math.PI * 2;
             light.position.set(
-                Math.cos(angle) * size.x * 0.2,
-                size.y * 0.8,
-                Math.sin(angle) * size.z * 0.2
+                Math.cos(angle) * size.x * 0.3,
+                size.y * 1.2,
+                Math.sin(angle) * size.z * 0.3
             );
             
             this.rafModel.add(light);
             this.emergencyLights.push(light);
         }
         
-        console.log('🚨 Мигалки РАФа добавлены');
+        console.log(`🚨 Добавлено ${this.emergencyLights.length} мигалок`);
     }
 
     animate() {
@@ -575,167 +324,80 @@ class SimpleAmbulanceBackground {
         
         const time = Date.now() * 0.001;
         
-        if (this.rafModel) { // ИЗМЕНЕНО: ambulance -> rafModel
-            // Легкое вращение РАФа
-            this.rafModel.rotation.y = Math.sin(time * 0.2) * 0.1;
+        if (this.rafModel) {
+            // Легкое покачивание
+            this.rafModel.rotation.y = Math.sin(time * 0.3) * 0.05;
             
-            // Мигание огней РАФа
-            if (this.emergencyLights && this.emergencyLights.length > 0) {
+            // Мигание огней
+            if (this.emergencyLights) {
                 this.emergencyLights.forEach((light, index) => {
-                    if (light.material) {
-                        const intensity = Math.sin(time * 8 + index * Math.PI) > 0 ? 0.8 : 0.1;
-                        light.material.emissive.setScalar(intensity * 0.5);
-                    }
+                    const intensity = Math.sin(time * 6 + index * Math.PI) > 0 ? 1 : 0.1;
+                    light.material.emissive.multiplyScalar(intensity);
                 });
             }
         }
         
-        // Движение камеры вокруг РАФа
-        this.camera.position.x = 8 + Math.sin(time * 0.3) * 0.5;
-        this.camera.position.y = 3 + Math.sin(time * 0.4) * 0.2;
+        // Движение камеры
+        this.camera.position.x = 8 + Math.sin(time * 0.2) * 1;
+        this.camera.position.y = 3 + Math.sin(time * 0.3) * 0.5;
         this.camera.lookAt(0, 0, 0);
         
         this.renderer.render(this.scene, this.camera);
     }
 }
 
-// ПРИНУДИТЕЛЬНЫЙ автозапуск (DOM уже загружен к моменту загрузки этого скрипта)
-console.log('🚑 ПРИНУДИТЕЛЬНЫЙ запуск РАФ-2031...');
+// АВТОЗАПУСК
+console.log('🚑 ЗАПУСК ТОЛЬКО РЕАЛЬНОЙ МОДЕЛИ РАФ-2031');
 
-function forceStartRaf() { // ИЗМЕНЕНО: forceStartAmbulance -> forceStartRaf
+function startRealRaf() {
     if (typeof THREE === 'undefined') {
         console.error('❌ Three.js не загружен!');
         return false;
     }
     
-    if (window.rafBackground) { // ИЗМЕНЕНО: ambulanceBackground -> rafBackground
-        console.log('⚠️ 3D РАФик уже создан');
+    if (window.rafBackground) {
+        console.log('⚠️ РАФ уже создан');
         return true;
     }
     
     try {
-        console.log('🚑 Создаем SimpleAmbulanceBackground...');
-        window.rafBackground = new SimpleAmbulanceBackground(); // ИЗМЕНЕНО: ambulanceBackground -> rafBackground
-        console.log('✅ РАФ-2031 создан с исправленными текстурами!');
+        window.rafBackground = new SimpleAmbulanceBackground();
+        console.log('✅ Система загрузки РАФ-2031 запущена');
         return true;
     } catch (error) {
-        console.error('❌ Ошибка создания РАФа:', error);
+        console.error('❌ Ошибка запуска:', error);
         return false;
     }
 }
 
-// Запускаем немедленно
-setTimeout(forceStartRaf, 100);
+// Запускаем
+setTimeout(startRealRaf, 100);
 
-// Дублируем для надежности
-if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', forceStartRaf);
-} else {
-    // DOM уже загружен
-    setTimeout(forceStartRaf, 200);
-}
-
-// Третья попытка через секунду
-setTimeout(() => {
-    if (!window.rafBackground) { // ИЗМЕНЕНО: ambulanceBackground -> rafBackground
-        console.log('🔄 Финальная попытка запуска 3D РАФика...');
-        forceStartRaf();
-    }
-}, 1000);
-
-// Адаптация под изменение размера окна
-window.addEventListener('resize', function() {
-    if (window.rafBackground) { // ИЗМЕНЕНО: ambulanceBackground -> rafBackground
-        const bg = window.rafBackground;
-        bg.camera.aspect = window.innerWidth / window.innerHeight;
-        bg.camera.updateProjectionMatrix();
-        bg.renderer.setSize(window.innerWidth, window.innerHeight);
-    }
-});
-
-// Функции для отладки
-window.debugRaf = { // ИЗМЕНЕНО: debugAmbulance -> debugRaf
-    forceStart: () => {
-        console.log('🔧 Принудительный запуск 3D РАФика...');
-        return forceStartRaf();
-    },
+// Функции отладки
+window.debugRaf = {
+    start: startRealRaf,
     
-    checkThreeJS: () => {
-        console.log('Three.js доступен:', typeof THREE !== 'undefined');
-        if (typeof THREE !== 'undefined') {
-            console.log('Версия Three.js:', THREE.REVISION);
+    checkFiles: async () => {
+        const files = ['./Models/raf2031.3ds', './Models/raf2031.JPG', './Models/raf2031.bmp'];
+        for (const file of files) {
+            try {
+                const response = await fetch(file, { method: 'HEAD' });
+                console.log(`${response.ok ? '✅' : '❌'} ${file} - ${response.status}`);
+            } catch (error) {
+                console.log(`❌ ${file} - Ошибка: ${error.message}`);
+            }
         }
-    },
-    
-    check3DSLoader: () => {
-        console.log('3DSLoader доступен:', typeof THREE !== 'undefined' && typeof THREE.TDSLoader !== 'undefined');
-    },
-    
-    checkModel: () => {
-        if (window.rafBackground && window.rafBackground.rafModel) { // ИЗМЕНЕНО
-            console.log('✅ Модель РАФика загружена');
-            console.log('Позиция:', window.rafBackground.rafModel.position);
-            console.log('Масштаб:', window.rafBackground.rafModel.scale);
-            console.log('Поворот:', window.rafBackground.rafModel.rotation);
-            console.log('Структура:', window.rafBackground.rafModel);
-            
-            // Информация о материалах
-            let materialCount = 0;
-            window.rafBackground.rafModel.traverse((child) => {
-                if (child.isMesh) {
-                    materialCount++;
-                    console.log(`Материал ${materialCount}:`, child.material);
-                    if (child.material && child.material.map) {
-                        console.log(`Текстура ${materialCount}:`, child.material.map);
-                    }
-                }
-            });
-        } else {
-            console.log('❌ Модель РАФика НЕ загружена');
-            console.log('Попробуйте: window.debugRaf.forceStart()');
-        }
-    },
-    
-    testPaths: () => {
-        const paths = [
-            './Models/raf2031.3ds', // ИСПРАВЛЕНО: raf22031 -> raf2031
-            './Models/raf2031.JPG',  // ИСПРАВЛЕНО: raf22031 -> raf2031
-            './Models/raf2031.bmp'   // ИСПРАВЛЕНО: raf22031 -> raf2031
-        ];
-        
-        console.log('🔍 Тестируем пути к файлам РАФика:');
-        paths.forEach(path => {
-            fetch(path, { method: 'HEAD' })
-                .then(response => {
-                    if (response.ok) {
-                        console.log(`✅ ${path} - ДОСТУПЕН`);
-                    } else {
-                        console.log(`❌ ${path} - НЕ ДОСТУПЕН (${response.status})`);
-                    }
-                })
-                .catch(() => {
-                    console.log(`❌ ${path} - ОШИБКА ДОСТУПА`);
-                });
-        });
     },
     
     info: () => {
         console.log('=== ДИАГНОСТИКА РАФ-2031 ===');
-        window.debugRaf.checkThreeJS();
-        window.debugRaf.check3DSLoader();
-        window.debugRaf.checkModel();
-        console.log('Принудительный запуск: window.debugRaf.forceStart()');
-        console.log('Проверка путей: window.debugRaf.testPaths()');
+        console.log('Three.js:', typeof THREE !== 'undefined' ? '✅' : '❌');
+        console.log('TDSLoader:', typeof THREE?.TDSLoader !== 'undefined' ? '✅' : '❌');
+        console.log('Модель загружена:', window.rafBackground?.rafModel ? '✅' : '❌');
+        console.log('Проверка файлов: window.debugRaf.checkFiles()');
     }
 };
 
-console.log('✅ 3D РАФ-2031 с исправленными именами файлов готов к загрузке');
-console.log('🐛 Диагностика: window.debugRaf.info()');
-console.log('🔍 Проверка путей: window.debugRaf.testPaths()');
-
-// Дополнительная проверка файлов при загрузке
-console.log('🔍 ИСПРАВЛЕННЫЕ пути к файлам:');
-console.log('📦 3D модель: ./Models/raf2031.3ds');
-console.log('🖼️ JPG текстура: ./Models/raf2031.JPG');
-console.log('🖼️ BMP текстура: ./Models/raf2031.bmp');
-console.log('🔧 Дополнительный файл: ./Models/raf2031.x');
+console.log('✅ Код загружен - ТОЛЬКО .3DS ФАЙЛ!');
+console.log('🔧 Диагностика: window.debugRaf.info()');
+console.log('📁 Проверка файлов: window.debugRaf.checkFiles()');
