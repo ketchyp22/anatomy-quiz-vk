@@ -127,7 +127,7 @@ class SimpleAmbulanceBackground {
         
         // Загружаем файл
         loader.load(
-            './Models/raf2031.3ds',
+            './Models/raf22031.3ds',
             (object) => {
                 console.log('🎉 RAF2031.3DS ЗАГРУЖЕН!');
                 console.log('📊 Загруженный объект:', object);
@@ -216,7 +216,7 @@ class SimpleAmbulanceBackground {
         
         // Сначала пробуем JPG
         textureLoader.load(
-            './Models/raf2031.JPG',
+            './Models/raf22031.JPG',
             (texture) => {
                 console.log('✅ Текстура raf2031.JPG загружена');
                 this.applyTextureToModel(texture);
@@ -235,7 +235,7 @@ class SimpleAmbulanceBackground {
         const textureLoader = new THREE.TextureLoader();
         
         textureLoader.load(
-            './Models/raf2031.bmp',
+            './Models/raf22031.bmp',
             (texture) => {
                 console.log('✅ Текстура raf2031.bmp загружена');
                 this.applyTextureToModel(texture);
@@ -378,7 +378,7 @@ window.debugRaf = {
     start: startRealRaf,
     
     checkFiles: async () => {
-        const files = ['./Models/raf2031.3ds', './Models/raf2031.JPG', './Models/raf2031.bmp'];
+        const files = ['./Models/raf22031.3ds', './Models/raf22031.JPG', './Models/raf22031.bmp'];
         for (const file of files) {
             try {
                 const response = await fetch(file, { method: 'HEAD' });
