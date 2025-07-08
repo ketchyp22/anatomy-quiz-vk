@@ -13,15 +13,6 @@
     <link rel="stylesheet" href="gamification.css">
     <link rel="stylesheet" href="hints-system.css">
     
-    <!-- VK Bridge -->
-    <script src="https://unpkg.com/@vkontakte/vk-bridge/dist/browser.min.js"></script>
-    
-    <!-- Three.js для 3D РАФика -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
-    
-    <!-- FBX Loader для загрузки РАФика -->
-    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/FBXLoader.js"></script>
-    
     <!-- Метаданные -->
     <meta property="og:title" content="MedQuiz Pro – проверь свои медицинские знания!">
     <meta property="og:description" content="Современный медицинский квиз с 3D РАФиком на фоне. Анатомия, клиника, фармакология, первая помощь, акушерство и ЭКСПЕРТНЫЙ уровень!">
@@ -203,9 +194,42 @@
         </div>
     </div>
 
-    <!-- ==================== СКРИПТЫ ==================== -->
+    <!-- ==================== СКРИПТЫ В ПРАВИЛЬНОМ ПОРЯДКЕ ==================== -->
     
-    <!-- Конфигурация приложения -->
+    <!-- 1. VK Bridge (уже подключен в head) -->
+    <script src="https://unpkg.com/@vkontakte/vk-bridge/dist/browser.min.js"></script>
+    
+    <!-- 2. Three.js - ОСНОВНАЯ БИБЛИОТЕКА -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    
+    <!-- 3. ПРАВИЛЬНЫЙ загрузчик для .3ds файлов (НЕ FBX!) -->
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/TDSLoader.js"></script>
+    
+    <!-- 4. Проверка загрузки Three.js -->
+    <script>
+        console.log('🔍 Проверяем загрузку Three.js...');
+        if (typeof THREE !== 'undefined') {
+            console.log('✅ Three.js загружен, версия:', THREE.REVISION);
+        } else {
+            console.error('❌ Three.js НЕ загружен!');
+        }
+        
+        // Ждем загрузки TDSLoader
+        let tdsLoaderCheckAttempts = 0;
+        const checkTDSLoader = () => {
+            tdsLoaderCheckAttempts++;
+            if (typeof THREE !== 'undefined' && typeof THREE.TDSLoader !== 'undefined') {
+                console.log('✅ TDSLoader готов для .3ds файлов');
+            } else if (tdsLoaderCheckAttempts < 10) {
+                setTimeout(checkTDSLoader, 200);
+            } else {
+                console.warn('⚠️ TDSLoader не загрузился, будет загружен позже в 3d-scene.js');
+            }
+        };
+        setTimeout(checkTDSLoader, 100);
+    </script>
+    
+    <!-- 5. Конфигурация приложения -->
     <script>
         // Описания режимов квиза
         window.modeDescriptions = {
@@ -222,59 +246,97 @@
         window.currentQuizMode = 'anatomy';
         window.currentDifficulty = 'easy';
         
-        console.log('🚑 MedQuiz Pro загружается с 3D РАФиком...');
+        console.log('🚑 MedQuiz Pro загружается с исправленным 3D РАФиком...');
     </script>
     
-    <!-- Основные скрипты приложения -->
+    <!-- 6. Основные скрипты приложения -->
     <script src="questions.js"></script>
     <script src="app.js"></script>
     
-    <!-- Исправление отображения пользователя -->
+    <!-- 7. Исправление отображения пользователя -->
     <script src="user-fix.js"></script>
     
-    <!-- Дополнительные наборы вопросов -->
+    <!-- 8. Дополнительные наборы вопросов -->
     <script src="first-aid-questions.js"></script>
     <script src="first-aid-hard-questions.js"></script>
     <script src="obstetrics-questions.js"></script>
     <script src="obstetrics-hard-questions.js"></script>
     
-    <!-- Экспертный пак вопросов -->
+    <!-- 9. Экспертный пак вопросов -->
     <script src="expert-questions.js"></script>
     
-    <!-- Система геймификации -->
+    <!-- 10. Система геймификации -->
     <script src="gamification.js"></script>
     
-    <!-- Система подсказок -->
+    <!-- 11. Система подсказок -->
     <script src="hints-system.js"></script>
     
-    <!-- Правильное решение шеринга для VK -->
+    <!-- 12. Правильное решение шеринга для VK -->
     <script src="vk-share-correct.js"></script>
     
-    <!-- 3D ФОН С РАФИКОМ - ГЛАВНАЯ ФИШКА -->
-    <script src="3d-scene.js"></script>
+    <!-- 13. 3D ФОН С РАФИКОМ - ЗАГРУЖАЕТСЯ ПОСЛЕДНИМ С ПРОВЕРКАМИ -->
+    <script>
+        // Функция безопасной загрузки 3D сцены
+        function safeLoad3DScene() {
+            console.log('🚑 Подготовка к загрузке 3D РАФика...');
+            
+            // Проверяем все необходимые компоненты
+            if (typeof THREE === 'undefined') {
+                console.error('❌ Three.js не загружен - 3D сцена отключена');
+                return false;
+            }
+            
+            console.log('✅ Three.js готов, версия:', THREE.REVISION);
+            
+            // Загружаем 3D сцену
+            const script = document.createElement('script');
+            script.src = '3d-scene.js';
+            script.onload = () => {
+                console.log('✅ 3d-scene.js загружен');
+            };
+            script.onerror = () => {
+                console.error('❌ Ошибка загрузки 3d-scene.js');
+            };
+            document.head.appendChild(script);
+            
+            return true;
+        }
+        
+        // Запускаем загрузку 3D сцены после полной загрузки страницы
+        window.addEventListener('load', function() {
+            console.log('📱 Страница полностью загружена');
+            
+            // Даем время на инициализацию других скриптов
+            setTimeout(() => {
+                const loaded = safeLoad3DScene();
+                if (loaded) {
+                    console.log('🎉 Запуск 3D РАФика инициирован');
+                } else {
+                    console.log('🚫 3D РАФик отключен из-за проблем с Three.js');
+                }
+            }, 1000);
+        });
+    </script>
     
-    <!-- Финальная инициализация -->
+    <!-- 14. Финальная инициализация -->
     <script>
         window.addEventListener('load', function() {
-            console.log('🎉 MedQuiz Pro полностью загружен с 3D РАФиком');
+            console.log('🎉 MedQuiz Pro полностью загружен');
             
-            // Проверяем ключевые компоненты
-            const status = {
-                threeJS: typeof THREE !== 'undefined' ? '✅ Загружен' : '❌ Не загружен',
-                fbxLoader: typeof THREE !== 'undefined' && typeof THREE.FBXLoader !== 'undefined' ? '✅ Загружен' : '❌ Не загружен',
-                questions: window.questions ? `${window.questions.length} вопросов` : '❌ Не загружены',
-                expertQuestions: window.questions ? `${window.questions.filter(q => q.mode === 'expert').length} экспертных` : '❌ Не загружены',
-                gamification: window.Gamification ? '✅ Загружена' : '❌ Не загружена',
-                hintsSystem: window.HintsSystem ? '✅ Загружена' : '❌ Не загружена'
-            };
-            
-            console.log('📋 Статус компонентов:', status);
-            
-            if (typeof THREE !== 'undefined' && typeof THREE.FBXLoader !== 'undefined') {
-                console.log('🚑 3D движок и FBX загрузчик готовы к работе!');
-            } else {
-                console.error('❌ Проблемы с 3D компонентами');
-            }
+            // Финальная проверка ключевых компонентов
+            setTimeout(() => {
+                const status = {
+                    threeJS: typeof THREE !== 'undefined' ? '✅ Загружен' : '❌ Не загружен',
+                    tdsLoader: typeof THREE !== 'undefined' && typeof THREE.TDSLoader !== 'undefined' ? '✅ Готов' : '⚠️ Будет загружен позже',
+                    questions: window.questions ? `${window.questions.length} вопросов` : '❌ Не загружены',
+                    expertQuestions: window.questions ? `${window.questions.filter(q => q.mode === 'expert').length} экспертных` : '❌ Не загружены',
+                    gamification: window.Gamification ? '✅ Загружена' : '❌ Не загружена',
+                    hintsSystem: window.HintsSystem ? '✅ Загружена' : '❌ Не загружена',
+                    ambulanceBackground: window.ambulanceBackground ? '✅ 3D РАФик готов' : '⏳ 3D РАФик загружается...'
+                };
+                
+                console.log('📋 Финальный статус компонентов:', status);
+            }, 2000);
         });
     </script>
 </body>
