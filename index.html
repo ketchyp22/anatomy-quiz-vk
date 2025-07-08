@@ -19,6 +19,9 @@
     <!-- Three.js для 3D -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     
+    <!-- FBX Loader для загрузки модели РАФика -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/examples/js/loaders/FBXLoader.js"></script>
+    
     <!-- Метаданные для социальных сетей -->
     <meta property="og:title" content="MedQuiz Pro – проверь свои медицинские знания!">
     <meta property="og:description" content="Современный медицинский квиз с 3D графикой. Анатомия, клиника, фармакология, первая помощь, акушерство и ЭКСПЕРТНЫЙ уровень!">
@@ -219,7 +222,7 @@
         window.currentQuizMode = 'anatomy';
         window.currentDifficulty = 'easy';
         
-        console.log('🚀 MedQuiz Pro загружается с 3D графикой...');
+        console.log('🚑 MedQuiz Pro загружается с 3D РАФиком...');
     </script>
     
     <!-- Основные скрипты приложения -->
@@ -247,17 +250,18 @@
     <!-- Правильное решение шеринга для VK -->
     <script src="vk-share-correct.js"></script>
     
-    <!-- 3D СЦЕНА - ГЛАВНАЯ ФИШКА -->
+    <!-- 3D ФОН С РАФИКОМ - ГЛАВНАЯ ФИШКА -->
     <script src="3d-scene.js"></script>
     
     <!-- Финальная инициализация -->
     <script>
         window.addEventListener('load', function() {
-            console.log('🎉 MedQuiz Pro полностью загружен с 3D графикой');
+            console.log('🎉 MedQuiz Pro полностью загружен с 3D РАФиком');
             
             // Проверяем ключевые компоненты
             const status = {
                 threeJS: typeof THREE !== 'undefined' ? '✅ Загружен' : '❌ Не загружен',
+                fbxLoader: typeof THREE.FBXLoader !== 'undefined' ? '✅ Загружен' : '❌ Не загружен',
                 questions: window.questions ? `${window.questions.length} вопросов` : '❌ Не загружены',
                 expertQuestions: window.questions ? `${window.questions.filter(q => q.mode === 'expert').length} экспертных` : '❌ Не загружены',
                 gamification: window.Gamification ? '✅ Загружена' : '❌ Не загружена',
@@ -266,10 +270,10 @@
             
             console.log('📋 Статус компонентов:', status);
             
-            if (typeof THREE !== 'undefined') {
-                console.log('🎬 3D движок готов к работе!');
+            if (typeof THREE !== 'undefined' && typeof THREE.FBXLoader !== 'undefined') {
+                console.log('🚑 3D движок и FBX загрузчик готовы к работе!');
             } else {
-                console.error('❌ 3D движок не загружен - проверьте подключение Three.js');
+                console.error('❌ Проблемы с 3D компонентами');
             }
         });
     </script>
