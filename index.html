@@ -16,15 +16,15 @@
     <!-- VK Bridge -->
     <script src="https://unpkg.com/@vkontakte/vk-bridge/dist/browser.min.js"></script>
     
-    <!-- Three.js для 3D -->
+    <!-- Three.js для 3D РАФика -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     
-    <!-- FBX Loader для загрузки модели РАФика -->
+    <!-- FBX Loader для загрузки РАФика -->
     <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/FBXLoader.js"></script>
     
-    <!-- Метаданные для социальных сетей -->
+    <!-- Метаданные -->
     <meta property="og:title" content="MedQuiz Pro – проверь свои медицинские знания!">
-    <meta property="og:description" content="Современный медицинский квиз с 3D графикой. Анатомия, клиника, фармакология, первая помощь, акушерство и ЭКСПЕРТНЫЙ уровень!">
+    <meta property="og:description" content="Современный медицинский квиз с 3D РАФиком на фоне. Анатомия, клиника, фармакология, первая помощь, акушерство и ЭКСПЕРТНЫЙ уровень!">
     <meta property="og:image" content="https://vk.com/images/camera_100.png">
     <meta name="theme-color" content="#667eea">
     <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>👨‍⚕️</text></svg>">
@@ -261,7 +261,7 @@
             // Проверяем ключевые компоненты
             const status = {
                 threeJS: typeof THREE !== 'undefined' ? '✅ Загружен' : '❌ Не загружен',
-                fbxLoader: typeof THREE.FBXLoader !== 'undefined' ? '✅ Загружен' : '❌ Не загружен',
+                fbxLoader: typeof THREE !== 'undefined' && typeof THREE.FBXLoader !== 'undefined' ? '✅ Загружен' : '❌ Не загружен',
                 questions: window.questions ? `${window.questions.length} вопросов` : '❌ Не загружены',
                 expertQuestions: window.questions ? `${window.questions.filter(q => q.mode === 'expert').length} экспертных` : '❌ Не загружены',
                 gamification: window.Gamification ? '✅ Загружена' : '❌ Не загружена',
