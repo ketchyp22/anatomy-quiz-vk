@@ -1,4 +1,4 @@
-// ИСПРАВЛЕННЫЙ 3d-scene.js - без синтаксических ошибок
+// ИСПРАВЛЕННЫЙ 3d-scene.js - загружаем ОРИГИНАЛЬНЫЙ .3ds файл
 
 class SimpleAmbulanceBackground {
     constructor() {
@@ -11,7 +11,7 @@ class SimpleAmbulanceBackground {
     }
 
     init() {
-        console.log('🚑 Создаем простой фон с РАФиком...');
+        console.log('🚑 Создаем фон с ОРИГИНАЛЬНЫМ .3ds РАФиком...');
         this.createScene();
         this.createCamera();
         this.createRenderer();
@@ -96,26 +96,42 @@ class SimpleAmbulanceBackground {
     }
 
     loadAmbulance() {
-        console.log('📦 Загружаем вашу модель РАФика со всеми текстурами...');
+        console.log('📦 Загружаем ОРИГИНАЛЬНЫЙ .3ds РАФик со всеми текстурами...');
         
         // ВАЖНО: Устанавливаем путь к текстурам ПЕРЕД загрузкой
         const loadingManager = new THREE.LoadingManager();
+        
+        // Обработчик для всех типов файлов
         loadingManager.setURLModifier((url) => {
-            // Если это текстура, ищем её в папке Models
-            if (url.match(/\.(jpg|jpeg|png|bmp|tga|dds|exr|hdr)$/i)) {
-                console.log('🖼️ Загружаем текстуру:', url);
-                // Если путь относительный, добавляем Models/
-                if (!url.startsWith('http') && !url.startsWith('/') && !url.includes('Models/')) {
-                    return './Models/' + url.split('/').pop();
-                }
+            console.log('🔍 Запрос файла:', url);
+            
+            // Если это текстура или дополнительный файл
+            if (url.match(/\.(jpg|jpeg|png|bmp|tga|dds|exr|hdr|mtl|mat)$/i)) {
+                console.log('📁 Перенаправляем текстуру в Models/:', url);
+                // Получаем только имя файла
+                const filename = url.split('/').pop().split('\\').pop();
+                return './Models/' + filename;
             }
             return url;
         });
         
-        // Загружаем FBXLoader ПРАВИЛЬНО
-        this.loadFBXLoader()
+        // Событие при успешной загрузке всех ресурсов
+        loadingManager.onLoad = () => {
+            console.log('✅ Все ресурсы загружены!');
+        };
+        
+        loadingManager.onProgress = (url, loaded, total) => {
+            console.log(`⏳ Загружено ${loaded}/${total}: ${url}`);
+        };
+        
+        loadingManager.onError = (url) => {
+            console.error('❌ Ошибка загрузки:', url);
+        };
+        
+        // Загружаем 3DSLoader
+        this.load3DSLoader()
             .then(() => {
-                console.log('✅ FBXLoader загружен, пробуем модель со всеми текстурами...');
+                console.log('✅ 3DSLoader загружен, пробуем ОРИГИНАЛЬНУЮ модель...');
                 return this.loadAmbulanceModel(loadingManager);
             })
             .catch((error) => {
@@ -124,36 +140,36 @@ class SimpleAmbulanceBackground {
             });
     }
 
-    loadFBXLoader() {
+    load3DSLoader() {
         return new Promise((resolve, reject) => {
-            // Проверяем, загружен ли уже FBXLoader
-            if (typeof THREE.FBXLoader !== 'undefined') {
-                console.log('✅ FBXLoader уже доступен');
+            // Проверяем, загружен ли уже 3DSLoader
+            if (typeof THREE.TDSLoader !== 'undefined') {
+                console.log('✅ 3DSLoader уже доступен');
                 resolve();
                 return;
             }
 
-            console.log('🔄 Загружаем FBXLoader...');
+            console.log('🔄 Загружаем 3DSLoader для .3ds файлов...');
             
-            // Загружаем скрипт FBXLoader
+            // Загружаем скрипт 3DSLoader
             const script = document.createElement('script');
-            script.src = 'https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/FBXLoader.js';
+            script.src = 'https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/TDSLoader.js';
             
             script.onload = () => {
-                console.log('✅ FBXLoader скрипт загружен');
+                console.log('✅ 3DSLoader скрипт загружен');
                 
-                // Ждем, пока FBXLoader станет доступен
+                // Ждем, пока 3DSLoader станет доступен
                 let attempts = 0;
                 const checkLoader = () => {
                     attempts++;
-                    if (typeof THREE.FBXLoader !== 'undefined') {
-                        console.log('✅ FBXLoader готов к использованию');
+                    if (typeof THREE.TDSLoader !== 'undefined') {
+                        console.log('✅ 3DSLoader готов к использованию');
                         resolve();
                     } else if (attempts < 20) {
                         setTimeout(checkLoader, 100);
                     } else {
-                        console.error('❌ FBXLoader не стал доступен за 2 секунды');
-                        reject(new Error('FBXLoader не загрузился'));
+                        console.error('❌ 3DSLoader не стал доступен за 2 секунды');
+                        reject(new Error('3DSLoader не загрузился'));
                     }
                 };
                 
@@ -161,8 +177,8 @@ class SimpleAmbulanceBackground {
             };
             
             script.onerror = () => {
-                console.error('❌ Ошибка загрузки FBXLoader скрипта');
-                reject(new Error('Не удалось загрузить FBXLoader'));
+                console.error('❌ Ошибка загрузки 3DSLoader скрипта');
+                reject(new Error('Не удалось загрузить 3DSLoader'));
             };
             
             document.head.appendChild(script);
@@ -171,16 +187,14 @@ class SimpleAmbulanceBackground {
 
     loadAmbulanceModel(loadingManager) {
         return new Promise((resolve, reject) => {
-            const loader = new THREE.FBXLoader(loadingManager);
+            const loader = new THREE.TDSLoader(loadingManager);
             
-            // ИСПРАВЛЕННЫЕ пути к файлу
+            // Пути к ОРИГИНАЛЬНОМУ .3ds файлу
             const possiblePaths = [
-                './Models/raf22031.fbx',        // Точное имя файла
-                './Models/Ambulance.fbx',       // Если переименован
-                './models/raf22031.fbx',        // Строчными буквами
-                './Models/raf22031',            // Без расширения
-                'Models/raf22031.fbx',          // Без точки в начале
-                'models/raf22031.fbx'           // Строчными без точки
+                './Models/raf22031.3ds',        // Точное имя файла
+                './models/raf22031.3ds',        // Строчными буквами
+                'Models/raf22031.3ds',          // Без точки в начале
+                'models/raf22031.3ds'           // Строчными без точки
             ];
             
             this.tryLoadModel(loader, possiblePaths, 0, resolve, reject);
@@ -189,15 +203,13 @@ class SimpleAmbulanceBackground {
 
     tryLoadModel(loader, paths, index, resolve, reject) {
         if (index >= paths.length) {
-            console.error('❌ МОДЕЛЬ РАФИКА НЕ НАЙДЕНА! Проверьте:');
-            console.error('1. Файл существует в папке Models/ или models/');
-            console.error('2. Правильно ли назван файл (Ambulance.fbx)');
+            console.error('❌ ОРИГИНАЛЬНАЯ МОДЕЛЬ РАФИКА НЕ НАЙДЕНА! Проверьте:');
+            console.error('1. Файл raf22031.3ds существует в папке Models/');
+            console.error('2. Правильно ли назван файл');
             console.error('3. Доступен ли файл через веб-сервер');
-            console.error('4. Нет ли проблем с CORS');
             
-            // ВАЖНО: НЕ создаем fallback!
             console.log('🚫 Fallback модель ОТКЛЮЧЕНА - показываем только чистый фон');
-            reject(new Error('Модель не найдена'));
+            reject(new Error('Оригинальная модель не найдена'));
             return;
         }
 
@@ -208,17 +220,18 @@ class SimpleAmbulanceBackground {
             currentPath,
             
             // Успешная загрузка
-            (fbx) => {
-                console.log(`🚑 РАФИК НАЙДЕН И ЗАГРУЖЕН! Путь: ${currentPath}`);
-                this.setupAmbulance(fbx);
-                resolve(fbx);
+            (object) => {
+                console.log(`🚑 ОРИГИНАЛЬНЫЙ РАФИК НАЙДЕН И ЗАГРУЖЕН! Путь: ${currentPath}`);
+                console.log('📊 Структура модели:', object);
+                this.setupAmbulance(object);
+                resolve(object);
             },
             
             // Прогресс загрузки
             (progress) => {
                 if (progress.total > 0) {
                     const percent = (progress.loaded / progress.total * 100).toFixed(1);
-                    console.log(`⏳ Загрузка РАФика: ${percent}%`);
+                    console.log(`⏳ Загрузка оригинального РАФика: ${percent}%`);
                 }
             },
             
@@ -231,13 +244,13 @@ class SimpleAmbulanceBackground {
         );
     }
 
-    setupAmbulance(fbx) {
-        this.ambulance = fbx;
+    setupAmbulance(object) {
+        this.ambulance = object;
         
-        console.log('🎨 Настраиваем РАФик с оригинальными текстурами...');
+        console.log('🎨 Настраиваем ОРИГИНАЛЬНЫЙ РАФик с родными текстурами...');
         
         // Автоматическое масштабирование
-        const box = new THREE.Box3().setFromObject(fbx);
+        const box = new THREE.Box3().setFromObject(object);
         const size = box.getSize(new THREE.Vector3());
         const maxSize = Math.max(size.x, size.y, size.z);
         const scale = 3 / maxSize;
@@ -249,29 +262,29 @@ class SimpleAmbulanceBackground {
         this.ambulance.position.sub(center.multiplyScalar(scale));
         this.ambulance.position.y = 0;
         
-        // Обрабатываем материалы - СОХРАНЯЕМ ОРИГИНАЛЬНЫЕ ТЕКСТУРЫ!
+        // Обрабатываем материалы - СОХРАНЯЕМ ВСЕ ОРИГИНАЛЬНОЕ!
         this.ambulance.traverse((child) => {
             if (child.isMesh) {
                 child.castShadow = true;
                 child.receiveShadow = true;
                 
-                console.log(`🔍 Обрабатываем меш: "${child.name}"`);
+                console.log(`🔍 Обрабатываем меш: "${child.name || 'без имени'}"`);
+                console.log(`📐 Материал:`, child.material);
                 
                 if (child.material) {
                     if (Array.isArray(child.material)) {
                         child.material.forEach((material, index) => {
-                            console.log(`📐 Материал ${index}:`, material.name || 'без имени');
-                            this.enhanceOriginalMaterial(material);
+                            console.log(`📐 Материал ${index}:`, material);
+                            this.enhanceOriginalMaterial(material, child.name);
                         });
                     } else {
-                        console.log(`📐 Материал:`, child.material.name || 'без имени');
-                        this.enhanceOriginalMaterial(child.material);
+                        this.enhanceOriginalMaterial(child.material, child.name);
                     }
                 } else {
-                    // Только если материала вообще нет
-                    console.log(`⚠️ Нет материала для "${child.name}", создаем белый`);
+                    // Создаем базовый материал только если его вообще нет
+                    console.log(`⚠️ Нет материала для "${child.name || 'меш'}", создаем базовый`);
                     child.material = new THREE.MeshPhongMaterial({
-                        color: 0xffffff,
+                        color: 0xcccccc,
                         shininess: 30,
                         side: THREE.DoubleSide
                     });
@@ -285,55 +298,61 @@ class SimpleAmbulanceBackground {
         // Добавляем мигающие огни
         this.addSimpleLights();
         
-        console.log('🎉 РАФик готов с оригинальными текстурами!');
+        console.log('🎉 ОРИГИНАЛЬНЫЙ РАФик готов с родными материалами!');
     }
     
-    // Функция улучшения ОРИГИНАЛЬНЫХ материалов (НЕ заменяем!)
-    enhanceOriginalMaterial(material) {
+    // Функция МИНИМАЛЬНОГО улучшения оригинальных материалов
+    enhanceOriginalMaterial(material, meshName) {
         if (!material) return;
         
-        // Улучшаем рендеринг
+        console.log(`🔧 Улучшаем материал для "${meshName || 'меш'}":`, material);
+        
+        // Базовые улучшения рендеринга
         material.side = THREE.DoubleSide;
         material.shadowSide = THREE.DoubleSide;
         material.needsUpdate = true;
         
-        // Если есть карта диффузного цвета (основная текстура)
+        // Проверяем текстуры
         if (material.map) {
-            console.log('🖼️ Найдена основная текстура:', material.map.image?.src || 'загружается...');
+            console.log('🖼️ Основная текстура найдена:', material.map);
             material.map.needsUpdate = true;
+            material.map.flipY = false; // Для .3ds файлов часто нужно
             
-            // Улучшаем фильтрацию текстур
+            // Улучшаем качество текстур
             material.map.minFilter = THREE.LinearMipMapLinearFilter;
             material.map.magFilter = THREE.LinearFilter;
             material.map.generateMipmaps = true;
+        } else {
+            console.log('📝 Нет основной текстуры, используем цвет материала');
         }
         
-        // Если есть карта нормалей
+        // Карта нормалей
         if (material.normalMap) {
-            console.log('🗺️ Найдена карта нормалей');
+            console.log('🗺️ Карта нормалей найдена');
             material.normalMap.needsUpdate = true;
+            material.normalMap.flipY = false;
         }
         
-        // Если есть карта отражений
+        // Карта отражений  
         if (material.envMap) {
-            console.log('✨ Найдена карта отражений');
+            console.log('✨ Карта отражений найдена');
         }
         
         // Настраиваем освещение
         if (material.shininess !== undefined) {
-            material.shininess = Math.max(material.shininess, 10); // Минимальный блеск
+            material.shininess = Math.max(material.shininess, 10);
         }
         
-        // Если материал слишком темный и НЕТ текстуры - осветляем
+        // ТОЛЬКО если материал СОВСЕМ черный и нет текстуры - слегка осветляем
         if (!material.map && material.color) {
             const brightness = material.color.r + material.color.g + material.color.b;
-            if (brightness < 0.3) {
-                console.log('💡 Осветляем темный материал без текстуры');
-                material.color.multiplyScalar(2); // Удваиваем яркость
+            if (brightness < 0.1) {
+                console.log('💡 Слегка осветляем черный материал без текстуры');
+                material.color.setRGB(0.3, 0.3, 0.3); // Темно-серый вместо черного
             }
         }
         
-        console.log(`✅ Материал улучшен: цвет=${material.color?.getHexString() || 'нет'}, текстура=${!!material.map}`);
+        console.log(`✅ Материал готов: цвет=${material.color?.getHexString() || 'нет'}, текстура=${!!material.map}`);
     }
 
     addSimpleLights() {
@@ -380,7 +399,7 @@ class SimpleAmbulanceBackground {
             this.emergencyLights.push(light);
         }
         
-        console.log('🚨 Добавлены яркие мигающие огни на РАФик');
+        console.log('🚨 Добавлены яркие мигающие огни на оригинальный РАФик');
     }
 
     animate() {
@@ -414,7 +433,7 @@ class SimpleAmbulanceBackground {
 
 // Автоматический запуск с диагностикой
 document.addEventListener('DOMContentLoaded', function() {
-    console.log('🚑 Инициализация фона с РАФиком...');
+    console.log('🚑 Инициализация фона с ОРИГИНАЛЬНЫМ .3ds РАФиком...');
     
     // Проверяем доступность Three.js
     if (typeof THREE === 'undefined') {
@@ -427,7 +446,7 @@ document.addEventListener('DOMContentLoaded', function() {
     setTimeout(() => {
         try {
             window.ambulanceBackground = new SimpleAmbulanceBackground();
-            console.log('✅ Фон с РАФиком создан!');
+            console.log('✅ Фон с ОРИГИНАЛЬНЫМ РАФиком создан!');
         } catch (error) {
             console.error('❌ Ошибка создания фона:', error);
         }
@@ -453,15 +472,16 @@ window.debugAmbulance = {
         }
     },
     
-    checkFBXLoader: () => {
-        console.log('FBXLoader доступен:', typeof THREE !== 'undefined' && typeof THREE.FBXLoader !== 'undefined');
+    check3DSLoader: () => {
+        console.log('3DSLoader доступен:', typeof THREE !== 'undefined' && typeof THREE.TDSLoader !== 'undefined');
     },
     
     checkModel: () => {
         if (window.ambulanceBackground && window.ambulanceBackground.ambulance) {
-            console.log('✅ Модель РАФика загружена');
+            console.log('✅ ОРИГИНАЛЬНАЯ модель РАФика загружена');
             console.log('Позиция:', window.ambulanceBackground.ambulance.position);
             console.log('Масштаб:', window.ambulanceBackground.ambulance.scale);
+            console.log('Структура:', window.ambulanceBackground.ambulance);
         } else {
             console.log('❌ Модель РАФика НЕ загружена');
         }
@@ -469,13 +489,13 @@ window.debugAmbulance = {
     
     testPaths: () => {
         const paths = [
-            './Models/Ambulance.fbx',
-            './models/Ambulance.fbx',
-            'Models/Ambulance.fbx',
-            'models/Ambulance.fbx'
+            './Models/raf22031.3ds',
+            './models/raf22031.3ds', 
+            'Models/raf22031.3ds',
+            'models/raf22031.3ds'
         ];
         
-        console.log('🔍 Тестируем пути к модели:');
+        console.log('🔍 Тестируем пути к ОРИГИНАЛЬНОЙ модели:');
         paths.forEach(path => {
             fetch(path, { method: 'HEAD' })
                 .then(response => {
@@ -492,14 +512,14 @@ window.debugAmbulance = {
     },
     
     info: () => {
-        console.log('=== ДИАГНОСТИКА 3D ФОНА ===');
+        console.log('=== ДИАГНОСТИКА ОРИГИНАЛЬНОГО 3D ФОНА ===');
         window.debugAmbulance.checkThreeJS();
-        window.debugAmbulance.checkFBXLoader();
+        window.debugAmbulance.check3DSLoader();
         window.debugAmbulance.checkModel();
         console.log('Для проверки путей: window.debugAmbulance.testPaths()');
     }
 };
 
-console.log('✅ Исправленный 3D фон загружен БЕЗ синтаксических ошибок');
+console.log('✅ 3D фон с ОРИГИНАЛЬНЫМ .3ds файлом загружен');
 console.log('🐛 Диагностика: window.debugAmbulance.info()');
 console.log('🔍 Проверка путей: window.debugAmbulance.testPaths()');
