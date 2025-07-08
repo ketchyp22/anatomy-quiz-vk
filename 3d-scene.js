@@ -70,37 +70,57 @@ class SimpleAmbulanceBackground {
     }
 
     createLighting() {
-        // Мягкий солнечный свет
-        const sunLight = new THREE.DirectionalLight(0xffffff, 1);
+        // Яркий солнечный свет
+        const sunLight = new THREE.DirectionalLight(0xffffff, 1.2);
         sunLight.position.set(10, 10, 5);
         sunLight.castShadow = true;
         sunLight.shadow.mapSize.width = 2048;
         sunLight.shadow.mapSize.height = 2048;
         this.scene.add(sunLight);
 
-        // Мягкий окружающий свет
-        const ambientLight = new THREE.AmbientLight(0x404080, 0.6);
+        // Яркий окружающий свет
+        const ambientLight = new THREE.AmbientLight(0xffffff, 0.8);
         this.scene.add(ambientLight);
 
+        // Дополнительная подсветка спереди
+        const frontLight = new THREE.DirectionalLight(0xffffff, 0.6);
+        frontLight.position.set(0, 5, 10);
+        this.scene.add(frontLight);
+
         // Легкая подсветка снизу
-        const fillLight = new THREE.DirectionalLight(0x8080ff, 0.3);
+        const fillLight = new THREE.DirectionalLight(0xffffff, 0.4);
         fillLight.position.set(-5, -5, 5);
         this.scene.add(fillLight);
+        
+        console.log('💡 Установлено яркое освещение для лучшей видимости');
     }
 
     loadAmbulance() {
-        console.log('📦 Загружаем вашу модель РАФика...');
+        console.log('📦 Загружаем вашу модель РАФика со всеми текстурами...');
+        
+        // ВАЖНО: Устанавливаем путь к текстурам ПЕРЕД загрузкой
+        const loadingManager = new THREE.LoadingManager();
+        loadingManager.setURLModifier((url) => {
+            // Если это текстура, ищем её в папке Models
+            if (url.match(/\.(jpg|jpeg|png|bmp|tga|dds|exr|hdr)$/i)) {
+                console.log('🖼️ Загружаем текстуру:', url);
+                // Если путь относительный, добавляем Models/
+                if (!url.startsWith('http') && !url.startsWith('/') && !url.includes('Models/')) {
+                    return './Models/' + url.split('/').pop();
+                }
+            }
+            return url;
+        });
         
         // Загружаем FBXLoader ПРАВИЛЬНО
         this.loadFBXLoader()
             .then(() => {
-                console.log('✅ FBXLoader загружен, пробуем модель...');
-                return this.loadAmbulanceModel();
+                console.log('✅ FBXLoader загружен, пробуем модель со всеми текстурами...');
+                return this.loadAmbulanceModel(loadingManager);
             })
             .catch((error) => {
                 console.error('❌ Критическая ошибка загрузки:', error);
                 console.log('🚫 FALLBACK ОТКЛЮЧЕН - показываем только чистый фон');
-                // НЕ создаем fallback модель!
             });
     }
 
@@ -149,18 +169,18 @@ class SimpleAmbulanceBackground {
         });
     }
 
-    loadAmbulanceModel() {
+    loadAmbulanceModel(loadingManager) {
         return new Promise((resolve, reject) => {
-            const loader = new THREE.FBXLoader();
+            const loader = new THREE.FBXLoader(loadingManager);
             
             // ИСПРАВЛЕННЫЕ пути к файлу
             const possiblePaths = [
-                './Models/Ambulance.fbx',      // Относительный путь от корня
-                './models/Ambulance.fbx',      // Строчными буквами
-                'Models/Ambulance.fbx',        // Без точки в начале
-                'models/Ambulance.fbx',        // Строчными без точки
-                './assets/Models/Ambulance.fbx', // В папке assets
-                './assets/models/ambulance.fbx'  // Все строчными в assets
+                './Models/raf22031.fbx',        // Точное имя файла
+                './Models/Ambulance.fbx',       // Если переименован
+                './models/raf22031.fbx',        // Строчными буквами
+                './Models/raf22031',            // Без расширения
+                'Models/raf22031.fbx',          // Без точки в начале
+                'models/raf22031.fbx'           // Строчными без точки
             ];
             
             this.tryLoadModel(loader, possiblePaths, 0, resolve, reject);
@@ -214,38 +234,47 @@ class SimpleAmbulanceBackground {
     setupAmbulance(fbx) {
         this.ambulance = fbx;
         
+        console.log('🎨 Настраиваем РАФик с оригинальными текстурами...');
+        
         // Автоматическое масштабирование
         const box = new THREE.Box3().setFromObject(fbx);
         const size = box.getSize(new THREE.Vector3());
         const maxSize = Math.max(size.x, size.y, size.z);
-        const scale = 3 / maxSize; // Нормализуем до размера ~3 единицы
+        const scale = 3 / maxSize;
         
         this.ambulance.scale.setScalar(scale);
         
         // Центрирование модели
         const center = box.getCenter(new THREE.Vector3());
         this.ambulance.position.sub(center.multiplyScalar(scale));
-        
-        // Поднимаем над "землей"
         this.ambulance.position.y = 0;
         
-        // Настройка материалов и теней
+        // Обрабатываем материалы - СОХРАНЯЕМ ОРИГИНАЛЬНЫЕ ТЕКСТУРЫ!
         this.ambulance.traverse((child) => {
             if (child.isMesh) {
                 child.castShadow = true;
                 child.receiveShadow = true;
                 
-                // Улучшаем материалы
+                console.log(`🔍 Обрабатываем меш: "${child.name}"`);
+                
                 if (child.material) {
                     if (Array.isArray(child.material)) {
-                        child.material.forEach(material => {
-                            material.side = THREE.DoubleSide;
-                            material.shadowSide = THREE.DoubleSide;
+                        child.material.forEach((material, index) => {
+                            console.log(`📐 Материал ${index}:`, material.name || 'без имени');
+                            this.enhanceOriginalMaterial(material);
                         });
                     } else {
-                        child.material.side = THREE.DoubleSide;
-                        child.material.shadowSide = THREE.DoubleSide;
+                        console.log(`📐 Материал:`, child.material.name || 'без имени');
+                        this.enhanceOriginalMaterial(child.material);
                     }
+                } else {
+                    // Только если материала вообще нет
+                    console.log(`⚠️ Нет материала для "${child.name}", создаем белый`);
+                    child.material = new THREE.MeshPhongMaterial({
+                        color: 0xffffff,
+                        shininess: 30,
+                        side: THREE.DoubleSide
+                    });
                 }
             }
         });
@@ -253,20 +282,78 @@ class SimpleAmbulanceBackground {
         // Добавляем в сцену
         this.scene.add(this.ambulance);
         
-        // Добавляем простые мигающие огни
+        // Добавляем мигающие огни
         this.addSimpleLights();
         
-        console.log('🎉 РАФик готов к работе!');
+        console.log('🎉 РАФик готов с оригинальными текстурами!');
+    }
+    
+    // Функция улучшения ОРИГИНАЛЬНЫХ материалов (НЕ заменяем!)
+    enhanceOriginalMaterial(material) {
+        if (!material) return;
+        
+        // Улучшаем рендеринг
+        material.side = THREE.DoubleSide;
+        material.shadowSide = THREE.DoubleSide;
+        material.needsUpdate = true;
+        
+        // Если есть карта диффузного цвета (основная текстура)
+        if (material.map) {
+            console.log('🖼️ Найдена основная текстура:', material.map.image?.src || 'загружается...');
+            material.map.needsUpdate = true;
+            
+            // Улучшаем фильтрацию текстур
+            material.map.minFilter = THREE.LinearMipMapLinearFilter;
+            material.map.magFilter = THREE.LinearFilter;
+            material.map.generateMipmaps = true;
+        }
+        
+        // Если есть карта нормалей
+        if (material.normalMap) {
+            console.log('🗺️ Найдена карта нормалей');
+            material.normalMap.needsUpdate = true;
+        }
+        
+        // Если есть карта отражений
+        if (material.envMap) {
+            console.log('✨ Найдена карта отражений');
+        }
+        
+        // Настраиваем освещение
+        if (material.shininess !== undefined) {
+            material.shininess = Math.max(material.shininess, 10); // Минимальный блеск
+        }
+        
+        // Если материал слишком темный и НЕТ текстуры - осветляем
+        if (!material.map && material.color) {
+            const brightness = material.color.r + material.color.g + material.color.b;
+            if (brightness < 0.3) {
+                console.log('💡 Осветляем темный материал без текстуры');
+                material.color.multiplyScalar(2); // Удваиваем яркость
+            }
+        }
+        
+        console.log(`✅ Материал улучшен: цвет=${material.color?.getHexString() || 'нет'}, текстура=${!!material.map}`);
     }
 
     addSimpleLights() {
         if (!this.ambulance) return;
         
-        // Простые мигающие огни
-        const lightGeometry = new THREE.SphereGeometry(0.05, 8, 8);
+        // Яркие мигающие огни
+        const lightGeometry = new THREE.SphereGeometry(0.08, 12, 12);
+        
+        // Синие мигалки
         const blueMaterial = new THREE.MeshPhongMaterial({
             color: 0x0066ff,
-            emissive: 0x003388
+            emissive: 0x003388,
+            shininess: 100
+        });
+        
+        // Красные мигалки  
+        const redMaterial = new THREE.MeshPhongMaterial({
+            color: 0xff0000,
+            emissive: 0x880000,
+            shininess: 100
         });
         
         // Позиции огней (адаптируем под модель)
@@ -276,16 +363,24 @@ class SimpleAmbulanceBackground {
         this.emergencyLights = [];
         
         // Огни на крыше
-        for (let i = 0; i < 4; i++) {
-            const light = new THREE.Mesh(lightGeometry, blueMaterial.clone());
+        for (let i = 0; i < 6; i++) {
+            const isBlue = i % 2 === 0;
+            const material = isBlue ? blueMaterial.clone() : redMaterial.clone();
+            const light = new THREE.Mesh(lightGeometry, material);
+            
+            // Расположение огней по кругу на крыше
+            const angle = (i / 6) * Math.PI * 2;
             light.position.set(
-                (i % 2 - 0.5) * size.x * 0.3,
-                size.y * 0.9,
-                (Math.floor(i / 2) - 0.5) * size.z * 0.3
+                Math.cos(angle) * size.x * 0.2,
+                size.y * 0.8,
+                Math.sin(angle) * size.z * 0.2
             );
+            
             this.ambulance.add(light);
             this.emergencyLights.push(light);
         }
+        
+        console.log('🚨 Добавлены яркие мигающие огни на РАФик');
     }
 
     animate() {
