@@ -1,58 +1,4 @@
-createFallbackAmbulance() {
-        console.log('🎨 Создаем КРАСИВЫЙ градиентный фон без 3D...');
-        
-        // УБИРАЕМ ВЕСЬ 3D КОНТЕЙНЕР
-        const container = document.getElementById('threejs-container');
-        if (container) {
-            container.remove();
-        }
-        
-        // Создаем красивый CSS фон
-        const backgroundDiv = document.createElement('div');
-        backgroundDiv.id = 'beautiful-background';
-        backgroundDiv.style.cssText = `
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            z-index: -1;
-            background: linear-gradient(135deg, 
-                #667eea 0%, 
-                #764ba2 25%, 
-                #f093fb 50%, 
-                #f5576c 75%, 
-                #4facfe 100%);
-            background-size: 400% 400%;
-            animation: gradientShift 15s ease infinite;
-        `;
-        
-        document.body.appendChild(backgroundDiv);
-        
-        // Добавляем CSS анимацию
-        if (!document.getElementById('background-animation')) {
-            const style = document.createElement('style');
-            style.id = 'background-animation';
-            style.textContent = `
-                @keyframes gradientShift {
-                    0% { background-position: 0% 50%; }
-                    50% { background-position: 100% 50%; }
-                    100% { background-position: 0% 50%; }
-                }
-                
-                #beautiful-background::before {
-                    content: '';
-                    position: absolute;
-                    top: 0;
-                    left: 0;
-                    right: 0;
-                    bottom: 0;
-                    background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><pattern id="grid" width="10" height="10" patternUnits="userSpaceOnUse"><path d="M 10 0 L 0 0 0 10" fill="none" stroke="rgba(255,255,255,0.1)" stroke-width="0.5"/></pattern></defs><rect width="100" height="100" fill="url(%23grid)"/></svg>');
-                    opacity: 0.3;
-                }
-            `;
-            document.head.appendChil// ЗАМЕНИТЕ ВЕСЬ 3d-scene.js ЭТИМ ПРОСТЫМ КОДОМ
-// Чистый фон только с вашим РАФиком
+// ИСПРАВЛЕННЫЙ 3d-scene.js - убираем кубическое говно и правильно загружаем РАФик
 
 class SimpleAmbulanceBackground {
     constructor() {
@@ -60,6 +6,7 @@ class SimpleAmbulanceBackground {
         this.camera = null;
         this.renderer = null;
         this.ambulance = null;
+        this.emergencyLights = [];
         this.init();
     }
 
@@ -144,93 +91,124 @@ class SimpleAmbulanceBackground {
     loadAmbulance() {
         console.log('📦 Загружаем вашу модель РАФика...');
         
-        // Динамическая загрузка FBXLoader если не подключен
-        if (typeof THREE.FBXLoader === 'undefined') {
-            console.log('🔄 Загружаем FBXLoader динамически...');
-            this.loadFBXLoaderScript().then(() => {
-                this.loadAmbulanceModel();
-            }).catch((error) => {
-                console.error('❌ Не удалось загрузить FBXLoader:', error);
-                console.log('🔄 Создаем запасную модель...');
-                this.createFallbackAmbulance();
+        // КРИТИЧЕСКОЕ ИСПРАВЛЕНИЕ: Загружаем FBXLoader ПРАВИЛЬНО
+        this.loadFBXLoader()
+            .then(() => {
+                console.log('✅ FBXLoader загружен, пробуем модель...');
+                return this.loadAmbulanceModel();
+            })
+            .catch((error) => {
+                console.error('❌ Критическая ошибка загрузки:', error);
+                console.log('🚫 FALLBACK ОТКЛЮЧЕН - показываем только чистый фон');
+                // НЕ создаем fallback модель!
             });
-        } else {
-            console.log('✅ FBXLoader уже подключен');
-            this.loadAmbulanceModel();
-        }
     }
 
-    loadFBXLoaderScript() {
+    loadFBXLoader() {
         return new Promise((resolve, reject) => {
+            // Проверяем, загружен ли уже FBXLoader
+            if (typeof THREE.FBXLoader !== 'undefined') {
+                console.log('✅ FBXLoader уже доступен');
+                resolve();
+                return;
+            }
+
+            console.log('🔄 Загружаем FBXLoader...');
+            
+            // Загружаем скрипт FBXLoader
             const script = document.createElement('script');
             script.src = 'https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/FBXLoader.js';
+            
             script.onload = () => {
-                console.log('✅ FBXLoader загружен динамически');
-                resolve();
+                console.log('✅ FBXLoader скрипт загружен');
+                
+                // Ждем, пока FBXLoader станет доступен
+                let attempts = 0;
+                const checkLoader = () => {
+                    attempts++;
+                    if (typeof THREE.FBXLoader !== 'undefined') {
+                        console.log('✅ FBXLoader готов к использованию');
+                        resolve();
+                    } else if (attempts < 20) {
+                        setTimeout(checkLoader, 100);
+                    } else {
+                        console.error('❌ FBXLoader не стал доступен за 2 секунды');
+                        reject(new Error('FBXLoader не загрузился'));
+                    }
+                };
+                
+                setTimeout(checkLoader, 100);
             };
+            
             script.onerror = () => {
-                console.error('❌ Ошибка загрузки FBXLoader');
-                reject();
+                console.error('❌ Ошибка загрузки FBXLoader скрипта');
+                reject(new Error('Не удалось загрузить FBXLoader'));
             };
+            
             document.head.appendChild(script);
         });
     }
 
     loadAmbulanceModel() {
-        const loader = new THREE.FBXLoader();
-        
-        // Попробуем разные пути к файлу
-        const possiblePaths = [
-            'Models/Ambulance.fbx',
-            'models/Ambulance.fbx', 
-            'models/ambulance.fbx',
-            'Models/ambulance.fbx'
-        ];
-        
-        this.tryLoadModel(loader, possiblePaths, 0);
+        return new Promise((resolve, reject) => {
+            const loader = new THREE.FBXLoader();
+            
+            // ИСПРАВЛЕННЫЕ пути к файлу
+            const possiblePaths = [
+                './Models/Ambulance.fbx',      // Относительный путь от корня
+                './models/Ambulance.fbx',      // Строчными буквами
+                'Models/Ambulance.fbx',        // Без точки в начале
+                'models/Ambulance.fbx',        // Строчными без точки
+                './assets/Models/Ambulance.fbx', // В папке assets
+                './assets/models/ambulance.fbx'  // Все строчными в assets
+            ];
+            
+            this.tryLoadModel(loader, possiblePaths, 0, resolve, reject);
+        });
     }
 
-    tryLoadModel(loader, paths, index) {
+    tryLoadModel(loader, paths, index, resolve, reject) {
         if (index >= paths.length) {
-            console.error('❌ НЕ УДАЛОСЬ НАЙТИ РАФИК! Проверьте:');
-            console.error('1. Файл Models/Ambulance.fbx существует?');
-            console.error('2. Правильно ли назван файл?');
-            console.error('3. Доступен ли файл через браузер?');
+            console.error('❌ МОДЕЛЬ РАФИКА НЕ НАЙДЕНА! Проверьте:');
+            console.error('1. Файл существует в папке Models/ или models/');
+            console.error('2. Правильно ли назван файл (Ambulance.fbx)');
+            console.error('3. Доступен ли файл через веб-сервер');
+            console.error('4. Нет ли проблем с CORS');
             
-            // НИКАКОГО FALLBACK! Просто пустой фон
-            console.log('🚫 Fallback отключен - показываем только чистый фон');
+            // ВАЖНО: НЕ создаем fallback!
+            console.log('🚫 Fallback модель ОТКЛЮЧЕНА - показываем только чистый фон');
+            reject(new Error('Модель не найдена'));
             return;
         }
 
         const currentPath = paths[index];
-        console.log(`🔍 Пробуем загрузить РАФик: ${currentPath}`);
+        console.log(`🔍 Попытка ${index + 1}/${paths.length}: ${currentPath}`);
         
-        loader.load(currentPath, 
+        loader.load(
+            currentPath,
+            
+            // Успешная загрузка
             (fbx) => {
                 console.log(`🚑 РАФИК НАЙДЕН И ЗАГРУЖЕН! Путь: ${currentPath}`);
                 this.setupAmbulance(fbx);
+                resolve(fbx);
             },
+            
+            // Прогресс загрузки
             (progress) => {
                 if (progress.total > 0) {
                     const percent = (progress.loaded / progress.total * 100).toFixed(1);
                     console.log(`⏳ Загрузка РАФика: ${percent}%`);
                 }
             },
+            
+            // Ошибка загрузки
             (error) => {
-                console.warn(`⚠️ РАФик не найден в ${currentPath}: ${error.message}`);
+                console.warn(`⚠️ Путь ${currentPath} не работает:`, error.message);
                 // Пробуем следующий путь
-                this.tryLoadModel(loader, paths, index + 1);
+                this.tryLoadModel(loader, paths, index + 1, resolve, reject);
             }
         );
-    }
-
-    createFallbackAmbulance() {
-        // НИКАКОГО КУБИЧЕСКОГО ГОВНА!
-        console.log('🚫 Fallback модель отключена');
-        console.log('💡 Проверьте файл Models/Ambulance.fbx');
-        
-        // Просто чистый фон без 3D объектов
-        return;
     }
 
     setupAmbulance(fbx) {
@@ -310,81 +288,27 @@ class SimpleAmbulanceBackground {
         }
     }
 
-    createFallbackAmbulance() {
-        console.log('🔧 Создаем запасную модель РАФика...');
-        
-        // Простая но красивая запасная модель
-        const ambulanceGroup = new THREE.Group();
-        
-        // Основной корпус
-        const bodyGeometry = new THREE.BoxGeometry(4, 1.8, 2);
-        const bodyMaterial = new THREE.MeshPhongMaterial({ 
-            color: 0xffffff,
-            shininess: 100 
-        });
-        const body = new THREE.Mesh(bodyGeometry, bodyMaterial);
-        body.position.y = 1;
-        body.castShadow = true;
-        ambulanceGroup.add(body);
-        
-        // Кабина
-        const cabinGeometry = new THREE.BoxGeometry(1.5, 1.5, 1.8);
-        const cabin = new THREE.Mesh(cabinGeometry, bodyMaterial);
-        cabin.position.set(1.8, 1.8, 0);
-        cabin.castShadow = true;
-        ambulanceGroup.add(cabin);
-        
-        // Красная полоса
-        const stripeGeometry = new THREE.BoxGeometry(4.1, 0.3, 0.02);
-        const stripeMaterial = new THREE.MeshPhongMaterial({ color: 0xff0000 });
-        
-        const leftStripe = new THREE.Mesh(stripeGeometry, stripeMaterial);
-        leftStripe.position.set(0, 1.2, 1.02);
-        ambulanceGroup.add(leftStripe);
-        
-        const rightStripe = new THREE.Mesh(stripeGeometry, stripeMaterial);
-        rightStripe.position.set(0, 1.2, -1.02);
-        ambulanceGroup.add(rightStripe);
-        
-        // Колеса
-        const wheelGeometry = new THREE.CylinderGeometry(0.4, 0.4, 0.3, 12);
-        const wheelMaterial = new THREE.MeshPhongMaterial({ color: 0x333333 });
-        
-        const wheelPositions = [
-            { x: 1.3, z: 1.2 }, { x: 1.3, z: -1.2 },
-            { x: -1.3, z: 1.2 }, { x: -1.3, z: -1.2 }
-        ];
-        
-        wheelPositions.forEach(pos => {
-            const wheel = new THREE.Mesh(wheelGeometry, wheelMaterial);
-            wheel.rotation.z = Math.PI / 2;
-            wheel.position.set(pos.x, 0.4, pos.z);
-            wheel.castShadow = true;
-            ambulanceGroup.add(wheel);
-        });
-        
-        this.ambulance = ambulanceGroup;
-        this.scene.add(this.ambulance);
-    }
+    // УБИРАЕМ ПОЛНОСТЬЮ ФУНКЦИЮ createFallbackAmbulance!
+    // Больше никакого кубического говна!
 
     animate() {
         requestAnimationFrame(() => this.animate());
         
         const time = Date.now() * 0.001;
         
-        // Легкое вращение машины
+        // Легкое вращение машины (только если она загружена)
         if (this.ambulance) {
             this.ambulance.rotation.y = Math.sin(time * 0.2) * 0.1;
-        }
-        
-        // Мигание огней
-        if (this.emergencyLights) {
-            this.emergencyLights.forEach((light, index) => {
-                if (light.material) {
-                    const intensity = Math.sin(time * 8 + index * Math.PI) > 0 ? 0.8 : 0.1;
-                    light.material.emissive.setScalar(intensity * 0.5);
-                }
-            });
+            
+            // Мигание огней (только если они есть)
+            if (this.emergencyLights && this.emergencyLights.length > 0) {
+                this.emergencyLights.forEach((light, index) => {
+                    if (light.material) {
+                        const intensity = Math.sin(time * 8 + index * Math.PI) > 0 ? 0.8 : 0.1;
+                        light.material.emissive.setScalar(intensity * 0.5);
+                    }
+                });
+            }
         }
         
         // Легкое движение камеры
@@ -396,16 +320,24 @@ class SimpleAmbulanceBackground {
     }
 }
 
-// Автоматический запуск
+// Автоматический запуск с улучшенной диагностикой
 document.addEventListener('DOMContentLoaded', function() {
     console.log('🚑 Инициализация фона с РАФиком...');
     
+    // Проверяем доступность Three.js
+    if (typeof THREE === 'undefined') {
+        console.error('❌ Three.js не загружен! Проверьте подключение скрипта.');
+        return;
+    }
+    
+    console.log('✅ Three.js доступен, версия:', THREE.REVISION);
+    
     setTimeout(() => {
-        if (typeof THREE !== 'undefined') {
+        try {
             window.ambulanceBackground = new SimpleAmbulanceBackground();
             console.log('✅ Фон с РАФиком создан!');
-        } else {
-            console.error('❌ Three.js не загружен');
+        } catch (error) {
+            console.error('❌ Ошибка создания фона:', error);
         }
     }, 500);
 });
@@ -419,3 +351,62 @@ window.addEventListener('resize', function() {
         bg.renderer.setSize(window.innerWidth, window.innerHeight);
     }
 });
+
+// Функции для отладки
+window.debugAmbulance = {
+    checkThreeJS: () => {
+        console.log('Three.js доступен:', typeof THREE !== 'undefined');
+        if (typeof THREE !== 'undefined') {
+            console.log('Версия Three.js:', THREE.REVISION);
+        }
+    },
+    
+    checkFBXLoader: () => {
+        console.log('FBXLoader доступен:', typeof THREE !== 'undefined' && typeof THREE.FBXLoader !== 'undefined');
+    },
+    
+    checkModel: () => {
+        if (window.ambulanceBackground && window.ambulanceBackground.ambulance) {
+            console.log('✅ Модель РАФика загружена');
+            console.log('Позиция:', window.ambulanceBackground.ambulance.position);
+            console.log('Масштаб:', window.ambulanceBackground.ambulance.scale);
+        } else {
+            console.log('❌ Модель РАФика НЕ загружена');
+        }
+    },
+    
+    testPaths: () => {
+        const paths = [
+            './Models/Ambulance.fbx',
+            './models/Ambulance.fbx',
+            'Models/Ambulance.fbx',
+            'models/Ambulance.fbx'
+        ];
+        
+        console.log('🔍 Тестируем пути к модели:');
+        paths.forEach(path => {
+            fetch(path, { method: 'HEAD' })
+                .then(response => {
+                    if (response.ok) {
+                        console.log(`✅ ${path} - ДОСТУПЕН`);
+                    } else {
+                        console.log(`❌ ${path} - НЕ ДОСТУПЕН (${response.status})`);
+                    }
+                })
+                .catch(() => {
+                    console.log(`❌ ${path} - ОШИБКА ДОСТУПА`);
+                });
+        });
+    },
+    
+    info: () => {
+        console.log('=== ДИАГНОСТИКА 3D ФОНА ===');
+        window.debugAmbulance.checkThreeJS();
+        window.debugAmbulance.checkFBXLoader();
+        window.debugAmbulance.checkModel();
+        console.log('Для проверки путей: window.debugAmbulance.testPaths()');
+    }
+};
+
+console.log('✅ Исправленный 3D фон загружен БЕЗ кубического говна');
+console.log('🐛 Диагностика: window.debugAmbulance.info()');
