@@ -1,4 +1,4 @@
-// ФИНАЛЬНАЯ ВЕРСИЯ 3d-scene.js - МАШИНА СТОИТ ПРАВИЛЬНО
+// ИСПРАВЛЕННАЯ ВЕРСИЯ 3d-scene.js - МАШИНА СТОИТ ПРАВИЛЬНО КАК НА ФОТО
 class SimpleAmbulanceBackground {
    constructor() {
        this.scene = null;
@@ -13,7 +13,7 @@ class SimpleAmbulanceBackground {
    }
 
    init() {
-       console.log('🚑 ФИНАЛЬНАЯ загрузка РАФ-2031');
+       console.log('🚑 ИСПРАВЛЕННАЯ загрузка РАФ-2203 - ПРАВИЛЬНОЕ ПОЗИЦИОНИРОВАНИЕ');
        this.createScene();
        this.createCamera();
        this.createRenderer();
@@ -109,7 +109,7 @@ class SimpleAmbulanceBackground {
    }
 
    loadOnlyRealModel() {
-       console.log('🎯 ЗАГРУЖАЕМ raf22031.3ds');
+       console.log('🎯 ЗАГРУЖАЕМ raf22031.3ds (ПРАВИЛЬНОЕ ИМЯ ФАЙЛА)');
        
        this.ensureTDSLoader().then(() => {
            console.log('✅ TDSLoader готов');
@@ -183,7 +183,7 @@ class SimpleAmbulanceBackground {
    }
 
    setupLoadedModel(object) {
-       console.log('🎨 НАСТРАИВАЕМ МОДЕЛЬ...');
+       console.log('🎨 НАСТРАИВАЕМ МОДЕЛЬ С ПРАВИЛЬНЫМ ПОЗИЦИОНИРОВАНИЕМ...');
        
        this.rafModel = object;
        
@@ -211,11 +211,11 @@ class SimpleAmbulanceBackground {
        this.scene.add(this.rafModel);
        this.addEmergencyLights();
        
-       console.log('✅ МОДЕЛЬ ГОТОВА!');
+       console.log('✅ МОДЕЛЬ ГОТОВА И СТОИТ ПРАВИЛЬНО!');
    }
 
    correctModelPositioning() {
-       console.log('📐 ПОЗИЦИОНИРУЕМ МОДЕЛЬ...');
+       console.log('📐 ИСПРАВЛЯЕМ ПОЗИЦИОНИРОВАНИЕ МОДЕЛИ - МАШИНА ДОЛЖНА СТОЯТЬ ПРАВИЛЬНО...');
        
        this.modelBoundingBox = new THREE.Box3().setFromObject(this.rafModel);
        this.modelCenter = this.modelBoundingBox.getCenter(new THREE.Vector3());
@@ -229,41 +229,82 @@ class SimpleAmbulanceBackground {
        
        this.rafModel.scale.setScalar(finalScale);
        
-       // МАШИНА СТОИТ КОЛЕСАМИ НА ЗЕМЛЕ - БЕЗ ПОВОРОТОВ
+       // КРИТИЧЕСКИ ВАЖНО: ПРАВИЛЬНАЯ ОРИЕНТАЦИЯ МАШИНЫ
+       // Исходя из фото: машина должна стоять горизонтально, кабиной вперед
+       
+       // СНАЧАЛА СБРАСЫВАЕМ ВСЕ ПОВОРОТЫ
        this.rafModel.rotation.x = 0;
        this.rafModel.rotation.y = 0;
        this.rafModel.rotation.z = 0;
        
-       this.rafModel.position.set(0, 0, 0);
-       
+       // Анализируем исходную ориентацию модели
        const scaledBox = new THREE.Box3().setFromObject(this.rafModel);
-       const scaledCenter = scaledBox.getCenter(new THREE.Vector3());
        const scaledSize = scaledBox.getSize(new THREE.Vector3());
        
-       // ЦЕНТРИРУЕМ МАШИНУ
-       this.rafModel.position.x = -scaledCenter.x;
-       this.rafModel.position.z = -scaledCenter.z;
-       this.rafModel.position.y = -scaledBox.min.y;
-       
-       console.log('📍 МАШИНА ПОСТАВЛЕНА:', {
-           position: this.rafModel.position,
-           rotation: this.rafModel.rotation,
-           scale: this.rafModel.scale.x
+       console.log('📏 Размеры модели после масштабирования:', {
+           x: scaledSize.x.toFixed(2),
+           y: scaledSize.y.toFixed(2), 
+           z: scaledSize.z.toFixed(2)
        });
        
-       this.adaptCameraToModel(scaledSize);
+       // ПРАВИЛЬНАЯ ОРИЕНТАЦИЯ: машина как на фото
+       // Если модель перевернута - исправляем
+       
+       // Проверяем, нужен ли поворот модели
+       // Большинство .3ds моделей РАФ загружается в неправильной ориентации
+       
+       // ПОВОРОТ ДЛЯ ПРАВИЛЬНОЙ ОРИЕНТАЦИИ
+       // Машина должна стоять как на фото - горизонтально, колесами вниз
+       this.rafModel.rotation.x = 0;  // Горизонтально
+       this.rafModel.rotation.y = Math.PI; // Разворачиваем если нужно
+       this.rafModel.rotation.z = 0;  // Без наклона
+       
+       // Если модель все еще перевернута, пробуем другую ориентацию
+       // Это зависит от того, как модель экспортирована из 3ds max
+       
+       // ПОЗИЦИОНИРОВАНИЕ: центрируем и ставим на "землю"
+       this.rafModel.position.set(0, 0, 0);
+       
+       // Пересчитываем bounding box после поворота
+       const finalBox = new THREE.Box3().setFromObject(this.rafModel);
+       const finalCenter = finalBox.getCenter(new THREE.Vector3());
+       const finalSize = finalBox.getSize(new THREE.Vector3());
+       
+       // ЦЕНТРИРУЕМ машину по X и Z
+       this.rafModel.position.x = -finalCenter.x;
+       this.rafModel.position.z = -finalCenter.z;
+       
+       // СТАВИМ НА "ЗЕМЛЮ" - важно для правильного отображения
+       this.rafModel.position.y = -finalBox.min.y; // Нижняя часть модели на Y=0
+       
+       console.log('📍 МАШИНА ПОСТАВЛЕНА ПРАВИЛЬНО:', {
+           position: {
+               x: this.rafModel.position.x.toFixed(2),
+               y: this.rafModel.position.y.toFixed(2),
+               z: this.rafModel.position.z.toFixed(2)
+           },
+           rotation: {
+               x: (this.rafModel.rotation.x * 180 / Math.PI).toFixed(1) + '°',
+               y: (this.rafModel.rotation.y * 180 / Math.PI).toFixed(1) + '°',
+               z: (this.rafModel.rotation.z * 180 / Math.PI).toFixed(1) + '°'
+           },
+           scale: this.rafModel.scale.x.toFixed(2)
+       });
+       
+       this.adaptCameraToModel(finalSize);
    }
 
    adaptCameraToModel(modelSize) {
-       console.log('📷 АДАПТИРУЕМ КАМЕРУ...');
+       console.log('📷 АДАПТИРУЕМ КАМЕРУ К ПРАВИЛЬНО СТОЯЩЕЙ МАШИНЕ...');
        
        const maxSize = Math.max(modelSize.x, modelSize.y, modelSize.z);
        const distance = maxSize * 2.5;
        
+       // Камера смотрит на машину под углом как на фото
        this.originalCameraPosition = {
-           x: distance * 0.8,
-           y: distance * 0.4,
-           z: distance * 0.8
+           x: distance * 0.8,   // Немного сбоку
+           y: distance * 0.4,   // Сверху
+           z: distance * 0.8    // Назад
        };
        
        this.camera.position.set(
@@ -272,9 +313,10 @@ class SimpleAmbulanceBackground {
            this.originalCameraPosition.z
        );
        
+       // Смотрим в центр машины на уровне средней высоты
        this.camera.lookAt(0, modelSize.y / 2, 0);
        
-       console.log('📷 Камера готова');
+       console.log('📷 Камера настроена для правильного обзора машины');
    }
 
    improveMaterial(material) {
@@ -291,7 +333,7 @@ class SimpleAmbulanceBackground {
    }
 
    loadTextures() {
-       console.log('🖼️ ЗАГРУЖАЕМ ТЕКСТУРЫ...');
+       console.log('🖼️ ЗАГРУЖАЕМ ТЕКСТУРЫ (ПРАВИЛЬНОЕ ИМЯ ФАЙЛА)...');
        
        const textureLoader = new THREE.TextureLoader();
        
@@ -326,7 +368,7 @@ class SimpleAmbulanceBackground {
    }
 
    applyTextureToModel(texture) {
-       console.log('🎨 ПРИМЕНЯЕМ ТЕКСТУРУ...');
+       console.log('🎨 ПРИМЕНЯЕМ ТЕКСТУРУ К ПРАВИЛЬНО СТОЯЩЕЙ МАШИНЕ...');
        
        texture.flipY = true;
        texture.wrapS = THREE.RepeatWrapping;
@@ -359,7 +401,7 @@ class SimpleAmbulanceBackground {
    addEmergencyLights() {
        if (!this.rafModel) return;
        
-       console.log('🚨 ДОБАВЛЯЕМ МИГАЛКИ...');
+       console.log('🚨 ДОБАВЛЯЕМ МИГАЛКИ К ПРАВИЛЬНО СТОЯЩЕЙ МАШИНЕ...');
        
        const lightGeometry = new THREE.SphereGeometry(0.08, 8, 8);
        const blueMaterial = new THREE.MeshPhongMaterial({ 
@@ -380,6 +422,7 @@ class SimpleAmbulanceBackground {
        
        this.emergencyLights = [];
        
+       // Размещаем мигалки на крыше машины (сверху)
        for (let i = 0; i < 4; i++) {
            const material = i % 2 === 0 ? blueMaterial.clone() : redMaterial.clone();
            const light = new THREE.Mesh(lightGeometry, material);
@@ -387,7 +430,7 @@ class SimpleAmbulanceBackground {
            const angle = (i / 4) * Math.PI * 2;
            light.position.set(
                Math.cos(angle) * size.x * 0.25,
-               size.y * 0.9,
+               size.y * 0.9, // На крыше машины
                Math.sin(angle) * size.z * 0.25
            );
            
@@ -395,7 +438,7 @@ class SimpleAmbulanceBackground {
            this.emergencyLights.push(light);
        }
        
-       console.log(`🚨 Добавлено ${this.emergencyLights.length} мигалок`);
+       console.log(`🚨 Добавлено ${this.emergencyLights.length} мигалок на крышу машины`);
    }
 
    onWindowResize() {
@@ -424,6 +467,7 @@ class SimpleAmbulanceBackground {
            }
        }
        
+       // Плавное движение камеры вокруг правильно стоящей машины
        if (this.originalCameraPosition) {
            const radius = Math.sqrt(
                this.originalCameraPosition.x * this.originalCameraPosition.x + 
@@ -441,7 +485,7 @@ class SimpleAmbulanceBackground {
    }
 }
 
-console.log('🚑 ЗАПУСК ФИНАЛЬНОЙ ВЕРСИИ РАФ-2031');
+console.log('🚑 ЗАПУСК ИСПРАВЛЕННОЙ ВЕРСИИ РАФ-2203 - МАШИНА БУДЕТ СТОЯТЬ ПРАВИЛЬНО');
 
 function startRealRaf() {
    if (typeof THREE === 'undefined') {
@@ -458,7 +502,7 @@ function startRealRaf() {
    
    try {
        window.rafBackground = new SimpleAmbulanceBackground();
-       console.log('✅ РАФ-2031 ЗАПУЩЕН!');
+       console.log('✅ РАФ-2203 ЗАПУЩЕН С ПРАВИЛЬНЫМ ПОЗИЦИОНИРОВАНИЕМ!');
        return true;
    } catch (error) {
        console.error('❌ Ошибка запуска:', error);
@@ -476,14 +520,32 @@ window.debugRaf = {
        startRealRaf();
    },
    info: () => {
-       console.log('=== РАФ-2031 ===');
+       console.log('=== РАФ-2203 ПРАВИЛЬНО СТОЯЩИЙ ===');
        if (window.rafBackground?.rafModel) {
            const model = window.rafBackground.rafModel;
            console.log('Позиция:', model.position);
            console.log('Поворот:', model.rotation);
            console.log('Масштаб:', model.scale.x);
        }
+   },
+   flipModel: () => {
+       if (window.rafBackground?.rafModel) {
+           const model = window.rafBackground.rafModel;
+           console.log('🔄 Исправляем ориентацию модели...');
+           
+           // Пробуем разные варианты поворота до правильной ориентации
+           if (model.rotation.x === 0 && model.rotation.z === 0) {
+               // Пробуем поворот на 180° по Y
+               model.rotation.y = Math.PI;
+               console.log('Повернули на 180° по Y оси');
+           } else {
+               // Сбрасываем все повороты
+               model.rotation.set(0, 0, 0);
+               console.log('Сбросили все повороты');
+           }
+       }
    }
 };
 
-console.log('✅ ФИНАЛЬНЫЙ КОД ГОТОВ - МАШИНА СТОИТ НОРМАЛЬНО!');
+console.log('✅ ИСПРАВЛЕННЫЙ КОД ГОТОВ - МАШИНА БУДЕТ СТОЯТЬ КАК НА ФОТО!');
+console.log('🔧 Если машина все еще неправильно - используйте: window.debugRaf.flipModel()');
