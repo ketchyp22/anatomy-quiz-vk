@@ -1,4 +1,4 @@
-// app.js - Исправленная версия с правильным шерингом без GitHub ссылок
+// app.js - Обновленная версия для 3D медицинского интерфейса
 
 // Глобальная функция для показа гостевого режима
 function showGuestMode() {
@@ -126,7 +126,7 @@ var shareResultsButton, restartQuizButton;
 
 // Ждем полную загрузку страницы
 document.addEventListener('DOMContentLoaded', function () {
-    console.log('DOM полностью загружен');
+    console.log('🚑 DOM полностью загружен - инициализация 3D медицинского интерфейса');
 
     if (!window.questions) {
         console.error('Ошибка: переменная window.questions не определена. Убедитесь, что questions.js подключен.');
@@ -140,6 +140,8 @@ document.addEventListener('DOMContentLoaded', function () {
 
 // Инициализация приложения
 function initializeApp() {
+    console.log('🎮 Инициализация 3D медицинского приложения...');
+    
     // Получаем DOM элементы
     startScreen = document.getElementById('start-screen');
     quizContainer = document.getElementById('quiz-container');
@@ -157,8 +159,10 @@ function initializeApp() {
     shareResultsButton = document.getElementById('share-results');
     restartQuizButton = document.getElementById('restart-quiz');
 
-    const difficultyButtons = document.querySelectorAll('.difficulty-btn');
-    const quizModeButtons = document.querySelectorAll('.quiz-mode-btn');
+    // Получаем 3D элементы
+    const difficultyButtons = document.querySelectorAll('.difficulty-btn, .diff-button');
+    const quizModeButtons = document.querySelectorAll('.quiz-mode-btn, .mode-card-3d');
+    const expertButton = document.querySelector('.expert-circle');
 
     if (!startScreen || !quizContainer || !resultsContainer ||
         !questionElement || !optionsElement || !progressBar) {
@@ -170,7 +174,7 @@ function initializeApp() {
         showGuestMode();
     }
 
-    // Выбор уровня сложности
+    // Выбор уровня сложности (обновленные селекторы)
     difficultyButtons.forEach(button => {
         button.addEventListener('click', function () {
             // Проверяем, не активен ли экспертный режим
@@ -182,12 +186,53 @@ function initializeApp() {
             difficultyButtons.forEach(btn => btn.classList.remove('active'));
             this.classList.add('active');
             currentDifficulty = this.dataset.difficulty;
-            console.log('Выбран уровень сложности:', currentDifficulty);
+            console.log('🎯 Выбран уровень сложности:', currentDifficulty);
+            
+            // 3D эффект при выборе
+            add3DClickEffect(this);
         });
     });
 
-    // ИСПРАВЛЕННЫЙ выбор режима квиза
+    // Настройка выбора режимов (обновленные селекторы)
     setupModeSelection();
+
+    // Экспертная кнопка
+    if (expertButton) {
+        expertButton.addEventListener('click', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            
+            console.log('🧠 Экспертный режим выбран');
+            
+            // Снимаем активность со всех обычных режимов
+            document.querySelectorAll('.quiz-mode-btn, .mode-card-3d').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            
+            // Устанавливаем экспертный режим
+            currentQuizMode = 'expert';
+            currentDifficulty = 'expert';
+            
+            // Визуальная обратная связь для экспертной кнопки
+            this.style.background = 'linear-gradient(145deg, rgba(255, 68, 68, 0.8) 0%, rgba(220, 38, 38, 0.6) 100%)';
+            this.style.transform = 'translateY(-3px) translateZ(15px) scale(1.2)';
+            
+            setTimeout(() => {
+                this.style.transform = 'translateY(-3px) translateZ(15px) scale(1.1)';
+            }, 200);
+            
+            // Блокируем выбор сложности
+            const difficultySection = document.querySelector('.difficulty-selection, .difficulty-panel');
+            if (difficultySection) {
+                difficultySection.style.opacity = '0.5';
+                difficultySection.style.pointerEvents = 'none';
+                
+                difficultyButtons.forEach(btn => btn.classList.remove('active'));
+            }
+            
+            console.log('✅ Экспертный режим активирован');
+        });
+    }
 
     if (startQuizButton) {
         startQuizButton.addEventListener('click', startQuiz);
@@ -208,30 +253,46 @@ function initializeApp() {
     if (shareResultsButton) {
         shareResultsButton.addEventListener('click', shareResults);
     }
+    
+    console.log('✅ 3D медицинский интерфейс инициализирован');
 }
 
-// ИСПРАВЛЕННАЯ функция настройки выбора режимов
+// 3D эффект при клике
+function add3DClickEffect(element) {
+    element.style.transform = 'translateY(-5px) translateZ(20px) scale(1.05)';
+    setTimeout(() => {
+        element.style.transform = '';
+    }, 300);
+}
+
+// ОБНОВЛЕННАЯ функция настройки выбора режимов
 function setupModeSelection() {
-    // Используем делегирование событий для всех кнопок режимов
-    const modeContainer = document.querySelector('.quiz-mode-selection');
+    const modeContainer = document.querySelector('.quiz-mode-selection, .modes-container');
     if (!modeContainer) return;
 
     modeContainer.addEventListener('click', function(e) {
-        const button = e.target.closest('.quiz-mode-btn');
+        const button = e.target.closest('.quiz-mode-btn, .mode-card-3d');
         if (!button) return;
 
         e.preventDefault();
         e.stopPropagation();
 
         const mode = button.dataset.mode;
-        if (!mode) return;
+        if (!mode || mode === 'expert') return; // Экспертный режим обрабатывается отдельно
 
         console.log('🎯 Выбран режим:', mode);
 
         // Снимаем активность со всех кнопок
-        document.querySelectorAll('.quiz-mode-btn').forEach(btn => {
+        document.querySelectorAll('.quiz-mode-btn, .mode-card-3d').forEach(btn => {
             btn.classList.remove('active');
         });
+
+        // Сбрасываем экспертную кнопку
+        const expertButton = document.querySelector('.expert-circle');
+        if (expertButton) {
+            expertButton.style.background = '';
+            expertButton.style.transform = '';
+        }
 
         // Активируем выбранную кнопку
         button.classList.add('active');
@@ -240,68 +301,29 @@ function setupModeSelection() {
         currentQuizMode = mode;
         window.currentQuizMode = mode;
 
-        // Обрабатываем экспертный режим
-        if (mode === 'expert') {
-            currentDifficulty = 'expert';
-            window.currentDifficulty = 'expert';
-            console.log('🧠 ЭКСПЕРТНЫЙ РЕЖИМ АКТИВИРОВАН');
-
-            // Блокируем выбор сложности
-            const difficultySection = document.querySelector('.difficulty-selection');
-            if (difficultySection) {
-                difficultySection.style.opacity = '0.5';
-                difficultySection.style.pointerEvents = 'none';
-                
-                // Убираем активность с кнопок сложности
-                document.querySelectorAll('.difficulty-btn').forEach(btn => {
-                    btn.classList.remove('active');
-                });
-            }
-        } else {
-            // Для обычных режимов разблокируем сложность
-            const difficultySection = document.querySelector('.difficulty-selection');
-            if (difficultySection) {
-                difficultySection.style.opacity = '1';
-                difficultySection.style.pointerEvents = 'auto';
-                
-                // Восстанавливаем активную кнопку сложности или ставим easy по умолчанию
-                const activeDifficultyBtn = document.querySelector('.difficulty-btn.active');
-                if (!activeDifficultyBtn) {
-                    const easyBtn = document.querySelector('.difficulty-btn[data-difficulty="easy"]');
-                    if (easyBtn) {
-                        easyBtn.classList.add('active');
-                        currentDifficulty = 'easy';
-                        window.currentDifficulty = 'easy';
-                    }
-                } else {
-                    currentDifficulty = activeDifficultyBtn.dataset.difficulty;
-                    window.currentDifficulty = currentDifficulty;
+        // Разблокируем выбор сложности
+        const difficultySection = document.querySelector('.difficulty-selection, .difficulty-panel');
+        if (difficultySection) {
+            difficultySection.style.opacity = '1';
+            difficultySection.style.pointerEvents = 'auto';
+            
+            // Восстанавливаем активную кнопку сложности
+            const activeDifficultyBtn = document.querySelector('.difficulty-btn.active, .diff-button.active');
+            if (!activeDifficultyBtn) {
+                const easyBtn = document.querySelector('.difficulty-btn[data-difficulty="easy"], .diff-button[data-difficulty="easy"]');
+                if (easyBtn) {
+                    easyBtn.classList.add('active');
+                    currentDifficulty = 'easy';
+                    window.currentDifficulty = 'easy';
                 }
+            } else {
+                currentDifficulty = activeDifficultyBtn.dataset.difficulty;
+                window.currentDifficulty = currentDifficulty;
             }
         }
 
-        // Показываем описание режима
-        const modeDescription = document.getElementById('mode-description');
-        if (modeDescription && window.modeDescriptions && window.modeDescriptions[mode]) {
-            if (mode === 'expert') {
-                modeDescription.innerHTML = `
-                    <div style="color: #ee5a24; font-weight: 600; font-size: 16px; margin-bottom: 8px;">
-                        🧠 ЭКСПЕРТНЫЙ РЕЖИМ АКТИВИРОВАН
-                    </div>
-                    <div style="font-size: 14px;">
-                        ${window.modeDescriptions[mode]}
-                    </div>
-                `;
-                modeDescription.style.cssText = `
-                    background: linear-gradient(135deg, rgba(238, 90, 36, 0.1) 0%, rgba(255, 107, 107, 0.1) 100%);
-                    border-left: 4px solid #ee5a24;
-                `;
-            } else {
-                modeDescription.innerHTML = window.modeDescriptions[mode];
-                modeDescription.style.cssText = '';
-            }
-            modeDescription.classList.add('active-description');
-        }
+        // 3D эффект при выборе
+        add3DClickEffect(button);
 
         console.log('✅ Режим установлен:', {
             mode: currentQuizMode,
@@ -309,27 +331,20 @@ function setupModeSelection() {
         });
     });
 
-    // Настраиваем hover эффекты
-    modeContainer.addEventListener('mouseover', function(e) {
-        const button = e.target.closest('.quiz-mode-btn');
-        if (!button || button.classList.contains('active')) return;
-
-        const mode = button.dataset.mode;
-        const modeDescription = document.getElementById('mode-description');
-        if (modeDescription && window.modeDescriptions && window.modeDescriptions[mode]) {
-            modeDescription.textContent = window.modeDescriptions[mode];
-            modeDescription.classList.add('active-description');
-        }
-    });
-
-    modeContainer.addEventListener('mouseout', function(e) {
-        const button = e.target.closest('.quiz-mode-btn');
-        if (!button || button.classList.contains('active')) return;
-
-        const modeDescription = document.getElementById('mode-description');
-        if (modeDescription) {
-            modeDescription.classList.remove('active-description');
-        }
+    // Настраиваем hover эффекты для 3D карточек
+    const modeButtons = document.querySelectorAll('.quiz-mode-btn, .mode-card-3d');
+    modeButtons.forEach(button => {
+        button.addEventListener('mouseenter', function() {
+            if (!this.classList.contains('active')) {
+                this.style.transform = 'translateY(-3px) translateZ(10px)';
+            }
+        });
+        
+        button.addEventListener('mouseleave', function() {
+            if (!this.classList.contains('active')) {
+                this.style.transform = '';
+            }
+        });
     });
 }
 
@@ -350,7 +365,7 @@ function resetQuiz() {
 
     // Восстанавливаем состояние выбора сложности если НЕ экспертный режим
     if (currentQuizMode !== 'expert') {
-        const difficultySection = document.querySelector('.difficulty-selection');
+        const difficultySection = document.querySelector('.difficulty-selection, .difficulty-panel');
         if (difficultySection) {
             difficultySection.style.opacity = '1';
             difficultySection.style.pointerEvents = 'auto';
@@ -360,6 +375,8 @@ function resetQuiz() {
     if (window.HintsSystem && window.HintsSystem.resetHintState) {
         window.HintsSystem.resetHintState();
     }
+    
+    console.log('🔄 Квиз сброшен, возврат к 3D интерфейсу');
 }
 
 // ИСПРАВЛЕННАЯ функция выбора вопросов
@@ -410,7 +427,7 @@ function selectQuestions() {
 
 // Начало квиза
 function startQuiz() {
-    console.log("🚀 Начало квиза");
+    console.log("🚀 Начало квиза в 3D медицинском интерфейсе");
     
     document.dispatchEvent(new CustomEvent('quizStarted', {
         detail: {
@@ -491,6 +508,20 @@ function loadQuestion() {
             optionElement.textContent = option;
             optionElement.dataset.index = index;
             optionElement.addEventListener('click', selectOption);
+            
+            // Добавляем 3D эффект для опций
+            optionElement.addEventListener('mouseenter', function() {
+                if (!this.classList.contains('selected') && !this.classList.contains('correct') && !this.classList.contains('wrong')) {
+                    this.style.transform = 'translateX(4px) translateZ(5px)';
+                }
+            });
+            
+            optionElement.addEventListener('mouseleave', function() {
+                if (!this.classList.contains('selected') && !this.classList.contains('correct') && !this.classList.contains('wrong')) {
+                    this.style.transform = '';
+                }
+            });
+            
             optionsElement.appendChild(optionElement);
         });
     } else {
@@ -506,8 +537,15 @@ function selectOption(e) {
     selectedOption = selectedIndex;
 
     const options = document.querySelectorAll('.option');
-    options.forEach(option => option.classList.remove('selected'));
+    options.forEach(option => {
+        option.classList.remove('selected');
+        option.style.transform = '';
+    });
+    
     e.target.classList.add('selected');
+    
+    // 3D эффект для выбранного варианта
+    e.target.style.transform = 'translateX(8px) translateZ(10px) scale(1.02)';
 
     document.dispatchEvent(new CustomEvent('answerSelected', {
         detail: {
@@ -548,9 +586,11 @@ function nextQuestion() {
     
     if (options[correct]) {
         options[correct].classList.add('correct');
+        options[correct].style.transform = 'translateX(8px) translateZ(10px) scale(1.02)';
     }
     if (selectedOption !== correct && options[selectedOption]) {
         options[selectedOption].classList.add('wrong');
+        options[selectedOption].style.transform = 'translateX(-4px) translateZ(5px) scale(0.98)';
     }
 
     options.forEach(option => {
@@ -602,87 +642,6 @@ function showResults() {
         if (currentQuizMode === 'clinical') modeText = 'Клиническое мышление';
         if (currentQuizMode === 'pharmacology') modeText = 'Фармакология';
         if (currentQuizMode === 'first_aid') modeText = 'Первая помощь';
-        if (currentQuizMode === 'obstetrics') modeText = 'Акушерство';
-        if (currentQuizMode === 'expert') modeText = '🧠 ЭКСПЕРТ';
-        modeBadge.textContent = modeText;
-    }
-
-    const percentageElement = document.getElementById('percentage');
-    if (percentageElement) {
-        percentageElement.textContent = percentage;
-    }
-    
-    const correctAnswersElement = document.getElementById('correct-answers');
-    if (correctAnswersElement) {
-        correctAnswersElement.textContent = score;
-    }
-    
-    const totalQuestionsElement = document.getElementById('total-questions-result');
-    if (totalQuestionsElement) {
-        totalQuestionsElement.textContent = questionsForQuiz.length;
-    }
-
-    const scorePercentageElement = document.querySelector('.score-percentage');
-    if (scorePercentageElement) {
-        scorePercentageElement.classList.remove('excellent', 'good', 'average', 'poor');
-        if (percentage >= 90) {
-            scorePercentageElement.classList.add('excellent');
-        } else if (percentage >= 70) {
-            scorePercentageElement.classList.add('good');
-        } else if (percentage >= 50) {
-            scorePercentageElement.classList.add('average');
-        } else {
-            scorePercentageElement.classList.add('poor');
-        }
-    }
-
-    const scoreTextElement = document.querySelector('.score-text');
-    if (scoreTextElement) {
-        let resultText;
-        if (currentQuizMode === 'expert') {
-            if (percentage >= 90) {
-                resultText = '🧠 НЕВЕРОЯТНО! Вы - истинный эксперт медицины!';
-            } else if (percentage >= 70) {
-                resultText = '🔥 Отличный результат для экспертного уровня!';
-            } else if (percentage >= 50) {
-                resultText = '💪 Хороший уровень, но есть куда расти!';
-            } else {
-                resultText = '📚 Экспертный уровень очень сложен, продолжайте изучать!';
-            }
-        } else {
-            if (percentage >= 90) {
-                resultText = 'Великолепно! Вы настоящий эксперт!';
-            } else if (percentage >= 70) {
-                resultText = 'Хороший результат! Вы хорошо знаете предмет!';
-            } else if (percentage >= 50) {
-                resultText = 'Неплохо! Но есть над чем поработать.';
-            } else {
-                resultText = 'Стоит подучить материал, но вы уже на пути к знаниям!';
-            }
-        }
-        scoreTextElement.innerHTML = `<span class="result-text">${resultText}</span>`;
-    }
-
-    document.dispatchEvent(new CustomEvent('quizCompleted', {
-        detail: { 
-            score: score, 
-            total: questionsForQuiz.length, 
-            percentage: percentage,
-            mode: currentQuizMode,
-            difficulty: currentDifficulty
-        }
-    }));
-}
-
-// УМНАЯ функция шеринга с автоопределением VK ссылки
-function shareResults() {
-    console.log('📤 Умная функция shareResults с VK ссылкой');
-    
-    const percentage = Math.round((score / questionsForQuiz.length) * 100);
-    let modeText = 'Анатомия';
-    if (currentQuizMode === 'clinical') modeText = 'Клиническое мышление';
-    if (currentQuizMode === 'pharmacology') modeText = 'Фармакология';
-    if (currentQuizMode === 'first_aid') modeText = 'Первая помощь';
     if (currentQuizMode === 'obstetrics') modeText = 'Акушерство';
     if (currentQuizMode === 'expert') modeText = '🧠 ЭКСПЕРТНЫЙ УРОВЕНЬ';
     
@@ -897,12 +856,14 @@ window.debugQuiz = {
     
     forceExpertMode: () => {
         window.setExpertMode();
-        const expertBtn = document.querySelector('.expert-mode-btn, .quiz-mode-btn[data-mode="expert"]');
+        const expertBtn = document.querySelector('.expert-circle');
         if (expertBtn) {
-            document.querySelectorAll('.quiz-mode-btn').forEach(btn => btn.classList.remove('active'));
-            expertBtn.classList.add('active');
+            document.querySelectorAll('.quiz-mode-btn, .mode-card-3d').forEach(btn => btn.classList.remove('active'));
             
-            const difficultySection = document.querySelector('.difficulty-selection');
+            expertBtn.style.background = 'linear-gradient(145deg, rgba(255, 68, 68, 0.8) 0%, rgba(220, 38, 38, 0.6) 100%)';
+            expertBtn.style.transform = 'translateY(-3px) translateZ(15px) scale(1.1)';
+            
+            const difficultySection = document.querySelector('.difficulty-selection, .difficulty-panel');
             if (difficultySection) {
                 difficultySection.style.opacity = '0.5';
                 difficultySection.style.pointerEvents = 'none';
@@ -933,7 +894,7 @@ window.debugQuiz = {
         console.log('🧪 Тестируем переключение режимов...');
         
         // Тестируем анатомию
-        const anatomyBtn = document.querySelector('.quiz-mode-btn[data-mode="anatomy"]');
+        const anatomyBtn = document.querySelector('.quiz-mode-btn[data-mode="anatomy"], .mode-card-3d[data-mode="anatomy"]');
         if (anatomyBtn) {
             anatomyBtn.click();
             console.log('Анатомия:', { mode: currentQuizMode, difficulty: currentDifficulty });
@@ -941,7 +902,7 @@ window.debugQuiz = {
         
         setTimeout(() => {
             // Тестируем экспертный режим
-            const expertBtn = document.querySelector('.quiz-mode-btn[data-mode="expert"]');
+            const expertBtn = document.querySelector('.expert-circle');
             if (expertBtn) {
                 expertBtn.click();
                 console.log('Экспертный:', { mode: currentQuizMode, difficulty: currentDifficulty });
@@ -968,8 +929,139 @@ window.debugQuiz = {
         currentDifficulty = 'easy';
         
         shareResults();
+    },
+
+    // Новые функции для 3D интерфейса
+    test3DEffects: () => {
+        console.log('🎮 Тестируем 3D эффекты...');
+        
+        const modeCards = document.querySelectorAll('.mode-card-3d, .quiz-mode-btn');
+        modeCards.forEach((card, index) => {
+            setTimeout(() => {
+                add3DClickEffect(card);
+            }, index * 200);
+        });
+    },
+
+    testExpertButton: () => {
+        console.log('🧠 Тестируем экспертную кнопку...');
+        const expertBtn = document.querySelector('.expert-circle');
+        if (expertBtn) {
+            expertBtn.click();
+        }
+    },
+
+    checkMedicalInterface: () => {
+        const interface3d = document.querySelector('.medical-interface');
+        const particles = document.querySelector('.medical-particles');
+        const indicators = document.querySelector('.status-indicators');
+        const expertCircle = document.querySelector('.expert-circle');
+        
+        console.log('🏥 Состояние медицинского интерфейса:', {
+            interface3d: !!interface3d,
+            particles: !!particles,
+            indicators: !!indicators,
+            expertCircle: !!expertCircle,
+            particleCount: particles ? particles.children.length : 0
+        });
+        
+        return {
+            interface3d: !!interface3d,
+            particles: !!particles,
+            indicators: !!indicators,
+            expertCircle: !!expertCircle
+        };
     }
 };
 
-console.log('✅ app.js загружен с исправленным шерингом БЕЗ GitHub ссылок');
+console.log('✅ app.js обновлен для 3D медицинского интерфейса');
 console.log('🐛 Доступны функции отладки: window.debugQuiz');
+console.log('🎮 Новые 3D функции: window.debugQuiz.test3DEffects(), checkMedicalInterface()');
+console.log('🧠 Экспертная кнопка: window.debugQuiz.testExpertButton()');ая помощь';
+        if (currentQuizMode === 'obstetrics') modeText = 'Акушерство';
+        if (currentQuizMode === 'expert') modeText = '🧠 ЭКСПЕРТ';
+        modeBadge.textContent = modeText;
+    }
+
+    const percentageElement = document.getElementById('percentage');
+    if (percentageElement) {
+        percentageElement.textContent = percentage;
+    }
+    
+    const correctAnswersElement = document.getElementById('correct-answers');
+    if (correctAnswersElement) {
+        correctAnswersElement.textContent = score;
+    }
+    
+    const totalQuestionsElement = document.getElementById('total-questions-result');
+    if (totalQuestionsElement) {
+        totalQuestionsElement.textContent = questionsForQuiz.length;
+    }
+
+    const scorePercentageElement = document.querySelector('.score-percentage');
+    if (scorePercentageElement) {
+        scorePercentageElement.classList.remove('excellent', 'good', 'average', 'poor');
+        if (percentage >= 90) {
+            scorePercentageElement.classList.add('excellent');
+        } else if (percentage >= 70) {
+            scorePercentageElement.classList.add('good');
+        } else if (percentage >= 50) {
+            scorePercentageElement.classList.add('average');
+        } else {
+            scorePercentageElement.classList.add('poor');
+        }
+    }
+
+    const scoreTextElement = document.querySelector('.score-text');
+    if (scoreTextElement) {
+        let resultText;
+        if (currentQuizMode === 'expert') {
+            if (percentage >= 90) {
+                resultText = '🧠 НЕВЕРОЯТНО! Вы - истинный эксперт медицины!';
+            } else if (percentage >= 70) {
+                resultText = '🔥 Отличный результат для экспертного уровня!';
+            } else if (percentage >= 50) {
+                resultText = '💪 Хороший уровень, но есть куда расти!';
+            } else {
+                resultText = '📚 Экспертный уровень очень сложен, продолжайте изучать!';
+            }
+        } else {
+            if (percentage >= 90) {
+                resultText = 'Великолепно! Вы настоящий эксперт!';
+            } else if (percentage >= 70) {
+                resultText = 'Хороший результат! Вы хорошо знаете предмет!';
+            } else if (percentage >= 50) {
+                resultText = 'Неплохо! Но есть над чем поработать.';
+            } else {
+                resultText = 'Стоит подучить материал, но вы уже на пути к знаниям!';
+            }
+        }
+        
+        const resultMessageElement = document.getElementById('result-message');
+        if (resultMessageElement) {
+            resultMessageElement.textContent = resultText;
+        }
+    }
+
+    document.dispatchEvent(new CustomEvent('quizCompleted', {
+        detail: { 
+            score: score, 
+            total: questionsForQuiz.length, 
+            percentage: percentage,
+            mode: currentQuizMode,
+            difficulty: currentDifficulty
+        }
+    }));
+    
+    console.log('🏁 Результаты отображены в 3D интерфейсе');
+}
+
+// УМНАЯ функция шеринга с автоопределением VK ссылки
+function shareResults() {
+    console.log('📤 Умная функция shareResults с VK ссылкой');
+    
+    const percentage = Math.round((score / questionsForQuiz.length) * 100);
+    let modeText = 'Анатомия';
+    if (currentQuizMode === 'clinical') modeText = 'Клиническое мышление';
+    if (currentQuizMode === 'pharmacology') modeText = 'Фармакология';
+    if (currentQuizMode === 'first_aid') modeText = 'Перв
