@@ -173,13 +173,13 @@ class SimpleAmbulanceBackground {
     }
 
     loadRealRaf() {
-        console.log('🚑 ЗАГРУЖАЕМ raf2031.3ds...');
+        console.log('🚑 ЗАГРУЖАЕМ raf22031.3ds...');
         
         const loader = new THREE.TDSLoader();
         loader.setResourcePath('./Models/');
         
         loader.load(
-            './Models/raf2031.3ds',
+            './Models/raf22031.3ds',
             (object) => {
                 console.log('🎉 RAF2031.3DS ЗАГРУЖЕН!');
                 this.setupLoadedModel(object);
@@ -350,9 +350,9 @@ class SimpleAmbulanceBackground {
         
         // Сначала пробуем JPG
         textureLoader.load(
-            './Models/raf2031.JPG',
+            './Models/raf22031.JPG',
             (texture) => {
-                console.log('✅ Текстура raf2031.JPG загружена');
+                console.log('✅ Текстура raf22031.JPG загружена');
                 this.applyTextureToModel(texture);
             },
             undefined,
@@ -367,9 +367,9 @@ class SimpleAmbulanceBackground {
         const textureLoader = new THREE.TextureLoader();
         
         textureLoader.load(
-            './Models/raf2031.bmp',
+            './Models/raf22031.bmp',
             (texture) => {
-                console.log('✅ Текстура raf2031.bmp загружена');
+                console.log('✅ Текстура raf22031.bmp загружена');
                 this.applyTextureToModel(texture);
             },
             undefined,
