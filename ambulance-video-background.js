@@ -35,8 +35,50 @@
             filter: blur(1px) brightness(0.8);
         `;
 
-        // CDN видео (гарантированно работает)
-        video.src = 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4';
+        // Медицинские видео из CDN
+        const sources = [
+            './ambulance-bg.mp4',                    // ← ВАШЕ видео
+            'https://ketchyp22.github.io/ambulance-bg.mp4',  // ← Через GitHub Pages
+            
+            // Медицинские CDN видео:
+            'https://assets.mixkit.co/videos/preview/mixkit-red-and-blue-sirens-of-an-ambulance-4107-large.mp4',  // Скорая помощь
+            'https://assets.mixkit.co/videos/preview/mixkit-doctor-writing-on-clipboard-4166-large.mp4',  // Врач с документами
+            'https://assets.mixkit.co/videos/preview/mixkit-medical-equipment-in-hospital-4273-large.mp4',  // Медоборудование
+            'https://assets.mixkit.co/videos/preview/mixkit-hospital-corridor-4163-large.mp4',  // Коридор больницы
+            
+            // Альтернативные медицинские:
+            'https://cdn.pixabay.com/vimeo/462298126/ambulance-80413.mp4',  // Скорая помощь
+            'https://cdn.pixabay.com/vimeo/475928377/hospital-88234.mp4',   // Больница
+            'https://sample-videos.com/zip/10/mp4/720/mp4-sample-hospital.mp4',  // Больничное видео
+            
+            // Запасное (если медицинские не загрузятся):
+            'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4'
+        ];
+
+        let currentIndex = 0;
+        
+        function tryLoad() {
+            if (currentIndex >= sources.length) {
+                console.log('Все источники не удалось загрузить');
+                return;
+            }
+            
+            video.src = sources[currentIndex];
+            console.log(`🔄 Пробуем: ${sources[currentIndex]}`);
+            
+            video.onloadeddata = () => {
+                console.log(`✅ Видео загружено: ${sources[currentIndex]}`);
+                video.play().catch(() => console.log('Кликните для запуска'));
+            };
+            
+            video.onerror = () => {
+                console.log(`❌ Не удалось: ${sources[currentIndex]}`);
+                currentIndex++;
+                tryLoad();
+            };
+        }
+        
+        tryLoad();
 
         video.onloadeddata = () => {
             console.log('✅ CDN видео загружено');
