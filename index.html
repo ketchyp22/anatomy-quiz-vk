@@ -15,7 +15,7 @@
     
     <!-- Метаданные -->
     <meta property="og:title" content="MedQuiz Pro – проверь свои медицинские знания!">
-    <meta property="og:description" content="Современный медицинский квиз с 3D РАФ-2031 на фоне. Анатомия, клиника, фармакология, первая помощь, акушерство и ЭКСПЕРТНЫЙ уровень!">
+    <meta property="og:description" content="Современный медицинский квиз с видео фоном скорой помощи. Анатомия, клиника, фармакология, первая помощь, акушерство и ЭКСПЕРТНЫЙ уровень!">
     <meta property="og:image" content="https://vk.com/images/camera_100.png">
     <meta name="theme-color" content="#667eea">
     <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>👨‍⚕️</text></svg>">
@@ -199,37 +199,7 @@
     <!-- 1. VK Bridge -->
     <script src="https://unpkg.com/@vkontakte/vk-bridge/dist/browser.min.js"></script>
     
-    <!-- 2. Three.js - ОСНОВНАЯ БИБЛИОТЕКА -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
-    
-    <!-- 3. ПРАВИЛЬНЫЙ загрузчик для .3ds файлов -->
-    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/TDSLoader.js"></script>
-    
-    <!-- 4. Проверка загрузки Three.js -->
-    <script>
-        console.log('🔍 Проверяем загрузку Three.js...');
-        if (typeof THREE !== 'undefined') {
-            console.log('✅ Three.js загружен, версия:', THREE.REVISION);
-        } else {
-            console.error('❌ Three.js НЕ загружен!');
-        }
-        
-        // Ждем загрузки TDSLoader
-        let tdsLoaderCheckAttempts = 0;
-        const checkTDSLoader = () => {
-            tdsLoaderCheckAttempts++;
-            if (typeof THREE !== 'undefined' && typeof THREE.TDSLoader !== 'undefined') {
-                console.log('✅ TDSLoader готов для .3ds файлов');
-            } else if (tdsLoaderCheckAttempts < 10) {
-                setTimeout(checkTDSLoader, 200);
-            } else {
-                console.warn('⚠️ TDSLoader не загрузился, будет загружен позже в 3d-scene.js');
-            }
-        };
-        setTimeout(checkTDSLoader, 100);
-    </script>
-    
-    <!-- 5. Конфигурация приложения -->
+    <!-- 2. Конфигурация приложения -->
     <script>
         // Описания режимов квиза
         window.modeDescriptions = {
@@ -246,111 +216,75 @@
         window.currentQuizMode = 'anatomy';
         window.currentDifficulty = 'easy';
         
-        console.log('🚑 MedQuiz Pro загружается с исправленным 3D РАФ-2031...');
-        console.log('📦 Ожидаемые файлы:');
-        console.log('  - ./Models/raf2031.3ds');
-        console.log('  - ./Models/raf2031.JPG');
-        console.log('  - ./Models/raf2031.bmp');
-        console.log('  - ./Models/raf2031.x');
+        console.log('🚑 MedQuiz Pro загружается с видео фоном скорой помощи...');
+        console.log('🎬 Ожидаемый файл: ./ambulance-bg.mp4');
     </script>
     
-    <!-- 6. Основные скрипты приложения -->
+    <!-- 3. Основные скрипты приложения -->
     <script src="questions.js"></script>
     <script src="app.js"></script>
     
-    <!-- 7. Исправление отображения пользователя -->
+    <!-- 4. Исправление отображения пользователя -->
     <script src="user-fix.js"></script>
     
-    <!-- 8. Дополнительные наборы вопросов -->
+    <!-- 5. Дополнительные наборы вопросов -->
     <script src="first-aid-questions.js"></script>
     <script src="first-aid-hard-questions.js"></script>
     <script src="obstetrics-questions.js"></script>
     <script src="obstetrics-hard-questions.js"></script>
     
-    <!-- 9. Экспертный пак вопросов -->
+    <!-- 6. Экспертный пак вопросов -->
     <script src="expert-questions.js"></script>
     
-    <!-- 10. Система геймификации -->
+    <!-- 7. Система геймификации -->
     <script src="gamification.js"></script>
     
-    <!-- 11. Система подсказок -->
+    <!-- 8. Система подсказок -->
     <script src="hints-system.js"></script>
     
-    <!-- 12. Правильное решение шеринга для VK -->
+    <!-- 9. Правильное решение шеринга для VK -->
     <script src="vk-share-correct.js"></script>
     
-    <!-- 13. 3D ФОН С РАФ-2031 - ЗАГРУЖАЕТСЯ ПОСЛЕДНИМ С ПРОВЕРКАМИ -->
-    <script>
-        // Функция безопасной загрузки 3D сцены
-        function safeLoad3DScene() {
-            console.log('🚑 Подготовка к загрузке 3D РАФ-2031...');
-            
-            // Проверяем все необходимые компоненты
-            if (typeof THREE === 'undefined') {
-                console.error('❌ Three.js не загружен - 3D сцена отключена');
-                return false;
-            }
-            
-            console.log('✅ Three.js готов, версия:', THREE.REVISION);
-            console.log('🔍 Проверяем файлы РАФ-2031:');
-            console.log('  📦 3D модель: ./Models/raf2031.3ds');
-            console.log('  🖼️ Текстуры: ./Models/raf2031.JPG, ./Models/raf2031.bmp');
-            
-            // Загружаем 3D сцену
-            const script = document.createElement('script');
-            script.src = '3d-scene.js';
-            script.onload = () => {
-                console.log('✅ 3d-scene.js загружен с правильными именами файлов');
-                console.log('🚑 РАФ-2031 должен загрузиться автоматически');
-            };
-            script.onerror = () => {
-                console.error('❌ Ошибка загрузки 3d-scene.js');
-            };
-            document.head.appendChild(script);
-            
-            return true;
-        }
-        
-        // Запускаем загрузку 3D сцены после полной загрузки страницы
-        window.addEventListener('load', function() {
-            console.log('📱 Страница полностью загружена');
-            
-            // Даем время на инициализацию других скриптов
-            setTimeout(() => {
-                const loaded = safeLoad3DScene();
-                if (loaded) {
-                    console.log('🎉 Запуск 3D РАФ-2031 инициирован с правильными именами файлов');
-                } else {
-                    console.log('🚫 3D РАФ-2031 отключен из-за проблем с Three.js');
-                }
-            }, 1000);
-        });
-    </script>
+    <!-- 10. НОВЫЙ ВИДЕО ФОН СО СКОРОЙ ПОМОЩИ (ЗАМЕНА 3D) -->
+    <script src="ambulance-video-background.js"></script>
     
-    <!-- 14. Финальная инициализация -->
+    <!-- 11. Финальная инициализация -->
     <script>
         window.addEventListener('load', function() {
-            console.log('🎉 MedQuiz Pro полностью загружен');
+            console.log('🎉 MedQuiz Pro полностью загружен с видео фоном');
             
             // Финальная проверка ключевых компонентов
             setTimeout(() => {
                 const status = {
-                    threeJS: typeof THREE !== 'undefined' ? '✅ Загружен' : '❌ Не загружен',
-                    tdsLoader: typeof THREE !== 'undefined' && typeof THREE.TDSLoader !== 'undefined' ? '✅ Готов' : '⚠️ Будет загружен позже',
+                    videoBackground: window.ambulanceBackground ? '✅ Видео фон со скорой готов' : '❌ Видео фон не загружен',
                     questions: window.questions ? `${window.questions.length} вопросов` : '❌ Не загружены',
                     expertQuestions: window.questions ? `${window.questions.filter(q => q.mode === 'expert').length} экспертных` : '❌ Не загружены',
                     gamification: window.Gamification ? '✅ Загружена' : '❌ Не загружена',
                     hintsSystem: window.HintsSystem ? '✅ Загружена' : '❌ Не загружена',
-                    rafBackground: window.rafBackground ? '✅ 3D РАФ-2031 готов' : '⏳ 3D РАФ-2031 загружается...'
+                    vkBridge: window.vkBridgeInstance ? '✅ VK Bridge готов' : '⚠️ VK Bridge в гостевом режиме'
                 };
                 
                 console.log('📋 Финальный статус компонентов:', status);
-                console.log('🚑 ИСПРАВЛЕНЫ ИМЕНА ФАЙЛОВ:');
-                console.log('  📦 raf2031.3ds (было raf22031.3ds)');
-                console.log('  🖼️ raf2031.JPG (было raf22031.JPG)');
-                console.log('  🖼️ raf2031.bmp (было raf22031.bmp)');
-                console.log('🔧 Диагностика: window.debugRaf.info()');
+                console.log('🚑 НОВЫЙ ВИДЕО ФОН:');
+                console.log('  🎬 ambulance-bg.mp4 (ваше скачанное видео)');
+                console.log('  🚫 3D модель РАФ-2031 УДАЛЕНА');
+                console.log('🔧 Диагностика видео: window.debugAmbulanceBackground.info()');
+                console.log('🎛️ Настройки: window.debugAmbulanceBackground.presets.normal()');
             }, 2000);
+        });
+        
+        // Проверка наличия видео файла
+        window.addEventListener('DOMContentLoaded', function() {
+            setTimeout(() => {
+                const video = document.getElementById('ambulance-background-video');
+                if (video && video.error) {
+                    console.error('❌ ОШИБКА: файл ambulance-bg.mp4 не найден!');
+                    console.log('📋 Убедитесь что:');
+                    console.log('  1. Файл ambulance-bg.mp4 находится в той же папке что и index.html');
+                    console.log('  2. Имя файла написано правильно (точно ambulance-bg.mp4)');
+                    console.log('  3. Формат файла MP4');
+                }
+            }, 3000);
         });
     </script>
 </body>
