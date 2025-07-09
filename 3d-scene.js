@@ -1,4 +1,4 @@
-// ИСПРАВЛЕННАЯ ВЕРСИЯ 3d-scene.js с правильным позиционированием и файлами raf22031.*
+// ИСПРАВЛЕННАЯ ВЕРСИЯ 3d-scene.js с ПРАВИЛЬНОЙ ОРИЕНТАЦИЕЙ модели
 class SimpleAmbulanceBackground {
    constructor() {
        this.scene = null;
@@ -190,7 +190,7 @@ class SimpleAmbulanceBackground {
    }
 
    setupLoadedModel(object) {
-       console.log('🎨 НАСТРАИВАЕМ ЗАГРУЖЕННУЮ МОДЕЛЬ С ПРАВИЛЬНЫМ ПОЗИЦИОНИРОВАНИЕМ...');
+       console.log('🎨 НАСТРАИВАЕМ ЗАГРУЖЕННУЮ МОДЕЛЬ С ПРАВИЛЬНОЙ ОРИЕНТАЦИЕЙ...');
        
        this.rafModel = object;
        
@@ -218,11 +218,11 @@ class SimpleAmbulanceBackground {
        this.scene.add(this.rafModel);
        this.addEmergencyLights();
        
-       console.log('✅ МОДЕЛЬ РАФ-2031 ПРАВИЛЬНО ПОЗИЦИОНИРОВАНА И ГОТОВА!');
+       console.log('✅ МОДЕЛЬ РАФ-2031 ПРАВИЛЬНО ОРИЕНТИРОВАНА И ГОТОВА!');
    }
 
    correctModelPositioning() {
-       console.log('📐 ИСПРАВЛЯЕМ ПОЗИЦИОНИРОВАНИЕ И МАСШТАБИРОВАНИЕ...');
+       console.log('📐 ИСПРАВЛЯЕМ ПОЗИЦИОНИРОВАНИЕ И ОРИЕНТАЦИЮ...');
        
        this.modelBoundingBox = new THREE.Box3().setFromObject(this.rafModel);
        this.modelCenter = this.modelBoundingBox.getCenter(new THREE.Vector3());
@@ -234,6 +234,7 @@ class SimpleAmbulanceBackground {
            boundingBox: this.modelBoundingBox
        });
        
+       // ПРАВИЛЬНОЕ МАСШТАБИРОВАНИЕ
        const maxDimension = Math.max(modelSize.x, modelSize.y, modelSize.z);
        const screenFactor = Math.min(window.innerWidth, window.innerHeight) / 800;
        const baseScale = 3.5;
@@ -249,21 +250,39 @@ class SimpleAmbulanceBackground {
            finalScale
        });
        
+       // ПРАВИЛЬНАЯ ОРИЕНТАЦИЯ - МАШИНА СТОИТ КОЛЕСАМИ ВНИЗ
+       this.rafModel.rotation.x = 0;      // Не переворачиваем по X
+       this.rafModel.rotation.y = 0;      // Не поворачиваем по Y
+       this.rafModel.rotation.z = 0;      // Не поворачиваем по Z
+       
+       // Если модель всё ещё вверх ногами, пробуем другие варианты
+       // Раскомментируй нужный вариант:
+       
+       // Вариант 1: Поворот на 180° по X
+       // this.rafModel.rotation.x = Math.PI;
+       
+       // Вариант 2: Поворот на 90° по X
+       // this.rafModel.rotation.x = Math.PI / 2;
+       
+       // Вариант 3: Поворот на -90° по X
+       // this.rafModel.rotation.x = -Math.PI / 2;
+       
+       // Вариант 4: Поворот на 180° по Z
+       // this.rafModel.rotation.z = Math.PI;
+       
+       // ПОЗИЦИОНИРОВАНИЕ
        this.rafModel.position.set(0, 0, 0);
        
        const scaledBox = new THREE.Box3().setFromObject(this.rafModel);
        const scaledCenter = scaledBox.getCenter(new THREE.Vector3());
        const scaledSize = scaledBox.getSize(new THREE.Vector3());
        
+       // ЦЕНТРИРУЕМ МОДЕЛЬ
        this.rafModel.position.x = -scaledCenter.x;
        this.rafModel.position.z = -scaledCenter.z;
-       this.rafModel.position.y = -scaledBox.min.y;
+       this.rafModel.position.y = -scaledBox.min.y; // Ставим на землю
        
-       this.rafModel.rotation.x = 0;
-       this.rafModel.rotation.y = Math.PI;
-       this.rafModel.rotation.z = 0;
-       
-       console.log('📍 ИСПРАВЛЕННОЕ позиционирование:', {
+       console.log('📍 ПРАВИЛЬНАЯ ориентация:', {
            position: this.rafModel.position,
            rotation: this.rafModel.rotation,
            scale: this.rafModel.scale.x,
@@ -508,20 +527,44 @@ window.debugRaf = {
        startRealRaf();
    },
    
-   checkFiles: async () => {
-       const files = ['./Models/raf22031.3ds', './Models/raf22031.JPG', './Models/raf22031.bmp'];
-       for (const file of files) {
-           try {
-               const response = await fetch(file, { method: 'HEAD' });
-               console.log(`${response.ok ? '✅' : '❌'} ${file} - ${response.status}`);
-           } catch (error) {
-               console.log(`❌ ${file} - Ошибка: ${error.message}`);
-           }
+   // ФУНКЦИИ ДЛЯ ИСПРАВЛЕНИЯ ОРИЕНТАЦИИ
+   flipX: () => {
+       if (window.rafBackground?.rafModel) {
+           window.rafBackground.rafModel.rotation.x = Math.PI;
+           console.log('🔄 Перевернуто по X на 180°');
+       }
+   },
+   
+   rotateX90: () => {
+       if (window.rafBackground?.rafModel) {
+           window.rafBackground.rafModel.rotation.x = Math.PI / 2;
+           console.log('🔄 Повернуто по X на 90°');
+       }
+   },
+   
+   rotateXMinus90: () => {
+       if (window.rafBackground?.rafModel) {
+           window.rafBackground.rafModel.rotation.x = -Math.PI / 2;
+           console.log('🔄 Повернуто по X на -90°');
+       }
+   },
+   
+   flipZ: () => {
+       if (window.rafBackground?.rafModel) {
+           window.rafBackground.rafModel.rotation.z = Math.PI;
+           console.log('🔄 Перевернуто по Z на 180°');
+       }
+   },
+   
+   resetRotation: () => {
+       if (window.rafBackground?.rafModel) {
+           window.rafBackground.rafModel.rotation.set(0, 0, 0);
+           console.log('🔄 Поворот сброшен');
        }
    },
    
    info: () => {
-       console.log('=== ДИАГНОСТИКА ИСПРАВЛЕННОГО РАФ-2031 ===');
+       console.log('=== ДИАГНОСТИКА РАФ-2031 ===');
        console.log('Three.js:', typeof THREE !== 'undefined' ? '✅' : '❌');
        console.log('TDSLoader:', typeof THREE?.TDSLoader !== 'undefined' ? '✅' : '❌');
        console.log('Модель загружена:', window.rafBackground?.rafModel ? '✅' : '❌');
@@ -533,29 +576,14 @@ window.debugRaf = {
            console.log('Масштаб модели:', model.scale.x);
            console.log('Позиция камеры:', window.rafBackground.camera.position);
        }
-   },
-   
-   centerModel: () => {
-       if (window.rafBackground?.rafModel) {
-           window.rafBackground.correctModelPositioning();
-           console.log('🎯 Модель переcentrована');
-       } else {
-           console.log('❌ Модель не загружена');
-       }
-   },
-   
-   resetCamera: () => {
-       if (window.rafBackground?.camera && window.rafBackground?.originalCameraPosition) {
-           const pos = window.rafBackground.originalCameraPosition;
-           window.rafBackground.camera.position.set(pos.x, pos.y, pos.z);
-           window.rafBackground.camera.lookAt(0, 0, 0);
-           console.log('📷 Камера сброшена');
-       }
    }
 };
 
-console.log('✅ ИСПРАВЛЕННЫЙ код загружен с правильным позиционированием!');
+console.log('✅ ИСПРАВЛЕННЫЙ код загружен с правильной ориентацией!');
 console.log('🔧 Диагностика: window.debugRaf.info()');
-console.log('🎯 Переcentрировать: window.debugRaf.centerModel()');
-console.log('📷 Сбросить камеру: window.debugRaf.resetCamera()');
-console.log('🔄 Перезапуск: window.debugRaf.restart()');
+console.log('🔄 Если машина вверх ногами:');
+console.log('   window.debugRaf.flipX() - перевернуть по X');
+console.log('   window.debugRaf.rotateX90() - повернуть на 90°');
+console.log('   window.debugRaf.rotateXMinus90() - повернуть на -90°');
+console.log('   window.debugRaf.flipZ() - перевернуть по Z');
+console.log('   window.debugRaf.resetRotation() - сбросить поворот');
