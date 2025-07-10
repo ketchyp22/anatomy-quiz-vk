@@ -1,52 +1,35 @@
-// medical-video-background.js - CDN видео фон для медицинского приложения
+// ambulance-video-background-FIXED.js - Исправленная версия с реальными медицинскими видео
 (function() {
     'use strict';
     
-    console.log('🎬 Загружается медицинский видео фон с CDN...');
+    console.log('🚑 Загружается ИСПРАВЛЕННЫЙ медицинский видео фон...');
 
-    // CDN источники медицинских видео
+    // ИСПРАВЛЕННЫЕ источники МЕДИЦИНСКИХ видео
     const MEDICAL_VIDEO_SOURCES = [
-        // Mixkit - бесплатные медицинские видео
-        'https://assets.mixkit.co/videos/preview/mixkit-doctor-writing-on-clipboard-4166-large.mp4',
-        'https://assets.mixkit.co/videos/preview/mixkit-medical-equipment-in-hospital-4273-large.mp4',
-        'https://assets.mixkit.co/videos/preview/mixkit-hospital-corridor-4163-large.mp4',
-        'https://assets.mixkit.co/videos/preview/mixkit-stethoscope-on-a-table-4169-large.mp4',
-        'https://assets.mixkit.co/videos/preview/mixkit-medical-pills-4170-large.mp4',
+        // Реальные медицинские видео с надежных CDN
+        'https://cdn.coverr.co/videos/coverr-medical-equipment-in-a-hospital-room-3838/1080p.mp4',
+        'https://cdn.coverr.co/videos/coverr-hospital-corridor-with-medical-equipment-3839/1080p.mp4',
+        'https://cdn.coverr.co/videos/coverr-doctor-examining-patient-with-stethoscope-4201/1080p.mp4',
+        'https://cdn.coverr.co/videos/coverr-medical-consultation-room-4202/1080p.mp4',
         
-        // Pixabay CDN
-        'https://cdn.pixabay.com/vimeo/451878859/medical-40692.mp4?width=1280&hash=4b2b1b2b1b2b1b2b1b2b1b2b1b2b1b2b1b2b1b2b',
-        'https://cdn.pixabay.com/vimeo/412456789/hospital-39856.mp4?width=1280&hash=5c3c2c3c2c3c2c3c2c3c2c3c2c3c2c3c2c3c2c3c',
+        // Videvo медицинские видео
+        'https://cdn.videvo.net/videvo_files/video/free/2019-11/large_watermarked/medical_190129_02_4k_uhd.mp4',
+        'https://cdn.videvo.net/videvo_files/video/free/2019-11/large_watermarked/hospital_190129_01_4k_uhd.mp4',
         
-        // Videvo CDN
-        'https://cdn.videvo.net/videvo_files/video/premium/video0032/large_watermarked/medical_170928_006_preview.mp4',
-        'https://cdn.videvo.net/videvo_files/video/premium/video0033/large_watermarked/hospital_170928_007_preview.mp4',
+        // Альтернативные медицинские источники
+        'https://sample-videos.com/zip/10/mp4/720/BigBuckBunny_320x180_1mb.mp4', // Временный тест
+        'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4', // Тестовое видео
         
-        // Google Storage (тестовые медицинские видео)
-        'https://storage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4',
-        'https://storage.googleapis.com/gtv-videos-bucket/sample/ElephantsDream.mp4',
-        'https://storage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4',
-        'https://storage.googleapis.com/gtv-videos-bucket/sample/ForBiggerEscapes.mp4',
-        'https://storage.googleapis.com/gtv-videos-bucket/sample/ForBiggerFun.mp4',
-        'https://storage.googleapis.com/gtv-videos-bucket/sample/ForBiggerJoyrides.mp4',
-        'https://storage.googleapis.com/gtv-videos-bucket/sample/ForBiggerMeltdowns.mp4',
-        'https://storage.googleapis.com/gtv-videos-bucket/sample/Sintel.mp4',
-        'https://storage.googleapis.com/gtv-videos-bucket/sample/SubaruOutbackOnStreetAndDirt.mp4',
-        'https://storage.googleapis.com/gtv-videos-bucket/sample/TearsOfSteel.mp4'
+        // Медицинские видео с других источников
+        'https://player.vimeo.com/external/194837908.sd.mp4?s=c350076905b78c67f74d7ee39fdb4fef01dd5676&profile_id=164',
+        'https://assets.mixkit.co/videos/preview/mixkit-hospital-bed-in-intensive-care-4274-large.mp4'
     ];
 
-    // Альтернативные источники для мобильных устройств
+    // Мобильные версии (более легкие)
     const MOBILE_VIDEO_SOURCES = [
-        'https://assets.mixkit.co/videos/preview/mixkit-doctor-writing-on-clipboard-4166-small.mp4',
-        'https://assets.mixkit.co/videos/preview/mixkit-medical-equipment-in-hospital-4273-small.mp4',
-        'https://assets.mixkit.co/videos/preview/mixkit-hospital-corridor-4163-small.mp4'
-    ];
-
-    // Медицинские изображения как fallback
-    const MEDICAL_IMAGES = [
-        'https://images.unsplash.com/photo-1576091160399-112ba8d25d1f?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2070&q=80',
-        'https://images.unsplash.com/photo-1582750433449-648ed127bb54?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2074&q=80',
-        'https://images.unsplash.com/photo-1559757148-5c350d0d3c56?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2129&q=80',
-        'https://images.unsplash.com/photo-1559757175-0eb30cd8c063?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2069&q=80'
+        'https://cdn.coverr.co/videos/coverr-medical-equipment-in-a-hospital-room-3838/720p.mp4',
+        'https://cdn.coverr.co/videos/coverr-hospital-corridor-with-medical-equipment-3839/720p.mp4',
+        'https://assets.mixkit.co/videos/preview/mixkit-hospital-bed-in-intensive-care-4274-small.mp4'
     ];
 
     let currentVideoIndex = 0;
@@ -57,11 +40,9 @@
 
     // Создание видео контейнера
     function createVideoContainer() {
-        // Удаляем существующий контейнер
-        const existing = document.getElementById('medical-video-background');
-        if (existing) {
-            existing.remove();
-        }
+        // Удаляем существующие контейнеры
+        const existing = document.querySelectorAll('#medical-video-background, #ambulance-video-background, [id*="video-background"]');
+        existing.forEach(el => el.remove());
 
         videoContainer = document.createElement('div');
         videoContainer.id = 'medical-video-background';
@@ -71,12 +52,13 @@
             left: 0;
             width: 100%;
             height: 100%;
-            z-index: -10;
+            z-index: -100;
             overflow: hidden;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: linear-gradient(135deg, #1e40af 0%, #7c3aed 50%, #dc2626 100%);
         `;
 
         document.body.insertBefore(videoContainer, document.body.firstChild);
+        console.log('🎬 Контейнер медицинского видео создан');
         return videoContainer;
     }
 
@@ -89,6 +71,8 @@
         videoElement.loop = true;
         videoElement.playsInline = true;
         videoElement.preload = 'metadata';
+        videoElement.crossOrigin = 'anonymous';
+        
         videoElement.style.cssText = `
             position: absolute;
             top: 50%;
@@ -100,107 +84,118 @@
             transform: translate(-50%, -50%);
             object-fit: cover;
             opacity: 0;
-            transition: opacity 1s ease-in-out;
-            filter: blur(1px) brightness(0.7) contrast(1.1);
+            transition: opacity 2s ease-in-out;
+            filter: blur(1px) brightness(0.6) contrast(1.2) saturate(0.9);
         `;
 
         return videoElement;
     }
 
-    // Загрузка видео
+    // Загрузка видео с улучшенной обработкой ошибок
     async function loadVideo(sourceUrl) {
+        console.log('🔄 Загружаем медицинское видео:', sourceUrl);
+        
         return new Promise((resolve, reject) => {
             const video = createVideoElement();
             
             const timeout = setTimeout(() => {
                 cleanup();
-                reject(new Error('Timeout loading video'));
-            }, 10000);
+                console.warn('⏰ Таймаут загрузки видео');
+                reject(new Error('Video load timeout'));
+            }, 15000); // Увеличиваем таймаут
 
             const cleanup = () => {
                 clearTimeout(timeout);
                 video.removeEventListener('loadeddata', onLoaded);
                 video.removeEventListener('error', onError);
                 video.removeEventListener('canplaythrough', onCanPlay);
+                video.removeEventListener('loadstart', onLoadStart);
+            };
+
+            const onLoadStart = () => {
+                console.log('📡 Начата загрузка видео:', sourceUrl);
             };
 
             const onLoaded = () => {
-                console.log('✅ Видео загружено:', sourceUrl);
-                video.style.opacity = '0.6';
+                console.log('✅ Медицинское видео загружено успешно:', sourceUrl);
+                video.style.opacity = '0.8';
                 cleanup();
                 resolve(video);
             };
 
             const onError = (error) => {
-                console.warn('❌ Ошибка загрузки видео:', sourceUrl, error);
+                console.error('❌ Ошибка загрузки медицинского видео:', sourceUrl, error);
                 cleanup();
                 reject(error);
             };
 
             const onCanPlay = () => {
+                console.log('▶️ Видео готово к воспроизведению');
                 video.play()
                     .then(() => {
-                        console.log('▶️ Видео начато:', sourceUrl);
+                        console.log('🎬 Медицинское видео запущено');
                         onLoaded();
                     })
-                    .catch(onError);
+                    .catch(error => {
+                        console.error('❌ Ошибка воспроизведения:', error);
+                        onError(error);
+                    });
             };
 
+            video.addEventListener('loadstart', onLoadStart);
             video.addEventListener('loadeddata', onLoaded);
             video.addEventListener('error', onError);
             video.addEventListener('canplaythrough', onCanPlay);
+            
+            // Добавляем дополнительные обработчики для диагностики
+            video.addEventListener('progress', () => {
+                if (video.buffered.length > 0) {
+                    const percent = Math.round((video.buffered.end(0) / video.duration) * 100);
+                    console.log(`📊 Загружено: ${percent}%`);
+                }
+            });
             
             video.src = sourceUrl;
             video.load();
         });
     }
 
-    // Попытка загрузки видео из источников
-    async function tryLoadVideo() {
+    // Попытка загрузки медицинского видео
+    async function tryLoadMedicalVideo() {
         const sources = isMobile() ? MOBILE_VIDEO_SOURCES : MEDICAL_VIDEO_SOURCES;
+        console.log(`🎯 Попытка загрузки медицинского видео (${sources.length} источников)`);
         
         for (let i = 0; i < sources.length; i++) {
             const sourceUrl = sources[i];
             
             if (failedSources.has(sourceUrl)) {
+                console.log(`⏭️ Пропускаем уже неудачный источник: ${sourceUrl}`);
                 continue;
             }
 
             try {
-                console.log(`🔄 Попытка загрузки видео ${i + 1}/${sources.length}: ${sourceUrl}`);
+                console.log(`🔄 Попытка ${i + 1}/${sources.length}: ${sourceUrl}`);
                 const video = await loadVideo(sourceUrl);
                 
-                if (videoContainer) {
+                if (videoContainer && video) {
                     videoContainer.appendChild(video);
                     videoElement = video;
-                    showSuccessNotification();
+                    showSuccessNotification(`Медицинское видео загружено (${i + 1}/${sources.length})`);
                     return true;
                 }
             } catch (error) {
-                console.warn(`❌ Не удалось загрузить видео ${i + 1}: ${sourceUrl}`);
+                console.warn(`❌ Видео ${i + 1} не загрузилось:`, sourceUrl, error.message);
                 failedSources.add(sourceUrl);
+                
+                // Показываем прогресс попыток
+                if (i < sources.length - 1) {
+                    console.log(`🔄 Переходим к следующему источнику...`);
+                }
             }
         }
 
+        console.error('❌ Все медицинские видео источники не удалось загрузить');
         return false;
-    }
-
-    // Fallback на изображения
-    function setupImageFallback() {
-        if (!videoContainer) return;
-
-        const imageUrl = MEDICAL_IMAGES[Math.floor(Math.random() * MEDICAL_IMAGES.length)];
-        
-        videoContainer.style.cssText += `
-            background-image: url('${imageUrl}');
-            background-size: cover;
-            background-position: center;
-            background-repeat: no-repeat;
-            background-attachment: fixed;
-        `;
-
-        console.log('🖼️ Используется изображение как fallback:', imageUrl);
-        showImageFallbackNotification();
     }
 
     // Проверка на мобильное устройство
@@ -210,23 +205,27 @@
     }
 
     // Уведомления
-    function showSuccessNotification() {
+    function showSuccessNotification(text) {
+        // Показываем только в dev режиме
         if (!window.location.href.includes('localhost') && !window.location.href.includes('github.io')) {
-            return; // Показываем только в dev режиме
+            return;
         }
 
-        const notification = createNotification('✅ Медицинский видео фон активирован', '#10b981');
-        setTimeout(() => notification.remove(), 3000);
+        const notification = createNotification('✅ ' + text, '#10b981');
+        setTimeout(() => {
+            if (notification && notification.parentNode) {
+                notification.remove();
+            }
+        }, 4000);
     }
 
-    function showImageFallbackNotification() {
-        const notification = createNotification('🖼️ Используется медицинское изображение', '#f59e0b');
-        setTimeout(() => notification.remove(), 4000);
-    }
-
-    function showErrorNotification() {
-        const notification = createNotification('⚠️ Видео фон недоступен', '#ef4444');
-        setTimeout(() => notification.remove(), 5000);
+    function showErrorNotification(text) {
+        const notification = createNotification('❌ ' + text, '#ef4444');
+        setTimeout(() => {
+            if (notification && notification.parentNode) {
+                notification.remove();
+            }
+        }, 5000);
     }
 
     function createNotification(text, color) {
@@ -244,6 +243,8 @@
             z-index: 9999;
             box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
             animation: slideInRight 0.3s ease-out;
+            max-width: 300px;
+            word-wrap: break-word;
         `;
         
         notification.textContent = text;
@@ -270,23 +271,29 @@
                 }
             }
             
-            @keyframes medicalPulse {
+            @keyframes medicalVideoEffect {
                 0%, 100% {
-                    filter: blur(1px) brightness(0.7) contrast(1.1);
+                    filter: blur(1px) brightness(0.6) contrast(1.2) saturate(0.9);
                 }
                 50% {
-                    filter: blur(0.5px) brightness(0.8) contrast(1.2);
+                    filter: blur(0.5px) brightness(0.7) contrast(1.3) saturate(1.1);
                 }
             }
             
             #medical-bg-video {
-                animation: medicalPulse 10s ease-in-out infinite;
+                animation: medicalVideoEffect 20s ease-in-out infinite;
             }
             
             @media (max-width: 768px) {
                 #medical-bg-video {
                     animation: none;
-                    filter: blur(2px) brightness(0.6) contrast(1.1) !important;
+                    filter: blur(2px) brightness(0.5) contrast(1.1) saturate(0.8) !important;
+                }
+            }
+            
+            @media (prefers-reduced-motion: reduce) {
+                #medical-bg-video {
+                    animation: none;
                 }
             }
         `;
@@ -296,17 +303,17 @@
 
     // Основная функция инициализации
     async function initMedicalVideoBackground() {
-        console.log('🎬 Инициализация медицинского видео фона...');
+        console.log('🚑 Инициализация медицинского видео фона...');
         
         addAnimationStyles();
         createVideoContainer();
         
-        // Пытаемся загрузить видео
-        const videoLoaded = await tryLoadVideo();
+        // Пытаемся загрузить медицинское видео
+        const videoLoaded = await tryLoadMedicalVideo();
         
         if (!videoLoaded) {
-            console.warn('❌ Не удалось загрузить ни одно видео, используем изображение');
-            setupImageFallback();
+            console.warn('⚠️ Не удалось загрузить медицинское видео, оставляем градиент');
+            showErrorNotification('Медицинское видео недоступно');
         }
     }
 
@@ -314,11 +321,12 @@
     function toggleVideo() {
         if (videoElement) {
             if (videoElement.paused) {
-                videoElement.play();
-                console.log('▶️ Видео возобновлено');
+                videoElement.play().then(() => {
+                    console.log('▶️ Медицинское видео возобновлено');
+                }).catch(console.warn);
             } else {
                 videoElement.pause();
-                console.log('⏸️ Видео приостановлено');
+                console.log('⏸️ Медицинское видео приостановлено');
             }
         }
     }
@@ -326,15 +334,32 @@
     function changeVideoOpacity(opacity) {
         if (videoElement) {
             videoElement.style.opacity = Math.max(0, Math.min(1, opacity));
-            console.log(`🎨 Прозрачность изменена на ${opacity}`);
+            console.log(`🎨 Прозрачность медицинского видео: ${opacity}`);
         }
     }
 
     function switchToNextVideo() {
-        if (failedSources.size < MEDICAL_VIDEO_SOURCES.length) {
-            console.log('🔄 Переключение на следующее видео...');
-            tryLoadVideo();
+        console.log('🔄 Переключение на следующее медицинское видео...');
+        if (videoContainer) {
+            videoContainer.innerHTML = '';
+            videoElement = null;
+            setTimeout(() => {
+                tryLoadMedicalVideo();
+            }, 500);
         }
+    }
+
+    function diagnosticInfo() {
+        const info = {
+            container: !!videoContainer,
+            video: !!videoElement,
+            playing: videoElement && !videoElement.paused,
+            src: videoElement?.src || 'none',
+            failed: Array.from(failedSources),
+            mobile: isMobile()
+        };
+        console.table(info);
+        return info;
     }
 
     // Глобальные функции управления
@@ -343,6 +368,7 @@
         setOpacity: changeVideoOpacity,
         switchVideo: switchToNextVideo,
         reinit: initMedicalVideoBackground,
+        diagnostic: diagnosticInfo,
         isEnabled: () => isVideoEnabled,
         getCurrentVideo: () => videoElement?.src || 'none',
         getStatus: () => ({
@@ -350,7 +376,8 @@
             loaded: !!videoElement,
             playing: videoElement && !videoElement.paused,
             currentSrc: videoElement?.src,
-            failedSources: Array.from(failedSources)
+            failedSources: Array.from(failedSources),
+            isMobile: isMobile()
         })
     };
 
@@ -363,26 +390,26 @@
 
     // Обработка изменения размеров окна
     window.addEventListener('resize', () => {
-        if (videoElement) {
-            // Перезапуск видео при изменении ориентации на мобильных
-            if (isMobile()) {
-                videoElement.style.filter = 'blur(2px) brightness(0.6) contrast(1.1)';
-            }
+        if (videoElement && isMobile()) {
+            videoElement.style.filter = 'blur(2px) brightness(0.5) contrast(1.1) saturate(0.8)';
         }
     });
 
-    // Обработка видимости страницы
+    // Обработка видимости страницы для экономии ресурсов
     document.addEventListener('visibilitychange', () => {
         if (videoElement) {
             if (document.hidden) {
                 videoElement.pause();
             } else {
-                videoElement.play().catch(console.warn);
+                videoElement.play().catch(() => {
+                    console.log('Не удалось возобновить видео после возврата на страницу');
+                });
             }
         }
     });
 
-    console.log('✅ Медицинский видео фон готов к работе');
+    console.log('✅ ИСПРАВЛЕННЫЙ медицинский видео фон готов');
     console.log('🎮 Управление: window.medicalVideoBackground');
+    console.log('🔧 Диагностика: window.medicalVideoBackground.diagnostic()');
 
 })();
