@@ -1,101 +1,126 @@
-// ambulance-video-background.js - Многоисточниковая система видео фона
+// vk-safe-video-background.js - Безопасная система для ВКонтакте
 (function() {
     'use strict';
     
-    console.log('🎬 Загружается продвинутая система медицинского видео фона...');
+    console.log('🔒 Загружается VK-совместимая система видео фона...');
 
-    // КОНФИГУРАЦИЯ ВИДЕО ИСТОЧНИКОВ
-    const VIDEO_CONFIG = {
-        // Основные видео с Pexels (в порядке приоритета)
+    // БЕЗОПАСНАЯ КОНФИГУРАЦИЯ ДЛЯ VK
+    const VK_SAFE_CONFIG = {
+        // Приоритет источников для VK
         sources: [
+            // 1. Локальные файлы (самый безопасный вариант)
             {
-                id: 'medical_1',
-                name: 'Медицинская лаборатория',
-                url: 'https://videos.pexels.com/video-files/6687824/6687824-hd_1920_1080_25fps.mp4',
-                fallback: 'https://videos.pexels.com/video-files/6687824/6687824-uhd_2560_1440_25fps.mp4'
+                type: 'local',
+                urls: ['./ambulance-bg.mp4', './medical-bg.mp4', './hospital-bg.mp4'],
+                name: 'Локальные медицинские видео'
             },
+            
+            // 2. Анимированные CSS фоны (fallback)
             {
-                id: 'medical_2',
-                name: 'Операционная',
-                url: 'https://videos.pexels.com/video-files/6688264/6688264-hd_1920_1080_25fps.mp4',
-                fallback: 'https://videos.pexels.com/video-files/6688264/6688264-uhd_2560_1440_25fps.mp4'
+                type: 'css_animation',
+                name: 'CSS анимация пульса',
+                generator: 'pulse'
             },
+            
+            // 3. Статические градиенты с анимацией
             {
-                id: 'medical_3',
-                name: 'Медицинское оборудование',
-                url: 'https://videos.pexels.com/video-files/6687713/6687713-hd_1920_1080_25fps.mp4',
-                fallback: 'https://videos.pexels.com/video-files/6687713/6687713-uhd_2560_1440_25fps.mp4'
+                type: 'gradient',
+                name: 'Медицинский градиент',
+                generator: 'medical'
             },
+            
+            // 4. Canvas анимация (если видео недоступно)
             {
-                id: 'medical_4',
-                name: 'Хирургическая операция',
-                url: 'https://videos.pexels.com/video-files/8944419/8944419-hd_1920_1080_25fps.mp4',
-                fallback: 'https://videos.pexels.com/video-files/8944419/8944419-uhd_2560_1440_25fps.mp4'
-            },
-            {
-                id: 'medical_5',
-                name: 'Медицинская процедура',
-                url: 'https://videos.pexels.com/video-files/8944400/8944400-hd_1920_1080_25fps.mp4',
-                fallback: 'https://videos.pexels.com/video-files/8944400/8944400-uhd_2560_1440_25fps.mp4'
+                type: 'canvas',
+                name: 'Canvas анимация',
+                generator: 'heartbeat'
             }
         ],
         
-        // Локальные файлы (высший приоритет если есть)
-        localSources: [
-            './ambulance-bg.mp4',
-            './medical-bg.mp4',
-            './hospital-bg.mp4'
-        ],
+        // Настройки для VK
+        vkSettings: {
+            respectCSP: true,           // Соблюдать CSP политику
+            fallbackFirst: true,       // Сначала пробовать безопасные варианты
+            detectVKEnvironment: true, // Определять VK окружение
+            maxVideoSize: 5 * 1024 * 1024, // Максимум 5MB
+            timeoutMs: 8000,          // Тайм-аут загрузки
+            respectAutoplayPolicy: true // Соблюдать политику автовоспроизведения
+        },
         
-        // Настройки
-        randomSelection: true,  // Случайный выбор видео
-        autoRetry: true,       // Автоматические повторы при ошибках
-        maxRetries: 3,         // Максимум попыток загрузки
-        retryDelay: 2000,      // Задержка между попытками (мс)
-        fadeTransition: true,  // Плавные переходы между видео
-        showNotifications: false // УБИРАЕМ УВЕДОМЛЕНИЯ НА ЭКРАНЕ
+        // Внешние видео (только если разрешено)
+        externalVideos: [
+            {
+                url: 'https://videos.pexels.com/video-files/6687824/6687824-hd_1280_720_25fps.mp4',
+                name: 'Pexels Video 1 (720p)',
+                size: 'small'
+            },
+            {
+                url: 'https://videos.pexels.com/video-files/6688264/6688264-hd_1280_720_25fps.mp4',
+                name: 'Pexels Video 2 (720p)',
+                size: 'small'
+            }
+        ]
     };
 
-    // Глобальные переменные системы
     let videoContainer = null;
-    let currentVideo = null;
-    let currentSourceIndex = 0;
-    let retryCount = 0;
+    let currentBackground = null;
+    let isVKEnvironment = false;
     let isInitialized = false;
-    let availableSources = [];
 
-    // Полная очистка предыдущих видео
-    function clearAllVideos() {
-        const selectors = [
-            'video', 
-            '[id*="video"]', 
-            '[id*="background"]', 
-            '[id*="medical"]', 
-            '[id*="ambulance"]',
-            '.video-container',
-            '.video-background'
+    // Определение VK окружения
+    function detectVKEnvironment() {
+        const indicators = [
+            // VK Bridge
+            typeof window.vkBridge !== 'undefined',
+            typeof window.VKWebAppInit !== 'undefined',
+            
+            // VK домены
+            window.location.hostname.includes('vk.com'),
+            window.location.hostname.includes('vk.me'),
+            
+            // User Agent
+            navigator.userAgent.includes('vk.com'),
+            navigator.userAgent.includes('VKApp'),
+            
+            // Referrer
+            document.referrer.includes('vk.com'),
+            
+            // Parent frame
+            window.parent !== window && window.parent.location.hostname.includes('vk.com')
         ];
         
-        selectors.forEach(selector => {
-            document.querySelectorAll(selector).forEach(el => {
-                if (el.tagName === 'VIDEO' || 
-                    el.id.includes('video') || 
-                    el.id.includes('background') || 
-                    el.id.includes('medical') ||
-                    el.id.includes('ambulance')) {
-                    console.log('🗑️ Удаляем:', el.tagName, el.id || el.className);
-                    el.remove();
-                }
-            });
-        });
+        isVKEnvironment = indicators.some(Boolean);
+        
+        console.log('🔍 VK окружение:', isVKEnvironment ? 'Обнаружено' : 'Не обнаружено');
+        console.log('📊 Индикаторы VK:', indicators);
+        
+        return isVKEnvironment;
     }
 
-    // Создание контейнера для видео
-    function createVideoContainer() {
-        clearAllVideos();
+    // Проверка CSP политики
+    function checkCSPPolicy() {
+        const metaCSP = document.querySelector('meta[http-equiv="Content-Security-Policy"]');
+        if (metaCSP) {
+            const cspContent = metaCSP.getAttribute('content');
+            console.log('🔒 Обнаружена CSP политика:', cspContent);
+            
+            // Проверяем разрешены ли внешние медиа
+            const allowsExternalMedia = cspContent.includes('media-src') && 
+                                      (cspContent.includes('*') || cspContent.includes('pexels.com'));
+            
+            return allowsExternalMedia;
+        }
+        
+        return true; // Если CSP не найдена, разрешаем
+    }
+
+    // Создание безопасного контейнера
+    function createSafeContainer() {
+        const existingContainers = document.querySelectorAll('[id*="video"], [id*="background"]');
+        existingContainers.forEach(el => el.remove());
 
         videoContainer = document.createElement('div');
-        videoContainer.id = 'medical-video-container';
+        videoContainer.id = 'vk-safe-background';
         videoContainer.style.cssText = `
             position: fixed;
             top: 0;
@@ -104,328 +129,349 @@
             height: 100%;
             z-index: -100;
             overflow: hidden;
-            background: linear-gradient(135deg, #1a202c 0%, #2d3748 100%);
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
         `;
 
         document.body.insertBefore(videoContainer, document.body.firstChild);
-        console.log('📦 Контейнер видео создан');
+        console.log('📦 Безопасный контейнер создан');
         return videoContainer;
     }
 
-    // Подготовка списка источников
-    function prepareVideoSources() {
-        availableSources = [];
+    // Попытка загрузки локального видео
+    async function tryLocalVideo() {
+        console.log('📁 Пробуем локальные видео файлы...');
         
-        // Добавляем локальные источники (высший приоритет)
-        VIDEO_CONFIG.localSources.forEach(src => {
-            availableSources.push({
-                id: 'local_' + Date.now(),
-                name: 'Локальное видео',
-                url: src,
-                type: 'local',
-                priority: 1
-            });
-        });
+        for (const videoUrl of VK_SAFE_CONFIG.sources[0].urls) {
+            try {
+                const video = await createSafeVideo(videoUrl);
+                if (video) {
+                    console.log(`✅ Локальное видео загружено: ${videoUrl}`);
+                    return video;
+                }
+            } catch (error) {
+                console.warn(`⚠️ Локальное видео недоступно: ${videoUrl}`, error);
+            }
+        }
         
-        // Добавляем удаленные источники
-        VIDEO_CONFIG.sources.forEach((src, index) => {
-            availableSources.push({
-                ...src,
-                type: 'remote',
-                priority: 2 + index
-            });
-        });
-        
-        // Перемешиваем если включена случайность
-        if (VIDEO_CONFIG.randomSelection) {
-            const remoteSources = availableSources.filter(s => s.type === 'remote');
-            const localSources = availableSources.filter(s => s.type === 'local');
+        return null;
+    }
+
+    // Создание безопасного видео элемента
+    function createSafeVideo(url) {
+        return new Promise((resolve, reject) => {
+            const video = document.createElement('video');
+            video.style.cssText = `
+                position: absolute;
+                top: 50%;
+                left: 50%;
+                min-width: 100%;
+                min-height: 100%;
+                width: auto;
+                height: auto;
+                transform: translate(-50%, -50%);
+                object-fit: cover;
+                opacity: 0;
+                transition: opacity 2s ease-in-out;
+                filter: blur(1px) brightness(0.4) contrast(1.1) saturate(0.8);
+            `;
             
-            // Перемешиваем только удаленные источники
-            for (let i = remoteSources.length - 1; i > 0; i--) {
-                const j = Math.floor(Math.random() * (i + 1));
-                [remoteSources[i], remoteSources[j]] = [remoteSources[j], remoteSources[i]];
+            video.muted = true;
+            video.loop = true;
+            video.playsInline = true;
+            video.preload = 'metadata'; // Загружаем только метаданные сначала
+            
+            // Обработчики событий
+            const timeoutId = setTimeout(() => {
+                reject(new Error('Тайм-аут загрузки видео'));
+            }, VK_SAFE_CONFIG.vkSettings.timeoutMs);
+            
+            video.addEventListener('loadeddata', () => {
+                clearTimeout(timeoutId);
+                video.style.opacity = '0.6';
+                
+                // Пробуем автовоспроизведение
+                const playPromise = video.play();
+                if (playPromise !== undefined) {
+                    playPromise
+                        .then(() => {
+                            console.log('▶️ Видео воспроизводится');
+                            resolve(video);
+                        })
+                        .catch(error => {
+                            console.warn('⚠️ Автовоспроизведение заблокировано:', error);
+                            // Видео загружено, но не воспроизводится - это тоже успех
+                            resolve(video);
+                        });
+                } else {
+                    resolve(video);
+                }
+            });
+            
+            video.addEventListener('error', (e) => {
+                clearTimeout(timeoutId);
+                reject(new Error(`Ошибка загрузки видео: ${e.message}`));
+            });
+            
+            // Устанавливаем источник
+            video.src = url;
+        });
+    }
+
+    // CSS анимация пульса (медицинская тема)
+    function createPulseAnimation() {
+        console.log('💓 Создаем CSS анимацию пульса...');
+        
+        const pulseContainer = document.createElement('div');
+        pulseContainer.style.cssText = `
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: 
+                radial-gradient(circle at 30% 20%, rgba(102, 126, 234, 0.4) 0%, transparent 50%),
+                radial-gradient(circle at 70% 60%, rgba(118, 75, 162, 0.3) 0%, transparent 50%),
+                radial-gradient(circle at 20% 80%, rgba(79, 209, 197, 0.3) 0%, transparent 50%),
+                linear-gradient(135deg, #1a202c 0%, #2d3748 100%);
+            animation: medicalPulse 4s ease-in-out infinite;
+        `;
+        
+        // Добавляем стили анимации
+        if (!document.getElementById('medical-pulse-styles')) {
+            const style = document.createElement('style');
+            style.id = 'medical-pulse-styles';
+            style.textContent = `
+                @keyframes medicalPulse {
+                    0%, 100% {
+                        filter: brightness(0.8) saturate(0.9);
+                        transform: scale(1);
+                    }
+                    25% {
+                        filter: brightness(1.1) saturate(1.1);
+                        transform: scale(1.02);
+                    }
+                    50% {
+                        filter: brightness(0.9) saturate(1.0);
+                        transform: scale(1.01);
+                    }
+                    75% {
+                        filter: brightness(1.0) saturate(1.05);
+                        transform: scale(1.015);
+                    }
+                }
+                
+                @keyframes heartbeat {
+                    0%, 100% { opacity: 0.6; transform: scale(1); }
+                    15% { opacity: 0.9; transform: scale(1.1); }
+                    30% { opacity: 0.7; transform: scale(1.05); }
+                    45% { opacity: 0.8; transform: scale(1.08); }
+                    60% { opacity: 0.6; transform: scale(1); }
+                }
+            `;
+            document.head.appendChild(style);
+        }
+        
+        return pulseContainer;
+    }
+
+    // Медицинский градиент с анимацией
+    function createMedicalGradient() {
+        console.log('🏥 Создаем медицинский градиент...');
+        
+        const gradientContainer = document.createElement('div');
+        gradientContainer.style.cssText = `
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: 
+                linear-gradient(45deg, 
+                    rgba(79, 209, 197, 0.1) 0%, 
+                    rgba(102, 126, 234, 0.15) 25%, 
+                    rgba(118, 75, 162, 0.1) 50%, 
+                    rgba(79, 209, 197, 0.15) 75%, 
+                    rgba(102, 126, 234, 0.1) 100%
+                ),
+                linear-gradient(135deg, #1e293b 0%, #334155 100%);
+            animation: medicalFlow 15s ease-in-out infinite;
+        `;
+        
+        // Добавляем медицинские элементы
+        for (let i = 0; i < 6; i++) {
+            const medElement = document.createElement('div');
+            medElement.style.cssText = `
+                position: absolute;
+                width: 60px;
+                height: 60px;
+                background: rgba(79, 209, 197, 0.2);
+                border-radius: 50%;
+                top: ${Math.random() * 100}%;
+                left: ${Math.random() * 100}%;
+                animation: heartbeat ${3 + Math.random() * 4}s ease-in-out infinite;
+                animation-delay: ${Math.random() * 2}s;
+            `;
+            gradientContainer.appendChild(medElement);
+        }
+        
+        return gradientContainer;
+    }
+
+    // Canvas анимация (если все остальное не работает)
+    function createCanvasAnimation() {
+        console.log('🎨 Создаем Canvas анимацию...');
+        
+        const canvas = document.createElement('canvas');
+        canvas.style.cssText = `
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            opacity: 0.7;
+        `;
+        
+        const ctx = canvas.getContext('2d');
+        
+        function resizeCanvas() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        }
+        
+        function drawHeartbeat() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            
+            // Градиентный фон
+            const gradient = ctx.createLinearGradient(0, 0, canvas.width, canvas.height);
+            gradient.addColorStop(0, 'rgba(102, 126, 234, 0.1)');
+            gradient.addColorStop(0.5, 'rgba(79, 209, 197, 0.1)');
+            gradient.addColorStop(1, 'rgba(118, 75, 162, 0.1)');
+            
+            ctx.fillStyle = gradient;
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            
+            // Анимированные круги
+            const time = Date.now() * 0.002;
+            for (let i = 0; i < 5; i++) {
+                const x = (Math.sin(time + i) * 0.3 + 0.5) * canvas.width;
+                const y = (Math.cos(time + i * 0.7) * 0.3 + 0.5) * canvas.height;
+                const radius = (Math.sin(time * 2 + i) * 0.5 + 0.5) * 30 + 20;
+                
+                ctx.beginPath();
+                ctx.arc(x, y, radius, 0, Math.PI * 2);
+                ctx.fillStyle = `rgba(79, 209, 197, ${0.1 + Math.sin(time + i) * 0.1})`;
+                ctx.fill();
             }
             
-            availableSources = [...localSources, ...remoteSources];
+            requestAnimationFrame(drawHeartbeat);
         }
         
-        console.log(`📝 Подготовлено ${availableSources.length} видео источников`);
-        return availableSources;
+        resizeCanvas();
+        window.addEventListener('resize', resizeCanvas);
+        drawHeartbeat();
+        
+        return canvas;
     }
 
-    // Создание видео элемента
-    function createVideoElement(source) {
-        const video = document.createElement('video');
-        video.id = 'medical-background-video';
-        video.src = source.url;
-        video.autoplay = true;
-        video.muted = true;
-        video.loop = true;
-        video.playsInline = true;
-        video.preload = 'auto';
-        video.crossOrigin = 'anonymous';
-        
-        video.style.cssText = `
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            min-width: 100%;
-            min-height: 100%;
-            width: auto;
-            height: auto;
-            transform: translate(-50%, -50%);
-            object-fit: cover;
-            opacity: 0;
-            transition: opacity ${VIDEO_CONFIG.fadeTransition ? '2s' : '0s'} ease-in-out;
-            filter: blur(1px) brightness(0.5) contrast(1.1) saturate(0.9);
-        `;
-
-        return video;
-    }
-
-    // Обработчики событий видео
-    function setupVideoHandlers(video, source) {
-        video.addEventListener('loadeddata', function() {
-            console.log(`✅ Видео загружено: ${source.name}`);
-            this.style.opacity = '0.7';
-            retryCount = 0; // Сбрасываем счетчик попыток при успехе
-        });
-
-        video.addEventListener('error', function(e) {
-            console.error(`❌ Ошибка загрузки видео ${source.name}:`, e);
-            handleVideoError(source);
-        });
-
-        video.addEventListener('canplaythrough', function() {
-            console.log(`📺 Видео готово к воспроизведению: ${source.name}`);
-            this.play().then(() => {
-                console.log(`▶️ Воспроизведение началось: ${source.name}`);
-            }).catch(err => {
-                console.error('❌ Ошибка воспроизведения:', err);
-                handleVideoError(source);
-            });
-        });
-
-        video.addEventListener('loadstart', function() {
-            console.log(`🔄 Начата загрузка: ${source.name}`);
-        });
-
-        video.addEventListener('stalled', function() {
-            console.warn(`⏸️ Загрузка приостановлена: ${source.name}`);
-            setTimeout(() => {
-                if (this.readyState < 3) {
-                    handleVideoError(source);
-                }
-            }, 10000); // Тайм-аут 10 секунд
-        });
-    }
-
-    // Обработка ошибок видео
-    function handleVideoError(failedSource) {
-        console.warn(`⚠️ Ошибка с видео: ${failedSource.name}`);
-        
-        retryCount++;
-        
-        // Пробуем fallback версию если есть
-        if (failedSource.fallback && retryCount <= VIDEO_CONFIG.maxRetries) {
-            console.log(`🔄 Пробуем fallback для: ${failedSource.name}`);
-            const fallbackSource = {
-                ...failedSource,
-                url: failedSource.fallback,
-                name: failedSource.name + ' (Fallback)'
-            };
-            
-            setTimeout(() => {
-                loadVideo(fallbackSource);
-            }, VIDEO_CONFIG.retryDelay);
-            return;
-        }
-        
-        // Переходим к следующему источнику
-        currentSourceIndex++;
-        retryCount = 0;
-        
-        if (currentSourceIndex < availableSources.length) {
-            console.log(`➡️ Переключаемся на следующий источник...`);
-            setTimeout(() => {
-                loadVideo(availableSources[currentSourceIndex]);
-            }, VIDEO_CONFIG.retryDelay);
-        } else {
-            console.error('❌ Все видео источники недоступны');
-            showGradientBackground();
-        }
-    }
-
-    // Показ градиентного фона при отсутствии видео
-    function showGradientBackground() {
-        console.log('🎨 Показываем градиентный фон вместо видео');
-        
-        if (videoContainer) {
-            videoContainer.style.background = `
-                linear-gradient(135deg, #667eea 0%, #764ba2 100%),
-                radial-gradient(circle at 20% 50%, rgba(120, 119, 198, 0.3) 0%, transparent 50%),
-                radial-gradient(circle at 80% 20%, rgba(255, 119, 198, 0.3) 0%, transparent 50%),
-                radial-gradient(circle at 40% 80%, rgba(120, 219, 226, 0.3) 0%, transparent 50%)
-            `;
-            videoContainer.style.animation = 'gradientShift 15s ease infinite';
-        }
-    }
-
-    // Загрузка конкретного видео
-    function loadVideo(source) {
-        if (!source || !videoContainer) {
-            console.error('❌ Нет источника или контейнера для загрузки');
-            return;
-        }
-
-        console.log(`🎬 Загружаем: ${source.name} (${source.url})`);
-
-        // Удаляем предыдущее видео
-        if (currentVideo) {
-            currentVideo.style.opacity = '0';
-            setTimeout(() => {
-                if (currentVideo && currentVideo.parentNode) {
-                    currentVideo.parentNode.removeChild(currentVideo);
-                }
-            }, 1000);
-        }
-
-        // Создаем новое видео
-        currentVideo = createVideoElement(source);
-        setupVideoHandlers(currentVideo, source);
-        
-        videoContainer.appendChild(currentVideo);
-    }
-
-    // Главная функция инициализации
-    function initMedicalVideoBackground() {
+    // Основная функция инициализации
+    async function initVKSafeBackground() {
         if (isInitialized) {
-            console.log('⚠️ Видео фон уже инициализирован');
+            console.log('⚠️ Фон уже инициализирован');
             return;
         }
 
-        console.log('🚑 Инициализация медицинского видео фона...');
+        console.log('🔒 Инициализация VK-безопасного фона...');
         
-        createVideoContainer();
-        prepareVideoSources();
+        detectVKEnvironment();
+        createSafeContainer();
         
-        if (availableSources.length > 0) {
-            currentSourceIndex = 0;
-            loadVideo(availableSources[currentSourceIndex]);
-        } else {
-            console.error('❌ Нет доступных видео источников');
-            showGradientBackground();
+        let backgroundCreated = false;
+        
+        // 1. Пробуем локальные видео (самый безопасный вариант)
+        try {
+            const localVideo = await tryLocalVideo();
+            if (localVideo) {
+                videoContainer.appendChild(localVideo);
+                currentBackground = localVideo;
+                backgroundCreated = true;
+                console.log('✅ Локальное видео успешно загружено');
+            }
+        } catch (error) {
+            console.warn('⚠️ Локальные видео недоступны:', error);
+        }
+        
+        // 2. Если видео не загрузилось - используем CSS анимацию
+        if (!backgroundCreated) {
+            const pulseAnimation = createPulseAnimation();
+            videoContainer.appendChild(pulseAnimation);
+            currentBackground = pulseAnimation;
+            backgroundCreated = true;
+            console.log('✅ CSS анимация пульса активирована');
         }
         
         isInitialized = true;
-        console.log('✅ Система медицинского видео инициализирована');
+        console.log('✅ VK-безопасный фон инициализирован');
     }
 
-    // Глобальные функции управления (БЕЗ УВЕДОМЛЕНИЙ)
-    window.medicalVideoBackground = {
-        // Информация о системе
+    // Глобальные функции управления
+    window.vkSafeBackground = {
         status: function() {
-            const video = document.getElementById('medical-background-video');
-            const container = document.getElementById('medical-video-container');
-            
-            const status = {
+            return {
                 initialized: isInitialized,
-                container: !!container,
-                video: !!video,
-                playing: video && !video.paused,
-                currentTime: video ? video.currentTime : 0,
-                duration: video ? video.duration : 0,
-                currentSource: availableSources[currentSourceIndex]?.name || 'None',
-                totalSources: availableSources.length,
-                retryCount: retryCount,
-                readyState: video ? video.readyState : 0
+                isVKEnvironment: isVKEnvironment,
+                currentBackground: currentBackground?.tagName || 'None',
+                containerExists: !!videoContainer
             };
-            
-            console.table(status);
-            return status;
         },
         
-        // Перезапуск системы
+        switchToPulse: function() {
+            if (videoContainer) {
+                videoContainer.innerHTML = '';
+                const pulse = createPulseAnimation();
+                videoContainer.appendChild(pulse);
+                currentBackground = pulse;
+                console.log('🔄 Переключено на CSS анимацию пульса');
+            }
+        },
+        
+        switchToGradient: function() {
+            if (videoContainer) {
+                videoContainer.innerHTML = '';
+                const gradient = createMedicalGradient();
+                videoContainer.appendChild(gradient);
+                currentBackground = gradient;
+                console.log('🔄 Переключено на медицинский градиент');
+            }
+        },
+        
+        switchToCanvas: function() {
+            if (videoContainer) {
+                videoContainer.innerHTML = '';
+                const canvas = createCanvasAnimation();
+                videoContainer.appendChild(canvas);
+                currentBackground = canvas;
+                console.log('🔄 Переключено на Canvas анимацию');
+            }
+        },
+        
         restart: function() {
-            console.log('🔄 Перезапуск системы видео фона...');
             isInitialized = false;
-            currentSourceIndex = 0;
-            retryCount = 0;
-            initMedicalVideoBackground();
-        },
-        
-        // Переключение на следующее видео
-        nextVideo: function() {
-            if (availableSources.length === 0) {
-                console.warn('⚠️ Нет доступных источников');
-                return;
-            }
-            
-            currentSourceIndex = (currentSourceIndex + 1) % availableSources.length;
-            retryCount = 0;
-            
-            console.log(`➡️ Переключение на: ${availableSources[currentSourceIndex].name}`);
-            loadVideo(availableSources[currentSourceIndex]);
-        },
-        
-        // Случайное видео
-        randomVideo: function() {
-            if (availableSources.length === 0) {
-                console.warn('⚠️ Нет доступных источников');
-                return;
-            }
-            
-            const randomIndex = Math.floor(Math.random() * availableSources.length);
-            currentSourceIndex = randomIndex;
-            retryCount = 0;
-            
-            console.log(`🎲 Случайное видео: ${availableSources[currentSourceIndex].name}`);
-            loadVideo(availableSources[currentSourceIndex]);
-        },
-        
-        // Пауза/воспроизведение
-        toggle: function() {
-            const video = document.getElementById('medical-background-video');
-            if (video) {
-                if (video.paused) {
-                    video.play().then(() => {
-                        console.log('▶️ Воспроизведение возобновлено');
-                    });
-                } else {
-                    video.pause();
-                    console.log('⏸️ Воспроизведение приостановлено');
-                }
-            }
-        },
-        
-        // Изменение настроек
-        updateSettings: function(newSettings) {
-            Object.assign(VIDEO_CONFIG, newSettings);
-            console.log('⚙️ Настройки обновлены:', newSettings);
-        },
-        
-        // Получение списка источников
-        getSources: function() {
-            return availableSources.map(source => ({
-                name: source.name,
-                type: source.type,
-                priority: source.priority
-            }));
+            initVKSafeBackground();
         }
     };
 
     // Совместимость со старым API
-    window.pexelsMedicalVideo = window.medicalVideoBackground;
+    window.medicalVideoBackground = window.vkSafeBackground;
+    window.pexelsMedicalVideo = window.vkSafeBackground;
 
     // Автоматическая инициализация
     if (document.readyState === 'loading') {
-        document.addEventListener('DOMContentLoaded', initMedicalVideoBackground);
+        document.addEventListener('DOMContentLoaded', initVKSafeBackground);
     } else {
-        setTimeout(initMedicalVideoBackground, 100);
+        setTimeout(initVKSafeBackground, 100);
     }
 
-    console.log('✅ Продвинутая система медицинского видео фона готова');
-    console.log('🔧 Управление: window.medicalVideoBackground');
+    console.log('✅ VK-совместимая система фона готова');
+    console.log('🔧 Управление: window.vkSafeBackground');
 
 })();
