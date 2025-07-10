@@ -21,6 +21,8 @@
     <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>👨‍⚕️</text></svg>">
 </head>
 <body>
+    <!-- ВИДЕО ФОН БУДЕТ ЗАГРУЖЕН АВТОМАТИЧЕСКИ ИЗ ambulance-video-background.js -->
+    
     <!-- Главный экран выбора -->
     <div id="start-screen">
         <!-- Информация о пользователе -->
@@ -216,75 +218,95 @@
         window.currentQuizMode = 'anatomy';
         window.currentDifficulty = 'easy';
         
-        console.log('🚑 MedQuiz Pro загружается с видео фоном скорой помощи...');
-        console.log('🎬 Ожидаемый файл: ./ambulance-bg.mp4');
+        console.log('🚑 MedQuiz Pro загружается...');
+        console.log('🎬 Видео фон будет загружен из ambulance-video-background.js');
     </script>
     
-    <!-- 3. Основные скрипты приложения -->
+    <!-- 3. ВИДЕО ФОН - ЗАГРУЖАЕТСЯ ПЕРВЫМ -->
+    <script src="ambulance-video-background.js"></script>
+    
+    <!-- 4. Основные скрипты приложения -->
     <script src="questions.js"></script>
     <script src="app.js"></script>
     
-    <!-- 4. Исправление отображения пользователя -->
+    <!-- 5. Исправление отображения пользователя -->
     <script src="user-fix.js"></script>
     
-    <!-- 5. Дополнительные наборы вопросов -->
+    <!-- 6. Дополнительные наборы вопросов -->
     <script src="first-aid-questions.js"></script>
     <script src="first-aid-hard-questions.js"></script>
     <script src="obstetrics-questions.js"></script>
     <script src="obstetrics-hard-questions.js"></script>
     
-    <!-- 6. Экспертный пак вопросов -->
+    <!-- 7. Экспертный пак вопросов -->
     <script src="expert-questions.js"></script>
     
-    <!-- 7. Система геймификации -->
+    <!-- 8. Система геймификации -->
     <script src="gamification.js"></script>
     
-    <!-- 8. Система подсказок -->
+    <!-- 9. Система подсказок -->
     <script src="hints-system.js"></script>
     
-    <!-- 9. Правильное решение шеринга для VK -->
+    <!-- 10. Правильное решение шеринга для VK -->
     <script src="vk-share-correct.js"></script>
-    
-    <!-- 10. ВИДЕО ФОН СО СКОРОЙ ПОМОЩИ (ВМЕСТО 3D) -->
-    <script src="ambulance-video-background.js"></script>
     
     <!-- 11. Финальная инициализация -->
     <script>
         window.addEventListener('load', function() {
-            console.log('🎉 MedQuiz Pro полностью загружен с видео фоном');
+            console.log('🎉 MedQuiz Pro полностью загружен');
             
-            // Финальная проверка ключевых компонентов
+            // Финальная проверка компонентов через 2 секунды
             setTimeout(() => {
                 const status = {
-                    videoBackground: window.videoBackground ? '✅ Видео фон готов' : '❌ Видео фон не загружен',
-                    questions: window.questions ? `${window.questions.length} вопросов` : '❌ Не загружены',
-                    expertQuestions: window.questions ? `${window.questions.filter(q => q.mode === 'expert').length} экспертных` : '❌ Не загружены',
-                    gamification: window.Gamification ? '✅ Загружена' : '❌ Не загружена',
-                    hintsSystem: window.HintsSystem ? '✅ Загружена' : '❌ Не загружена',
+                    videoBackground: document.getElementById('pexels-medical-video') ? '✅ Видео загружено' : '❌ Видео не найдено',
+                    questions: window.questions ? `✅ ${window.questions.length} вопросов` : '❌ Вопросы не загружены',
+                    expertQuestions: window.questions ? `✅ ${window.questions.filter(q => q.mode === 'expert').length} экспертных` : '❌ Экспертные не загружены',
+                    gamification: window.Gamification ? '✅ Геймификация готова' : '❌ Геймификация не загружена',
+                    hintsSystem: window.HintsSystem ? '✅ Подсказки готовы' : '❌ Подсказки не загружены',
                     vkBridge: window.vkBridgeInstance ? '✅ VK Bridge готов' : '⚠️ VK Bridge в гостевом режиме'
                 };
                 
-                console.log('📋 Финальный статус компонентов:', status);
-                console.log('🚑 ВИДЕО ФОН СКОРОЙ ПОМОЩИ:');
-                console.log('  🎬 ambulance-bg.mp4 (ваше видео)');
-                console.log('  🚫 3D модель РАФ-2031 ОТКЛЮЧЕНА');
-                console.log('🔧 Управление видео: window.debugVideoBackground');
+                console.log('📋 Статус компонентов:', status);
+                
+                // Проверяем видео файл
+                const video = document.getElementById('pexels-medical-video');
+                if (video) {
+                    console.log('🎬 ВИДЕО СТАТУС:');
+                    console.log('  - Элемент найден:', !!video);
+                    console.log('  - Источник:', video.src);
+                    console.log('  - Состояние:', video.readyState);
+                    console.log('  - Ошибка:', video.error ? video.error.message : 'Нет');
+                    
+                    if (video.error) {
+                        console.error('❌ ОШИБКА ВИДЕО:', video.error);
+                        console.log('💡 РЕШЕНИЕ: Убедитесь что файл ambulance-bg.mp4 находится в той же папке что и index.html');
+                    }
+                } else {
+                    console.warn('⚠️ Видео элемент не найден - проверьте ambulance-video-background.js');
+                }
+                
+                // Проверяем функции управления видео
+                if (window.pexelsMedicalVideo) {
+                    console.log('🔧 Управление видео: window.pexelsMedicalVideo');
+                    console.log('  - .status() - показать статус');
+                    console.log('  - .restart() - перезапустить');
+                    console.log('  - .toggle() - пауза/воспроизведение');
+                }
             }, 2000);
         });
         
-        // Проверка наличия видео файла
-        window.addEventListener('DOMContentLoaded', function() {
-            setTimeout(() => {
-                const video = document.getElementById('ambulance-background-video');
-                if (video && video.error) {
-                    console.error('❌ ОШИБКА: файл ambulance-bg.mp4 не найден!');
-                    console.log('📋 Убедитесь что:');
-                    console.log('  1. Файл ambulance-bg.mp4 находится в той же папке что и index.html');
-                    console.log('  2. Имя файла написано правильно (точно ambulance-bg.mp4)');
-                    console.log('  3. Формат файла MP4');
-                }
-            }, 3000);
-        });
+        // Обработчик ошибок загрузки
+        window.addEventListener('error', function(e) {
+            if (e.target && e.target.tagName === 'VIDEO') {
+                console.error('❌ ОШИБКА ЗАГРУЗКИ ВИДЕО:', e.target.src);
+                console.log('📋 ВОЗМОЖНЫЕ ПРИЧИНЫ:');
+                console.log('  1. Файл ambulance-bg.mp4 не найден');
+                console.log('  2. Неверный путь к файлу');
+                console.log('  3. Формат видео не поддерживается');
+                console.log('  4. Размер файла слишком большой');
+                console.log('💡 РЕШЕНИЕ: Поместите файл ambulance-bg.mp4 в ту же папку что и index.html');
+            }
+        }, true);
     </script>
 </body>
-</html
+</html>
