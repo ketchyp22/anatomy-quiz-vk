@@ -1,60 +1,25 @@
-// ambulance-video-background.js - С ПРАВИЛЬНЫМИ ссылками Pexels
+// ambulance-video-background.js - Локальные видео файлы
 (function() {
     'use strict';
     
-    console.log('🎬 Загружается система с правильными Pexels видео...');
+    console.log('🎬 Загружается система локальных медицинских видео...');
 
-    // ПРАВИЛЬНЫЕ ПРЯМЫЕ ССЫЛКИ НА PEXELS ВИДЕО
-    const PEXELS_VIDEOS = [
+    // ЛОКАЛЬНЫЕ ВИДЕО ФАЙЛЫ
+    const LOCAL_VIDEOS = [
         {
-            id: 'medical_lab_6687824',
-            name: 'Медицинская лаборатория',
-            // Видео ID: 6687824 - https://www.pexels.com/ru-ru/video/6687824/
-            urls: [
-                'https://videos.pexels.com/video-files/6687824/6687824-hd_1920_1080_25fps.mp4',
-                'https://videos.pexels.com/video-files/6687824/6687824-hd_1280_720_25fps.mp4',
-                'https://videos.pexels.com/video-files/6687824/6687824-sd_960_540_25fps.mp4'
-            ]
+            id: 'local_video_1',
+            name: 'Медицинское видео 1',
+            path: './video1.mp4'
         },
         {
-            id: 'surgery_6688264',
-            name: 'Хирургическая операция',
-            // Видео ID: 6688264 - https://www.pexels.com/ru-ru/video/6688264/
-            urls: [
-                'https://videos.pexels.com/video-files/6688264/6688264-hd_1920_1080_25fps.mp4',
-                'https://videos.pexels.com/video-files/6688264/6688264-hd_1280_720_25fps.mp4',
-                'https://videos.pexels.com/video-files/6688264/6688264-sd_960_540_25fps.mp4'
-            ]
+            id: 'local_video_2',
+            name: 'Медицинское видео 2',
+            path: './video2.mp4'
         },
         {
-            id: 'medical_equipment_6687713',
-            name: 'Медицинское оборудование',
-            // Видео ID: 6687713 - https://www.pexels.com/ru-ru/video/6687713/
-            urls: [
-                'https://videos.pexels.com/video-files/6687713/6687713-hd_1920_1080_25fps.mp4',
-                'https://videos.pexels.com/video-files/6687713/6687713-hd_1280_720_25fps.mp4',
-                'https://videos.pexels.com/video-files/6687713/6687713-sd_960_540_25fps.mp4'
-            ]
-        },
-        {
-            id: 'hospital_procedure_8944419',
-            name: 'Больничная процедура',
-            // Видео ID: 8944419 - https://www.pexels.com/ru-ru/video/8944419/
-            urls: [
-                'https://videos.pexels.com/video-files/8944419/8944419-hd_1920_1080_25fps.mp4',
-                'https://videos.pexels.com/video-files/8944419/8944419-hd_1280_720_25fps.mp4',
-                'https://videos.pexels.com/video-files/8944419/8944419-sd_960_540_25fps.mp4'
-            ]
-        },
-        {
-            id: 'medical_treatment_8944400',
-            name: 'Медицинское лечение',
-            // Видео ID: 8944400 - https://www.pexels.com/ru-ru/video/8944400/
-            urls: [
-                'https://videos.pexels.com/video-files/8944400/8944400-hd_1920_1080_25fps.mp4',
-                'https://videos.pexels.com/video-files/8944400/8944400-hd_1280_720_25fps.mp4',
-                'https://videos.pexels.com/video-files/8944400/8944400-sd_960_540_25fps.mp4'
-            ]
+            id: 'local_video_3',
+            name: 'Медицинское видео 3',
+            path: './video3.mp4'
         }
     ];
 
@@ -64,16 +29,14 @@
         fallbackChain: true,       // Цепочка fallback при ошибках
         vkCompatibility: true,     // Совместимость с VK
         maxRetries: 2,             // Максимум попыток на видео
-        retryDelay: 3000,          // Задержка между попытками
+        retryDelay: 2000,          // Задержка между попытками
         showNotifications: false,   // БЕЗ уведомлений
-        preferLowerQuality: false,  // Предпочитать низкое качество для VK
-        timeoutMs: 10000           // Тайм-аут загрузки
+        timeoutMs: 8000            // Тайм-аут загрузки
     };
 
     let videoContainer = null;
     let currentVideo = null;
     let currentVideoIndex = 0;
-    let currentQualityIndex = 0;
     let retryCount = 0;
     let isInitialized = false;
     let isVKEnvironment = false;
@@ -92,12 +55,6 @@
         isVKEnvironment = vkIndicators.some(Boolean);
         console.log('🔍 VK окружение:', isVKEnvironment ? 'ОБНАРУЖЕНО' : 'НЕ ОБНАРУЖЕНО');
         
-        // В VK предпочитаем более низкое качество
-        if (isVKEnvironment) {
-            CONFIG.preferLowerQuality = true;
-            CONFIG.timeoutMs = 8000; // Сокращаем тайм-аут для VK
-        }
-        
         return isVKEnvironment;
     }
 
@@ -109,13 +66,13 @@
             '[id*="background"]', 
             '[id*="medical"]',
             '[id*="ambulance"]',
-            '[id*="pexels"]'
+            '[id*="local"]'
         ];
         
         selectors.forEach(selector => {
             document.querySelectorAll(selector).forEach(el => {
                 if (el.tagName === 'VIDEO' || 
-                    el.id.match(/(video|background|medical|ambulance|pexels)/i)) {
+                    el.id.match(/(video|background|medical|ambulance|local)/i)) {
                     console.log('🗑️ Удаляем:', el.tagName, el.id || 'без ID');
                     el.remove();
                 }
@@ -128,7 +85,7 @@
         clearExistingElements();
 
         videoContainer = document.createElement('div');
-        videoContainer.id = 'pexels-medical-container';
+        videoContainer.id = 'local-medical-container';
         videoContainer.style.cssText = `
             position: fixed;
             top: 0;
@@ -141,34 +98,25 @@
         `;
 
         document.body.insertBefore(videoContainer, document.body.firstChild);
-        console.log('📦 Контейнер для Pexels видео создан');
-    }
-
-    // Получение оптимального качества для окружения
-    function getOptimalQualityIndex(video) {
-        if (CONFIG.preferLowerQuality || isVKEnvironment) {
-            // Для VK начинаем с самого низкого качества
-            return video.urls.length - 1;
-        } else {
-            // Для обычного браузера начинаем с HD
-            return 0;
-        }
+        console.log('📦 Контейнер для локальных видео создан');
     }
 
     // Создание видео элемента
-    function createVideoElement(videoUrl, videoInfo) {
+    function createVideoElement(videoPath, videoInfo) {
         console.log(`🎬 Создаем видео: ${videoInfo.name}`);
-        console.log(`📍 URL: ${videoUrl}`);
+        console.log(`📍 Путь: ${videoPath}`);
 
         const video = document.createElement('video');
-        video.id = 'pexels-medical-video';
-        video.src = videoUrl;
+        video.id = 'local-medical-video';
+        video.src = videoPath;
         video.autoplay = true;
         video.muted = true;
         video.loop = true;
         video.playsInline = true;
         video.preload = 'auto';
-        video.crossOrigin = 'anonymous';
+        
+        // Убираем crossOrigin для локальных файлов
+        // video.crossOrigin = 'anonymous';
         
         video.style.cssText = `
             position: absolute;
@@ -189,7 +137,7 @@
     }
 
     // Настройка обработчиков событий
-    function setupVideoHandlers(video, videoInfo, videoUrl) {
+    function setupVideoHandlers(video, videoInfo, videoPath) {
         const timeoutId = setTimeout(() => {
             console.warn(`⏰ Тайм-аут загрузки: ${videoInfo.name}`);
             handleVideoError(videoInfo, 'timeout');
@@ -205,7 +153,8 @@
         video.addEventListener('error', function(e) {
             clearTimeout(timeoutId);
             console.error(`❌ Ошибка загрузки ${videoInfo.name}:`, e);
-            console.error(`❌ Проблемный URL: ${videoUrl}`);
+            console.error(`❌ Проблемный путь: ${videoPath}`);
+            console.error(`❌ Код ошибки:`, this.error ? this.error.code : 'неизвестен');
             handleVideoError(videoInfo, 'load_error');
         });
 
@@ -230,6 +179,18 @@
         video.addEventListener('waiting', function() {
             console.warn(`⏳ Ожидание данных: ${videoInfo.name}`);
         });
+
+        // Специальный обработчик для отслеживания прогресса загрузки
+        video.addEventListener('progress', function() {
+            if (this.buffered.length > 0) {
+                const bufferedEnd = this.buffered.end(this.buffered.length - 1);
+                const duration = this.duration;
+                if (duration > 0) {
+                    const percent = Math.round((bufferedEnd / duration) * 100);
+                    console.log(`📊 Загружено ${videoInfo.name}: ${percent}%`);
+                }
+            }
+        });
     }
 
     // Обработка ошибок загрузки
@@ -238,20 +199,9 @@
         
         retryCount++;
         
-        // Пробуем следующее качество того же видео
-        if (currentQualityIndex < videoInfo.urls.length - 1) {
-            currentQualityIndex++;
-            console.log(`🔄 Пробуем более низкое качество: ${videoInfo.name}`);
-            setTimeout(() => {
-                loadCurrentVideo();
-            }, CONFIG.retryDelay);
-            return;
-        }
-        
         // Переходим к следующему видео
-        if (currentVideoIndex < PEXELS_VIDEOS.length - 1) {
+        if (currentVideoIndex < LOCAL_VIDEOS.length - 1) {
             currentVideoIndex++;
-            currentQualityIndex = getOptimalQualityIndex(PEXELS_VIDEOS[currentVideoIndex]);
             retryCount = 0;
             
             console.log(`➡️ Переключаемся на следующее видео...`);
@@ -261,30 +211,34 @@
             return;
         }
         
-        // Все видео исчерпаны
-        console.error('❌ Все Pexels видео недоступны');
+        // Все видео исчерпаны - пробуем снова с первого видео (если есть попытки)
+        if (retryCount < CONFIG.maxRetries) {
+            console.log(`🔄 Перезапуск с первого видео (попытка ${retryCount + 1})`);
+            currentVideoIndex = 0;
+            setTimeout(() => {
+                loadCurrentVideo();
+            }, CONFIG.retryDelay);
+            return;
+        }
+        
+        // Все попытки исчерпаны
+        console.error('❌ Все локальные видео недоступны');
         showFallbackBackground();
     }
 
     // Загрузка текущего видео
     function loadCurrentVideo() {
-        if (currentVideoIndex >= PEXELS_VIDEOS.length) {
+        if (currentVideoIndex >= LOCAL_VIDEOS.length) {
             console.error('❌ Индекс видео выходит за границы');
             showFallbackBackground();
             return;
         }
 
-        const videoInfo = PEXELS_VIDEOS[currentVideoIndex];
-        const videoUrl = videoInfo.urls[currentQualityIndex];
+        const videoInfo = LOCAL_VIDEOS[currentVideoIndex];
+        const videoPath = videoInfo.path;
         
-        if (!videoUrl) {
-            console.error('❌ URL видео не найден');
-            handleVideoError(videoInfo, 'no_url');
-            return;
-        }
-
-        console.log(`🎬 Загружаем видео ${currentVideoIndex + 1}/${PEXELS_VIDEOS.length}: ${videoInfo.name}`);
-        console.log(`🎯 Качество ${currentQualityIndex + 1}/${videoInfo.urls.length}: ${videoUrl}`);
+        console.log(`🎬 Загружаем видео ${currentVideoIndex + 1}/${LOCAL_VIDEOS.length}: ${videoInfo.name}`);
+        console.log(`📍 Путь: ${videoPath}`);
 
         // Удаляем предыдущее видео
         if (currentVideo) {
@@ -297,8 +251,8 @@
         }
 
         // Создаем новое видео
-        currentVideo = createVideoElement(videoUrl, videoInfo);
-        setupVideoHandlers(currentVideo, videoInfo, videoUrl);
+        currentVideo = createVideoElement(videoPath, videoInfo);
+        setupVideoHandlers(currentVideo, videoInfo, videoPath);
         
         if (videoContainer) {
             videoContainer.appendChild(currentVideo);
@@ -337,26 +291,25 @@
     function prepareVideoList() {
         if (CONFIG.randomSelection) {
             // Перемешиваем массив видео
-            for (let i = PEXELS_VIDEOS.length - 1; i > 0; i--) {
+            for (let i = LOCAL_VIDEOS.length - 1; i > 0; i--) {
                 const j = Math.floor(Math.random() * (i + 1));
-                [PEXELS_VIDEOS[i], PEXELS_VIDEOS[j]] = [PEXELS_VIDEOS[j], PEXELS_VIDEOS[i]];
+                [LOCAL_VIDEOS[i], LOCAL_VIDEOS[j]] = [LOCAL_VIDEOS[j], LOCAL_VIDEOS[i]];
             }
             console.log('🎲 Видео перемешаны случайным образом');
         }
         
         currentVideoIndex = 0;
-        currentQualityIndex = getOptimalQualityIndex(PEXELS_VIDEOS[0]);
     }
 
     // Главная функция инициализации
-    function initPexelsVideoBackground() {
+    function initLocalVideoBackground() {
         if (isInitialized) {
-            console.log('⚠️ Pexels видео фон уже инициализирован');
+            console.log('⚠️ Локальная видео система уже инициализирована');
             return;
         }
 
-        console.log('🚀 Инициализация Pexels медицинского видео фона...');
-        console.log(`📊 Доступно ${PEXELS_VIDEOS.length} видео с Pexels`);
+        console.log('🚀 Инициализация локальной медицинской видео системы...');
+        console.log(`📊 Доступно ${LOCAL_VIDEOS.length} локальных видео`);
         
         detectVKEnvironment();
         createVideoContainer();
@@ -364,14 +317,14 @@
         loadCurrentVideo();
         
         isInitialized = true;
-        console.log('✅ Pexels видео система готова');
+        console.log('✅ Локальная видео система готова');
     }
 
     // Глобальные функции управления
-    window.pexelsMedicalVideo = {
+    window.localMedicalVideo = {
         status: function() {
-            const video = document.getElementById('pexels-medical-video');
-            const container = document.getElementById('pexels-medical-container');
+            const video = document.getElementById('local-medical-video');
+            const container = document.getElementById('local-medical-container');
             
             const status = {
                 initialized: isInitialized,
@@ -379,12 +332,12 @@
                 container: !!container,
                 video: !!video,
                 playing: video && !video.paused,
-                currentVideo: PEXELS_VIDEOS[currentVideoIndex]?.name || 'None',
-                currentQuality: currentQualityIndex,
-                currentURL: PEXELS_VIDEOS[currentVideoIndex]?.urls[currentQualityIndex] || 'None',
+                currentVideo: LOCAL_VIDEOS[currentVideoIndex]?.name || 'None',
+                currentPath: LOCAL_VIDEOS[currentVideoIndex]?.path || 'None',
                 retryCount: retryCount,
                 readyState: video ? video.readyState : 0,
-                totalVideos: PEXELS_VIDEOS.length
+                totalVideos: LOCAL_VIDEOS.length,
+                videoError: video && video.error ? video.error.code : null
             };
             
             console.table(status);
@@ -392,36 +345,45 @@
         },
         
         nextVideo: function() {
-            if (currentVideoIndex < PEXELS_VIDEOS.length - 1) {
+            if (currentVideoIndex < LOCAL_VIDEOS.length - 1) {
                 currentVideoIndex++;
-                currentQualityIndex = getOptimalQualityIndex(PEXELS_VIDEOS[currentVideoIndex]);
                 retryCount = 0;
                 loadCurrentVideo();
-                console.log(`➡️ Переключено на следующее видео: ${PEXELS_VIDEOS[currentVideoIndex].name}`);
+                console.log(`➡️ Переключено на следующее видео: ${LOCAL_VIDEOS[currentVideoIndex].name}`);
             } else {
                 console.warn('⚠️ Это последнее видео в списке');
             }
         },
         
+        previousVideo: function() {
+            if (currentVideoIndex > 0) {
+                currentVideoIndex--;
+                retryCount = 0;
+                loadCurrentVideo();
+                console.log(`⬅️ Переключено на предыдущее видео: ${LOCAL_VIDEOS[currentVideoIndex].name}`);
+            } else {
+                console.warn('⚠️ Это первое видео в списке');
+            }
+        },
+        
         randomVideo: function() {
-            const randomIndex = Math.floor(Math.random() * PEXELS_VIDEOS.length);
+            const randomIndex = Math.floor(Math.random() * LOCAL_VIDEOS.length);
             currentVideoIndex = randomIndex;
-            currentQualityIndex = getOptimalQualityIndex(PEXELS_VIDEOS[currentVideoIndex]);
             retryCount = 0;
             loadCurrentVideo();
-            console.log(`🎲 Случайное видео: ${PEXELS_VIDEOS[currentVideoIndex].name}`);
+            console.log(`🎲 Случайное видео: ${LOCAL_VIDEOS[currentVideoIndex].name}`);
         },
         
         restart: function() {
-            console.log('🔄 Перезапуск Pexels видео системы...');
+            console.log('🔄 Перезапуск локальной видео системы...');
             isInitialized = false;
             currentVideoIndex = 0;
             retryCount = 0;
-            initPexelsVideoBackground();
+            initLocalVideoBackground();
         },
         
         toggle: function() {
-            const video = document.getElementById('pexels-medical-video');
+            const video = document.getElementById('local-medical-video');
             if (video) {
                 if (video.paused) {
                     video.play().then(() => {
@@ -435,37 +397,61 @@
         },
         
         getVideoList: function() {
-            return PEXELS_VIDEOS.map((video, index) => ({
+            return LOCAL_VIDEOS.map((video, index) => ({
                 index: index,
                 name: video.name,
                 id: video.id,
-                qualities: video.urls.length
+                path: video.path
             }));
         },
         
         testVideo: function(index) {
-            if (index >= 0 && index < PEXELS_VIDEOS.length) {
+            if (index >= 0 && index < LOCAL_VIDEOS.length) {
                 currentVideoIndex = index;
-                currentQualityIndex = getOptimalQualityIndex(PEXELS_VIDEOS[index]);
                 retryCount = 0;
                 loadCurrentVideo();
-                console.log(`🧪 Тестируем видео: ${PEXELS_VIDEOS[index].name}`);
+                console.log(`🧪 Тестируем видео: ${LOCAL_VIDEOS[index].name}`);
+            } else {
+                console.error(`❌ Неверный индекс: ${index}. Доступно: 0-${LOCAL_VIDEOS.length - 1}`);
             }
+        },
+        
+        checkVideoFiles: function() {
+            console.log('🔍 Проверяем доступность видео файлов...');
+            
+            LOCAL_VIDEOS.forEach((video, index) => {
+                const testVideo = document.createElement('video');
+                testVideo.preload = 'metadata';
+                
+                testVideo.addEventListener('loadedmetadata', () => {
+                    console.log(`✅ ${video.name} (${video.path}) - OK`);
+                    testVideo.remove();
+                });
+                
+                testVideo.addEventListener('error', (e) => {
+                    console.error(`❌ ${video.name} (${video.path}) - ОШИБКА:`, e);
+                    testVideo.remove();
+                });
+                
+                testVideo.src = video.path;
+            });
         }
     };
 
     // Совместимость со старыми именами
-    window.medicalVideoBackground = window.pexelsMedicalVideo;
+    window.medicalVideoBackground = window.localMedicalVideo;
+    window.pexelsMedicalVideo = window.localMedicalVideo;
 
     // Автоматическая инициализация
     if (document.readyState === 'loading') {
-        document.addEventListener('DOMContentLoaded', initPexelsVideoBackground);
+        document.addEventListener('DOMContentLoaded', initLocalVideoBackground);
     } else {
-        setTimeout(initPexelsVideoBackground, 100);
+        setTimeout(initLocalVideoBackground, 100);
     }
 
-    console.log('✅ Система Pexels медицинских видео загружена');
-    console.log('🔧 Управление: window.pexelsMedicalVideo');
-    console.log('📋 Список видео: window.pexelsMedicalVideo.getVideoList()');
+    console.log('✅ Система локальных медицинских видео загружена');
+    console.log('🔧 Управление: window.localMedicalVideo');
+    console.log('📋 Список видео: window.localMedicalVideo.getVideoList()');
+    console.log('🧪 Проверка файлов: window.localMedicalVideo.checkVideoFiles()');
 
 })();
