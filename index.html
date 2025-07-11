@@ -84,29 +84,29 @@
             <!-- Режимы квиза -->
             <div class="modes-section">
                 <h2 class="section-title">Выберите режим</h2>
-                <div class="modes-grid">
+                <div class="modes-grid quiz-mode-selection">
                     <div class="mode-card active" data-mode="anatomy">
-                        <div class="mode-title">🫁 Анатомия</div>
+                        <div class="mode-title">Анатомия</div>
                         <div class="mode-description">Строение и функции организма</div>
                     </div>
                     <div class="mode-card" data-mode="clinical">
-                        <div class="mode-title">🩺 Клиническое мышление</div>
+                        <div class="mode-title">Клиническое мышление</div>
                         <div class="mode-description">Диагностика и лечение</div>
                     </div>
                     <div class="mode-card" data-mode="pharmacology">
-                        <div class="mode-title">💊 Фармакология</div>
+                        <div class="mode-title">Фармакология</div>
                         <div class="mode-description">Лекарственные препараты</div>
                     </div>
                     <div class="mode-card" data-mode="first_aid">
-                        <div class="mode-title">🚑 Первая помощь</div>
+                        <div class="mode-title">Первая помощь</div>
                         <div class="mode-description">Неотложные состояния</div>
                     </div>
                     <div class="mode-card" data-mode="obstetrics">
-                        <div class="mode-title">👶 Акушерство</div>
+                        <div class="mode-title">Акушерство</div>
                         <div class="mode-description">Репродуктивное здоровье</div>
                     </div>
                     <div class="mode-card expert-card" data-mode="expert">
-                        <div class="mode-title">🧠 Профессиональный</div>
+                        <div class="mode-title">Профессиональный</div>
                         <div class="mode-description">Для экспертов медицины</div>
                     </div>
                 </div>
@@ -245,7 +245,7 @@
     
     <!-- 4. Основные скрипты приложения -->
     <script src="questions.js"></script>
-    <script src="new-app.js"></script>
+    <script src="app.js"></script>
     
     <!-- 5. Исправление отображения пользователя -->
     <script src="user-fix.js"></script>
@@ -279,12 +279,27 @@
                     videoBackground: document.querySelector('video') ? '✅ Видео загружено' : '❌ Видео не найдено',
                     questions: window.questions ? `✅ ${window.questions.length} вопросов` : '❌ Вопросы не загружены',
                     expertQuestions: window.questions ? `✅ ${window.questions.filter(q => q.mode === 'expert').length} экспертных` : '❌ Экспертные не загружены',
+                    firstAidQuestions: window.questions ? `✅ ${window.questions.filter(q => q.mode === 'first_aid').length} первой помощи` : '❌ Первая помощь не загружена',
+                    obstetricsQuestions: window.questions ? `✅ ${window.questions.filter(q => q.mode === 'obstetrics').length} акушерских` : '❌ Акушерство не загружено',
                     gamification: window.Gamification ? '✅ Геймификация готова' : '❌ Геймификация не загружена',
                     hintsSystem: window.HintsSystem ? '✅ Подсказки готовы' : '❌ Подсказки не загружены',
                     vkBridge: window.vkBridgeInstance ? '✅ VK Bridge готов' : '⚠️ VK Bridge в гостевом режиме'
                 };
                 
                 console.log('📋 Статус компонентов:', status);
+                
+                // Проверяем наличие всех режимов
+                const modes = ['anatomy', 'clinical', 'pharmacology', 'first_aid', 'obstetrics', 'expert'];
+                const availableModes = document.querySelectorAll('[data-mode]').length;
+                console.log(`🎯 Доступно режимов: ${availableModes} из ${modes.length}`);
+                
+                // Проверяем количество вопросов по режимам
+                if (window.questions) {
+                    modes.forEach(mode => {
+                        const count = window.questions.filter(q => q.mode === mode).length;
+                        console.log(`📚 ${mode}: ${count} вопросов`);
+                    });
+                }
             }, 2000);
         });
     </script>
