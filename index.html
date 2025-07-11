@@ -20,9 +20,9 @@
     <meta name="theme-color" content="#667eea">
     <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>👨‍⚕️</text></svg>">
     
-    <!-- Дополнительный CSS для скрытия дублирующихся элементов -->
+    <!-- Критически важные стили для предотвращения дублирования -->
     <style>
-        /* КРИТИЧЕСКИ ВАЖНО: Скрываем дублирующиеся элементы */
+        /* СКРЫВАЕМ ДУБЛИРУЮЩИЕСЯ ЭЛЕМЕНТЫ */
         .expert-mode-container,
         .expert-container,
         .quiz-mode-btn:not(.mode-card),
@@ -46,12 +46,19 @@
             position: relative !important;
             left: auto !important;
         }
+
+        /* Дополнительные переменные для экспертной карточки */
+        :root {
+            --expert-gold: #d97706;
+            --expert-amber: #f59e0b;
+            --glow-gold: 0 0 20px rgba(217, 119, 6, 0.3);
+        }
     </style>
 </head>
 <body>
     <!-- ВИДЕО ФОН БУДЕТ ЗАГРУЖЕН АВТОМАТИЧЕСКИ ИЗ ambulance-video-background.js -->
     
-    <!-- Медицинские частицы -->
+    <!-- Медицинские частицы (отключены в CSS) -->
     <div class="medical-particles">
         <div class="particle">🩺</div>
         <div class="particle">💊</div>
@@ -250,7 +257,7 @@
             'pharmacology': 'Вопросы о лекарственных препаратах и их действии',
             'first_aid': 'Неотложная помощь при травмах и критических состояниях',
             'obstetrics': 'Ведение беременности, родов и репродуктивное здоровье',
-            'expert': 'Экстремально сложные вопросы для профессионалов с многолетним опытом'
+            'expert': '🧠 Экстремально сложные вопросы для профессионалов с многолетним опытом'
         };
         
         // Глобальные переменные  
@@ -272,24 +279,21 @@
     <!-- 5. Исправление отображения пользователя -->
     <script src="user-fix.js"></script>
     
-    <!-- 6. ИСПРАВЛЕННЫЕ наборы вопросов БЕЗ создания дублирующих кнопок -->
+    <!-- 6. ВСЕ ФАЙЛЫ ВОПРОСОВ - ТЕПЕРЬ ПОДКЛЮЧЕНЫ! -->
     <script>
-        // Заменяем оригинальные файлы на исправленные версии
-        console.log('📝 Загружаем ИСПРАВЛЕННЫЕ файлы вопросов без дублирования...');
+        console.log('📝 Загружаем ВСЕ файлы вопросов...');
     </script>
     
-    <!-- Здесь должны быть ИСПРАВЛЕННЫЕ файлы -->
-    <!-- <script src="first-aid-questions-FIXED.js"></script> -->
-    <!-- <script src="first-aid-hard-questions.js"></script> -->
-    <!-- <script src="obstetrics-questions-FIXED.js"></script> -->
-    <!-- <script src="obstetrics-hard-questions.js"></script> -->
-    <!-- <script src="expert-questions-FIXED.js"></script> -->
+    <!-- Первая помощь -->
+    <script src="first-aid-questions.js"></script>
+    <script src="first-aid-hard-questions.js"></script>
     
-    <!-- Временно отключаем проблемные файлы -->
-    <script>
-        console.warn('⚠️ Оригинальные файлы отключены для предотвращения дублирования');
-        console.log('✅ Используем только базовые режимы из HTML');
-    </script>
+    <!-- Акушерство -->
+    <script src="obstetrics-questions.js"></script>
+    <script src="obstetrics-hard-questions.js"></script>
+    
+    <!-- Экспертный режим -->
+    <script src="expert-questions.js"></script>
     
     <!-- 7. Система геймификации -->
     <script src="gamification.js"></script>
@@ -300,16 +304,120 @@
     <!-- 9. Правильное решение шеринга для VK -->
     <script src="vk-share-correct.js"></script>
     
-    <!-- 10. Финальная инициализация и очистка -->
+    <!-- 10. ПРИНУДИТЕЛЬНАЯ ЗАГРУЗКА ВОПРОСОВ -->
+    <script>
+        // КРИТИЧЕСКИ ВАЖНО: Принудительно вызываем функции загрузки вопросов
+        // Потому что DOMContentLoaded уже прошел!
+        
+        setTimeout(() => {
+            console.log('🔧 ПРИНУДИТЕЛЬНО загружаем недостающие вопросы...');
+            
+            // Первая помощь
+            if (typeof addFirstAidQuestions === 'function') {
+                addFirstAidQuestions();
+                console.log('✅ Первая помощь (легкий) принудительно загружена');
+            } else {
+                console.warn('⚠️ addFirstAidQuestions не найдена');
+            }
+            
+            if (typeof addFirstAidHardQuestions === 'function') {
+                addFirstAidHardQuestions();
+                console.log('✅ Первая помощь (сложный) принудительно загружена');
+            } else {
+                console.warn('⚠️ addFirstAidHardQuestions не найдена');
+            }
+            
+            // Акушерство
+            if (typeof addObstetricsQuestions === 'function') {
+                addObstetricsQuestions();
+                console.log('✅ Акушерство (легкий) принудительно загружено');
+            } else {
+                console.warn('⚠️ addObstetricsQuestions не найдена');
+            }
+            
+            if (typeof addObstetricsHardQuestions === 'function') {
+                addObstetricsHardQuestions();
+                console.log('✅ Акушерство (сложный) принудительно загружено');
+            } else {
+                console.warn('⚠️ addObstetricsHardQuestions не найдена');
+            }
+            
+            // Экспертные
+            if (typeof addExpertQuestions === 'function') {
+                addExpertQuestions();
+                console.log('✅ Экспертный режим принудительно загружен');
+            } else {
+                console.warn('⚠️ addExpertQuestions не найдена');
+            }
+            
+            // Проверяем результат через секунду
+            setTimeout(() => {
+                console.log('📊 Проверяем результат принудительной загрузки...');
+                if (window.checkQuizModes) window.checkQuizModes();
+            }, 1000);
+            
+        }, 300);
+    </script>
+
+    <!-- 11. Финальная инициализация и проверка -->
     <script>
         window.addEventListener('load', function() {
-            console.log('🎉 MedQuiz Pro полностью загружен');
+            console.log('🎉 MedQuiz Pro полностью загружен со ВСЕМИ режимами');
             
-            // Агрессивная очистка дублирующихся элементов
+            // Проверяем количество вопросов для каждого режима
             setTimeout(() => {
+                console.log('📊 Проверяем загруженные вопросы...');
+                
+                if (window.questions) {
+                    const stats = {
+                        total: window.questions.length,
+                        anatomy_easy: window.questions.filter(q => q.mode === 'anatomy' && q.difficulty === 'easy').length,
+                        anatomy_hard: window.questions.filter(q => q.mode === 'anatomy' && q.difficulty === 'hard').length,
+                        clinical_easy: window.questions.filter(q => q.mode === 'clinical' && q.difficulty === 'easy').length,
+                        clinical_hard: window.questions.filter(q => q.mode === 'clinical' && q.difficulty === 'hard').length,
+                        pharmacology_easy: window.questions.filter(q => q.mode === 'pharmacology' && q.difficulty === 'easy').length,
+                        pharmacology_hard: window.questions.filter(q => q.mode === 'pharmacology' && q.difficulty === 'hard').length,
+                        first_aid_easy: window.questions.filter(q => q.mode === 'first_aid' && q.difficulty === 'easy').length,
+                        first_aid_hard: window.questions.filter(q => q.mode === 'first_aid' && q.difficulty === 'hard').length,
+                        obstetrics_easy: window.questions.filter(q => q.mode === 'obstetrics' && q.difficulty === 'easy').length,
+                        obstetrics_hard: window.questions.filter(q => q.mode === 'obstetrics' && q.difficulty === 'hard').length,
+                        expert: window.questions.filter(q => q.mode === 'expert').length
+                    };
+                    
+                    console.log('📈 СТАТИСТИКА ЗАГРУЖЕННЫХ ВОПРОСОВ:');
+                    console.log(`📚 Всего вопросов: ${stats.total}`);
+                    console.log(`🧬 Анатомия (легкий): ${stats.anatomy_easy}`);
+                    console.log(`🧬 Анатомия (сложный): ${stats.anatomy_hard}`);
+                    console.log(`🩺 Клиника (легкий): ${stats.clinical_easy}`);
+                    console.log(`🩺 Клиника (сложный): ${stats.clinical_hard}`);
+                    console.log(`💊 Фармакология (легкий): ${stats.pharmacology_easy}`);
+                    console.log(`💊 Фармакология (сложный): ${stats.pharmacology_hard}`);
+                    console.log(`🚑 Первая помощь (легкий): ${stats.first_aid_easy}`);
+                    console.log(`🚑 Первая помощь (сложный): ${stats.first_aid_hard}`);
+                    console.log(`👶 Акушерство (легкий): ${stats.obstetrics_easy}`);
+                    console.log(`👶 Акушерство (сложный): ${stats.obstetrics_hard}`);
+                    console.log(`🧠 Экспертный: ${stats.expert}`);
+                    
+                    // Проверяем проблемные режимы
+                    const problems = [];
+                    if (stats.first_aid_easy === 0) problems.push('Первая помощь (легкий)');
+                    if (stats.first_aid_hard === 0) problems.push('Первая помощь (сложный)');
+                    if (stats.obstetrics_easy === 0) problems.push('Акушерство (легкий)');
+                    if (stats.obstetrics_hard === 0) problems.push('Акушерство (сложный)');
+                    if (stats.expert === 0) problems.push('Экспертный');
+                    
+                    if (problems.length === 0) {
+                        console.log('✅ ВСЕ РЕЖИМЫ ЗАГРУЖЕНЫ УСПЕШНО!');
+                    } else {
+                        console.warn('⚠️ Не загружены режимы:', problems.join(', '));
+                    }
+                } else {
+                    console.error('❌ window.questions не определен!');
+                }
+                
+                // Финальная очистка дублирующихся элементов
                 console.log('🧹 Финальная очистка дублирующихся элементов...');
                 
-                // Удаляем все лишние кнопки и контейнеры
                 const selectorsToRemove = [
                     '.expert-mode-container',
                     '.expert-container', 
@@ -350,7 +458,7 @@
                 console.log('✅ Финальная очистка завершена');
             }, 2000);
             
-            // Проверяем статус компонентов через 3 секунды
+            // Проверяем статус всех компонентов через 3 секунды
             setTimeout(() => {
                 const status = {
                     videoBackground: document.querySelector('video') ? '✅ Видео загружено' : '❌ Видео не найдено',
@@ -359,18 +467,63 @@
                     duplicateElements: document.querySelectorAll('.expert-mode-container, .quiz-mode-btn:not(.mode-card)').length + ' дублирующих элементов',
                     gamification: window.Gamification ? '✅ Геймификация готова' : '❌ Геймификация не загружена',
                     hintsSystem: window.HintsSystem ? '✅ Подсказки готовы' : '❌ Подсказки не загружены',
-                    vkBridge: window.vkBridgeInstance ? '✅ VK Bridge готов' : '⚠️ VK Bridge в гостевом режиме'
+                    vkBridge: window.vkBridgeInstance ? '✅ VK Bridge готов' : '⚠️ VK Bridge в гостевом режиме',
+                    shareSystem: typeof shareResults === 'function' ? '✅ Шеринг готов' : '❌ Шеринг не загружен'
                 };
                 
-                console.log('📋 Финальный статус компонентов:', status);
+                console.log('📋 Финальный статус всех компонентов:');
+                Object.entries(status).forEach(([key, value]) => {
+                    console.log(`${key}: ${value}`);
+                });
                 
                 if (status.duplicateElements === '0 дублирующих элементов') {
                     console.log('🎉 ПРОБЛЕМА ДУБЛИРОВАНИЯ РЕШЕНА!');
                 } else {
                     console.warn('⚠️ Все еще есть дублирующиеся элементы:', status.duplicateElements);
                 }
+                
+                // Финальная проверка режимов
+                if (window.questions) {
+                    const hasFirstAid = window.questions.some(q => q.mode === 'first_aid');
+                    const hasObstetrics = window.questions.some(q => q.mode === 'obstetrics');
+                    const hasExpert = window.questions.some(q => q.mode === 'expert');
+                    
+                    if (hasFirstAid && hasObstetrics && hasExpert) {
+                        console.log('🎯 ВСЕ РЕЖИМЫ КВИЗА ГОТОВЫ К РАБОТЕ!');
+                    } else {
+                        console.warn('⚠️ Некоторые режимы все еще не загружены');
+                    }
+                }
             }, 3000);
         });
+        
+        // Функция для быстрой проверки загруженных режимов
+        window.checkQuizModes = function() {
+            if (!window.questions) {
+                console.error('❌ Вопросы не загружены');
+                return;
+            }
+            
+            const modes = ['anatomy', 'clinical', 'pharmacology', 'first_aid', 'obstetrics', 'expert'];
+            const difficulties = ['easy', 'hard'];
+            
+            console.log('🔍 Проверка всех режимов:');
+            
+            modes.forEach(mode => {
+                if (mode === 'expert') {
+                    const count = window.questions.filter(q => q.mode === mode).length;
+                    console.log(`${mode}: ${count} вопросов`);
+                } else {
+                    difficulties.forEach(difficulty => {
+                        const count = window.questions.filter(q => q.mode === mode && q.difficulty === difficulty).length;
+                        console.log(`${mode} (${difficulty}): ${count} вопросов`);
+                    });
+                }
+            });
+        };
+        
+        // Экспортируем функцию для отладки
+        window.debugQuizModes = window.checkQuizModes;
     </script>
 </body>
 </html>
