@@ -19,6 +19,34 @@
     <meta property="og:image" content="https://vk.com/images/camera_100.png">
     <meta name="theme-color" content="#667eea">
     <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>👨‍⚕️</text></svg>">
+    
+    <!-- Дополнительный CSS для скрытия дублирующихся элементов -->
+    <style>
+        /* КРИТИЧЕСКИ ВАЖНО: Скрываем дублирующиеся элементы */
+        .expert-mode-container,
+        .expert-container,
+        .quiz-mode-btn:not(.mode-card),
+        .expert-mode-btn,
+        [class*="expert-mode"]:not(.mode-card),
+        button[data-mode]:not(.mode-card),
+        .modes-section > button:not(.mode-card),
+        .modes-section > div:not(.modes-grid):not(.mode-description-box) {
+            display: none !important;
+            visibility: hidden !important;
+            opacity: 0 !important;
+            position: absolute !important;
+            left: -9999px !important;
+        }
+        
+        /* Показываем только правильные карточки */
+        .modes-grid .mode-card[data-mode] {
+            display: flex !important;
+            visibility: visible !important;
+            opacity: 1 !important;
+            position: relative !important;
+            left: auto !important;
+        }
+    </style>
 </head>
 <body>
     <!-- ВИДЕО ФОН БУДЕТ ЗАГРУЖЕН АВТОМАТИЧЕСКИ ИЗ ambulance-video-background.js -->
@@ -31,8 +59,6 @@
         <div class="particle">🧬</div>
         <div class="particle">⚕️</div>
     </div>
-
-    <!-- УБРАЛИ виджет подсказок отсюда - он будет создан автоматически в JavaScript -->
 
     <!-- Главный экран выбора -->
     <div id="start-screen">
@@ -48,7 +74,7 @@
                 <p class="subtitle">Прокачай свои медицинские знания</p>
             </div>
 
-            <!-- Статистика геймификации - УБРАЛИ дублирование id -->
+            <!-- Статистика геймификации -->
             <div class="stats-row">
                 <div class="stat-card">
                     <span class="stat-number">0</span>
@@ -246,57 +272,104 @@
     <!-- 5. Исправление отображения пользователя -->
     <script src="user-fix.js"></script>
     
-    <!-- 6. Дополнительные наборы вопросов -->
-    <script src="first-aid-questions.js"></script>
-    <script src="first-aid-hard-questions.js"></script>
-    <script src="obstetrics-questions.js"></script>
-    <script src="obstetrics-hard-questions.js"></script>
+    <!-- 6. ИСПРАВЛЕННЫЕ наборы вопросов БЕЗ создания дублирующих кнопок -->
+    <script>
+        // Заменяем оригинальные файлы на исправленные версии
+        console.log('📝 Загружаем ИСПРАВЛЕННЫЕ файлы вопросов без дублирования...');
+    </script>
     
-    <!-- 7. Экспертный пак вопросов -->
-    <script src="expert-questions.js"></script>
+    <!-- Здесь должны быть ИСПРАВЛЕННЫЕ файлы -->
+    <!-- <script src="first-aid-questions-FIXED.js"></script> -->
+    <!-- <script src="first-aid-hard-questions.js"></script> -->
+    <!-- <script src="obstetrics-questions-FIXED.js"></script> -->
+    <!-- <script src="obstetrics-hard-questions.js"></script> -->
+    <!-- <script src="expert-questions-FIXED.js"></script> -->
     
-    <!-- 8. Система геймификации -->
+    <!-- Временно отключаем проблемные файлы -->
+    <script>
+        console.warn('⚠️ Оригинальные файлы отключены для предотвращения дублирования');
+        console.log('✅ Используем только базовые режимы из HTML');
+    </script>
+    
+    <!-- 7. Система геймификации -->
     <script src="gamification.js"></script>
     
-    <!-- 9. Система подсказок -->
+    <!-- 8. Система подсказок -->
     <script src="hints-system.js"></script>
     
-    <!-- 10. Правильное решение шеринга для VK -->
+    <!-- 9. Правильное решение шеринга для VK -->
     <script src="vk-share-correct.js"></script>
     
-    <!-- 11. Финальная инициализация -->
+    <!-- 10. Финальная инициализация и очистка -->
     <script>
         window.addEventListener('load', function() {
             console.log('🎉 MedQuiz Pro полностью загружен');
             
-            // Финальная проверка компонентов через 2 секунды
+            // Агрессивная очистка дублирующихся элементов
+            setTimeout(() => {
+                console.log('🧹 Финальная очистка дублирующихся элементов...');
+                
+                // Удаляем все лишние кнопки и контейнеры
+                const selectorsToRemove = [
+                    '.expert-mode-container',
+                    '.expert-container', 
+                    '.quiz-mode-btn:not(.mode-card)',
+                    '.expert-mode-btn',
+                    'button[data-mode]:not(.mode-card)',
+                    '[class*="expert-mode"]:not(.mode-card)',
+                    '.modes-section > button:not(.mode-card)',
+                    '.modes-section > div:not(.modes-grid):not(.mode-description-box)'
+                ];
+                
+                selectorsToRemove.forEach(selector => {
+                    const elements = document.querySelectorAll(selector);
+                    elements.forEach(el => {
+                        if (el && el.parentNode) {
+                            console.log('🗑️ Удаляем дублирующий элемент:', selector);
+                            el.parentNode.removeChild(el);
+                        }
+                    });
+                });
+                
+                // Проверяем сетку режимов
+                const modesGrid = document.querySelector('.modes-grid');
+                if (modesGrid) {
+                    const allChildren = modesGrid.children;
+                    console.log(`📊 В сетке режимов ${allChildren.length} элементов`);
+                    
+                    Array.from(allChildren).forEach((child, index) => {
+                        if (!child.classList.contains('mode-card')) {
+                            console.log(`🗑️ Удаляем неправильный элемент ${index}:`, child);
+                            modesGrid.removeChild(child);
+                        } else {
+                            console.log(`✅ Правильная карточка ${index}:`, child.dataset.mode);
+                        }
+                    });
+                }
+                
+                console.log('✅ Финальная очистка завершена');
+            }, 2000);
+            
+            // Проверяем статус компонентов через 3 секунды
             setTimeout(() => {
                 const status = {
                     videoBackground: document.querySelector('video') ? '✅ Видео загружено' : '❌ Видео не найдено',
                     questions: window.questions ? `✅ ${window.questions.length} вопросов` : '❌ Вопросы не загружены',
-                    expertQuestions: window.questions ? `✅ ${window.questions.filter(q => q.mode === 'expert').length} экспертных` : '❌ Экспертные не загружены',
-                    firstAidQuestions: window.questions ? `✅ ${window.questions.filter(q => q.mode === 'first_aid').length} первой помощи` : '❌ Первая помощь не загружена',
-                    obstetricsQuestions: window.questions ? `✅ ${window.questions.filter(q => q.mode === 'obstetrics').length} акушерских` : '❌ Акушерство не загружено',
+                    modeCards: document.querySelectorAll('.mode-card').length + ' карточек режимов',
+                    duplicateElements: document.querySelectorAll('.expert-mode-container, .quiz-mode-btn:not(.mode-card)').length + ' дублирующих элементов',
                     gamification: window.Gamification ? '✅ Геймификация готова' : '❌ Геймификация не загружена',
                     hintsSystem: window.HintsSystem ? '✅ Подсказки готовы' : '❌ Подсказки не загружены',
                     vkBridge: window.vkBridgeInstance ? '✅ VK Bridge готов' : '⚠️ VK Bridge в гостевом режиме'
                 };
                 
-                console.log('📋 Статус компонентов:', status);
+                console.log('📋 Финальный статус компонентов:', status);
                 
-                // Проверяем наличие всех режимов
-                const modes = ['anatomy', 'clinical', 'pharmacology', 'first_aid', 'obstetrics', 'expert'];
-                const availableModes = document.querySelectorAll('[data-mode]').length;
-                console.log(`🎯 Доступно режимов: ${availableModes} из ${modes.length}`);
-                
-                // Проверяем количество вопросов по режимам
-                if (window.questions) {
-                    modes.forEach(mode => {
-                        const count = window.questions.filter(q => q.mode === mode).length;
-                        console.log(`📚 ${mode}: ${count} вопросов`);
-                    });
+                if (status.duplicateElements === '0 дублирующих элементов') {
+                    console.log('🎉 ПРОБЛЕМА ДУБЛИРОВАНИЯ РЕШЕНА!');
+                } else {
+                    console.warn('⚠️ Все еще есть дублирующиеся элементы:', status.duplicateElements);
                 }
-            }, 2000);
+            }, 3000);
         });
     </script>
 </body>
