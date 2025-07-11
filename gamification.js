@@ -1,6 +1,8 @@
-// gamification.js - Исправленный модуль геймификации
+// gamification.js - Исправленная система геймификации без дублирования элементов
 (function() {
     'use strict';
+    
+    console.log('🎮 Загружается исправленная система геймификации...');
     
     // Проверяем поддержку localStorage
     function isLocalStorageAvailable() {
@@ -66,7 +68,7 @@
             try {
                 this.stats.lastSession = Date.now();
                 localStorage.setItem('medicalQuizGameStats', JSON.stringify(this.stats));
-                console.log('💾 Статистика сохранена:', this.stats);
+                console.log('💾 Статистика сохранена');
             } catch (e) {
                 console.error('Ошибка сохранения статистики:', e);
             }
@@ -75,14 +77,15 @@
         // Инициализация модуля
         init: function() {
             if (this.initialized) {
-                console.log('Геймификация уже инициализирована');
+                console.log('⚠️ Геймификация уже инициализирована');
                 return;
             }
             
-            console.log('🎮 Инициализация модуля геймификации');
+            console.log('🚀 Инициализация модуля геймификации');
             this.loadStats();
-            this.addStatsDisplay();
+            this.updateExistingStatsDisplay();
             this.loadSounds();
+            this.setupEventListeners();
             this.initialized = true;
             
             // Сохраняем статистику при закрытии страницы
@@ -91,53 +94,56 @@
             });
         },
         
-        // Добавление дисплея статистики
-        addStatsDisplay: function() {
-            const startScreen = document.getElementById('start-screen');
-            if (!startScreen) {
-                console.warn('Не найден start-screen для добавления статистики');
-                return;
-            }
+        // Обновление существующего дисплея статистики
+        updateExistingStatsDisplay: function() {
+            // Ищем существующие элементы статистики в HTML
+            const statNumbers = document.querySelectorAll('.stat-number');
             
-            // Проверяем, не добавлена ли уже статистика
-            if (document.getElementById('gamification-stats')) {
-                console.log('Статистика уже добавлена');
-                return;
-            }
-            
-            const statsContainer = document.createElement('div');
-            statsContainer.id = 'gamification-stats';
-            statsContainer.className = 'gamification-stats';
-            statsContainer.innerHTML = `
-                <div class="stats-card">
-                    <div class="stat-item">
-                        <span class="stat-number" id="total-quizzes-stat">${this.stats.totalQuizzes}</span>
-                        <span class="stat-label">Пройдено тестов</span>
-                    </div>
-                    <div class="stat-item">
-                        <span class="stat-number" id="current-streak-stat">${this.stats.currentStreak}🔥</span>
-                        <span class="stat-label">Текущая серия</span>
-                    </div>
-                    <div class="stat-item">
-                        <span class="stat-number" id="best-streak-stat">${this.stats.bestStreak}⭐</span>
-                        <span class="stat-label">Лучшая серия</span>
-                    </div>
-                </div>
-            `;
-            
-            // Вставляем после информации о пользователе
-            const userInfo = startScreen.querySelector('.user-info');
-            if (userInfo && userInfo.nextSibling) {
-                startScreen.insertBefore(statsContainer, userInfo.nextSibling);
-            } else if (userInfo) {
-                userInfo.parentNode.appendChild(statsContainer);
+            if (statNumbers.length >= 3) {
+                // Обновляем существующие элементы
+                statNumbers[0].textContent = this.stats.totalQuizzes;
+                statNumbers[1].textContent = this.stats.currentStreak + '🔥';
+                statNumbers[2].textContent = this.stats.bestStreak + '⭐';
+                
+                // Если есть четвертый элемент (средний процент)
+                if (statNumbers[3]) {
+                    const avgPercentage = this.calculateAveragePercentage();
+                    statNumbers[3].textContent = avgPercentage + '%';
+                }
+                
+                console.log('📊 Существующая статистика обновлена');
             } else {
-                // Если нет user-info, вставляем в начало
-                startScreen.insertBefore(statsContainer, startScreen.firstChild);
+                console.warn('⚠️ Элементы статистики не найдены в HTML');
             }
+        },
+        
+        // Расчет среднего процента
+        calculateAveragePercentage: function() {
+            if (this.stats.totalQuizzes === 0) return 0;
+            // Примерный расчет на основе правильных ответов
+            const estimatedTotal = this.stats.totalQuizzes * 10; // Предполагаем 10 вопросов на квиз
+            const percentage = Math.round((this.stats.correctAnswers / estimatedTotal) * 100);
+            return isNaN(percentage) ? 0 : Math.min(percentage, 100);
+        },
+        
+        // Настройка обработчиков событий
+        setupEventListeners: function() {
+            // События квиза
+            document.addEventListener('quizStarted', () => {
+                console.log('🎮 Квиз начался');
+            });
             
-            this.statsContainer = statsContainer;
-            console.log('📊 Дисплей статистики добавлен');
+            document.addEventListener('answerResult', (event) => {
+                if (event.detail.correct) {
+                    this.onCorrectAnswer();
+                } else {
+                    this.onWrongAnswer();
+                }
+            });
+            
+            document.addEventListener('quizCompleted', (event) => {
+                this.onQuizComplete(event.detail);
+            });
         },
         
         // Обработка правильного ответа
@@ -158,7 +164,7 @@
                 this.showStreakIndicator();
             }
             
-            this.updateStatsDisplay();
+            this.updateExistingStatsDisplay();
             this.saveStats();
         },
         
@@ -168,7 +174,7 @@
             if (this.stats.currentStreak > 0) {
                 this.stats.currentStreak = 0;
                 this.playSound('wrong');
-                this.updateStatsDisplay();
+                this.updateExistingStatsDisplay();
                 this.saveStats();
             }
         },
@@ -187,7 +193,7 @@
             
             // Проверяем достижения
             this.checkAchievements(results);
-            this.updateStatsDisplay();
+            this.updateExistingStatsDisplay();
             this.saveStats();
         },
         
@@ -202,17 +208,33 @@
             const indicator = document.createElement('div');
             indicator.className = 'streak-indicator';
             indicator.innerHTML = `🔥 ${this.stats.currentStreak} подряд!`;
+            indicator.style.cssText = `
+                position: fixed;
+                top: 80px;
+                right: 20px;
+                background: linear-gradient(135deg, #ff6b6b 0%, #ff8e8e 100%);
+                color: white;
+                padding: 12px 20px;
+                border-radius: 25px;
+                font-weight: 600;
+                font-size: 16px;
+                box-shadow: 0 4px 15px rgba(255, 107, 107, 0.4);
+                transform: translateX(150%);
+                transition: transform 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+                z-index: 1000;
+                border: 2px solid rgba(255, 255, 255, 0.3);
+            `;
             
             document.body.appendChild(indicator);
             
             // Показываем индикатор
             setTimeout(() => {
-                indicator.classList.add('show');
+                indicator.style.transform = 'translateX(0)';
             }, 100);
             
             // Скрываем через 3 секунды
             setTimeout(() => {
-                indicator.classList.remove('show');
+                indicator.style.transform = 'translateX(150%)';
                 setTimeout(() => {
                     if (indicator.parentNode) {
                         indicator.parentNode.removeChild(indicator);
@@ -231,21 +253,54 @@
             
             const achievement = document.createElement('div');
             achievement.className = 'achievement-popup';
+            achievement.style.cssText = `
+                position: fixed;
+                top: 50%;
+                left: 50%;
+                transform: translate(-50%, -50%) scale(0);
+                background: linear-gradient(135deg, #ffd700 0%, #ffed4e 100%);
+                border-radius: 20px;
+                padding: 30px;
+                box-shadow: 0 10px 30px rgba(255, 215, 0, 0.4);
+                z-index: 1001;
+                transition: transform 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+                border: 3px solid rgba(255, 255, 255, 0.5);
+                max-width: 350px;
+                text-align: center;
+                color: #8b5a00;
+            `;
+            
             achievement.innerHTML = `
-                <div class="achievement-content">
-                    <div class="achievement-icon">🏆</div>
-                    <div class="achievement-text">${text}</div>
+                <div style="display: flex; flex-direction: column; align-items: center; gap: 15px;">
+                    <div style="font-size: 48px; animation: bounce 1s infinite;">🏆</div>
+                    <div style="font-size: 18px; font-weight: 600; text-shadow: 0 1px 2px rgba(255, 255, 255, 0.8); line-height: 1.4;">
+                        ${text}
+                    </div>
                 </div>
             `;
+            
+            // Добавляем анимацию bounce
+            if (!document.getElementById('achievement-styles')) {
+                const style = document.createElement('style');
+                style.id = 'achievement-styles';
+                style.textContent = `
+                    @keyframes bounce {
+                        0%, 20%, 50%, 80%, 100% { transform: translateY(0); }
+                        40% { transform: translateY(-10px); }
+                        60% { transform: translateY(-5px); }
+                    }
+                `;
+                document.head.appendChild(style);
+            }
             
             document.body.appendChild(achievement);
             
             setTimeout(() => {
-                achievement.classList.add('show');
+                achievement.style.transform = 'translate(-50%, -50%) scale(1)';
             }, 100);
             
             setTimeout(() => {
-                achievement.classList.remove('show');
+                achievement.style.transform = 'translate(-50%, -50%) scale(0)';
                 setTimeout(() => {
                     if (achievement.parentNode) {
                         achievement.parentNode.removeChild(achievement);
@@ -269,11 +324,33 @@
         
         createConfettiPiece: function() {
             const confetti = document.createElement('div');
-            confetti.className = 'confetti-piece';
-            confetti.style.left = Math.random() * 100 + '%';
-            confetti.style.backgroundColor = this.getRandomColor();
-            confetti.style.animationDelay = Math.random() * 0.5 + 's';
-            confetti.style.animationDuration = (Math.random() * 2 + 3) + 's';
+            confetti.style.cssText = `
+                position: fixed;
+                width: 10px;
+                height: 10px;
+                background: ${this.getRandomColor()};
+                top: -10px;
+                left: ${Math.random() * 100}%;
+                z-index: 999;
+                animation: confetti-fall ${Math.random() * 2 + 3}s linear forwards;
+                pointer-events: none;
+                animation-delay: ${Math.random() * 0.5}s;
+            `;
+            
+            // Добавляем анимацию падения, если её нет
+            if (!document.getElementById('confetti-styles')) {
+                const style = document.createElement('style');
+                style.id = 'confetti-styles';
+                style.textContent = `
+                    @keyframes confetti-fall {
+                        to {
+                            transform: translateY(calc(100vh + 10px)) rotate(720deg);
+                            opacity: 0;
+                        }
+                    }
+                `;
+                document.head.appendChild(style);
+            }
             
             document.body.appendChild(confetti);
             
@@ -383,53 +460,6 @@
             });
         },
         
-        // Обновление дисплея статистики
-        updateStatsDisplay: function() {
-            const totalElement = document.getElementById('total-quizzes-stat');
-            const currentStreakElement = document.getElementById('current-streak-stat');
-            const bestStreakElement = document.getElementById('best-streak-stat');
-            
-            if (totalElement) {
-                totalElement.textContent = this.stats.totalQuizzes;
-            }
-            if (currentStreakElement) {
-                currentStreakElement.textContent = this.stats.currentStreak + '🔥';
-            }
-            if (bestStreakElement) {
-                bestStreakElement.textContent = this.stats.bestStreak + '⭐';
-            }
-            
-            console.log('📊 Статистика обновлена в интерфейсе');
-        },
-        
-        // Добавление мотивационных сообщений к результатам
-        addMotivationalMessage: function(percentage) {
-            let message = '';
-            let icon = '';
-            
-            if (percentage === 100) {
-                message = 'Невероятно! Идеальный результат! Вы настоящий профессионал!';
-                icon = '🏆';
-            } else if (percentage >= 90) {
-                message = 'Превосходно! Вы демонстрируете глубокие знания медицины!';
-                icon = '🌟';
-            } else if (percentage >= 80) {
-                message = 'Отличная работа! Вы на правильном пути к мастерству!';
-                icon = '👏';
-            } else if (percentage >= 70) {
-                message = 'Хороший результат! Продолжайте изучать - успех близко!';
-                icon = '💪';
-            } else if (percentage >= 50) {
-                message = 'Неплохо для начала! Практика приведет к совершенству!';
-                icon = '📚';
-            } else {
-                message = 'Каждый эксперт когда-то был новичком. Не сдавайтесь!';
-                icon = '🚀';
-            }
-            
-            return { message, icon };
-        },
-        
         // Функция для сброса статистики (для тестирования)
         resetStats: function() {
             if (confirm('Вы уверены, что хотите сбросить всю статистику?')) {
@@ -443,7 +473,7 @@
                     lastSession: null
                 };
                 this.saveStats();
-                this.updateStatsDisplay();
+                this.updateExistingStatsDisplay();
                 console.log('📊 Статистика сброшена');
             }
         }
@@ -453,20 +483,47 @@
     document.addEventListener('DOMContentLoaded', function() {
         setTimeout(() => {
             window.Gamification.init();
-        }, 500);
+        }, 800); // Задержка для загрузки интерфейса
     });
     
-    // Добавляем функцию для интеграции с основным приложением
-    window.triggerQuizCompleted = function(score, total, percentage) {
-        const event = new CustomEvent('quizCompleted', {
-            detail: { score, total, percentage }
-        });
-        document.dispatchEvent(event);
+    // Функции для отладки
+    window.debugGamefication = {
+        getStats: () => window.Gamification.stats,
         
-        // Также напрямую уведомляем геймификацию
-        if (window.Gamification && window.Gamification.initialized) {
-            window.Gamification.onQuizComplete({ score, total, percentage });
+        resetStats: () => window.Gamification.resetStats(),
+        
+        testCorrect: () => {
+            window.Gamification.onCorrectAnswer();
+        },
+        
+        testWrong: () => {
+            window.Gamification.onWrongAnswer();
+        },
+        
+        testComplete: (percentage = 85) => {
+            window.Gamification.onQuizComplete({
+                score: 8,
+                total: 10,
+                percentage: percentage
+            });
+        },
+        
+        testAchievement: () => {
+            window.Gamification.showAchievement('Тестовое достижение! 🎉');
+        },
+        
+        testConfetti: () => {
+            window.Gamification.showConfetti();
+        },
+        
+        addQuizzes: (count) => {
+            window.Gamification.stats.totalQuizzes += count;
+            window.Gamification.updateExistingStatsDisplay();
+            window.Gamification.saveStats();
         }
     };
+    
+    console.log('✅ Исправленная система геймификации загружена');
+    console.log('🐛 Отладка: window.debugGamefication');
     
 })();
