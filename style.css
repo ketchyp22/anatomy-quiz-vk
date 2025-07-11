@@ -222,7 +222,283 @@ body {
     -webkit-text-fill-color: transparent;
     background-clip: text;
     letter-spacing: -0.03em;
-    text-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    text-shadow: 0 4px 20px rgba(79, 209, 197, 0.3);
+    animation: scoreReveal 1.5s cubic-bezier(0.17, 0.67, 0.83, 0.67);
+    line-height: 1;
+}
+
+@keyframes scoreReveal {
+    0% { opacity: 0; transform: scale(0.3) rotateY(180deg); }
+    50% { opacity: 1; transform: scale(1.2) rotateY(0deg); }
+    100% { transform: scale(1) rotateY(0deg); }
+}
+
+.score-details {
+    font-size: 18px;
+    color: var(--text-secondary);
+    margin-bottom: 20px;
+}
+
+.result-message {
+    font-size: 18px;
+    color: var(--text-secondary);
+    background: var(--glass-bg);
+    backdrop-filter: blur(10px);
+    padding: 20px;
+    border-radius: 16px;
+    border: 1px solid var(--glass-border);
+    font-weight: 500;
+    line-height: 1.6;
+}
+
+.result-emoji {
+    font-size: 28px;
+    margin-right: 8px;
+}
+
+/* Цветовые схемы для результатов */
+.score-percentage.excellent {
+    background: linear-gradient(135deg, #ffd700, #ffed4e);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+.score-percentage.good {
+    background: linear-gradient(135deg, #10b981, #34d399);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+.score-percentage.average {
+    background: linear-gradient(135deg, #f59e0b, #fbbf24);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+.score-percentage.poor {
+    background: linear-gradient(135deg, #ef4444, #f87171);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+/* ==================== ФУТЕР ==================== */
+.footer {
+    text-align: center;
+    margin-top: 30px;
+    opacity: 0.7;
+}
+
+.footer a {
+    color: var(--text-secondary);
+    text-decoration: none;
+    font-size: 14px;
+    transition: all 0.3s ease;
+}
+
+.footer a:hover {
+    color: var(--text-primary);
+    text-shadow: 0 0 10px rgba(255, 255, 255, 0.5);
+}
+
+/* ==================== АДАПТИВНОСТЬ ==================== */
+@media (max-width: 768px) {
+    .container {
+        padding: 24px;
+        margin: 10px;
+    }
+    
+    .title {
+        font-size: 36px;
+    }
+    
+    .stats-row {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 15px;
+    }
+    
+    .modes-grid {
+        grid-template-columns: 1fr;
+        gap: 12px;
+    }
+    
+    .mode-card[data-mode="expert"] {
+        grid-column: 1;
+    }
+    
+    .mode-card {
+        min-height: 75px;
+        padding: 16px 12px;
+    }
+    
+    .mode-title {
+        font-size: 14px;
+    }
+    
+    .mode-description {
+        font-size: 11px;
+    }
+    
+    .difficulty-selector {
+        flex-direction: column;
+        gap: 8px;
+    }
+    
+    .btn {
+        padding: 16px 32px;
+        font-size: 16px;
+    }
+    
+    .score-percentage {
+        font-size: 64px;
+    }
+    
+    .question-box {
+        font-size: 18px;
+        padding: 20px;
+    }
+    
+    .option {
+        padding: 16px 20px;
+        font-size: 16px;
+    }
+}
+
+@media (max-width: 480px) {
+    .container {
+        padding: 16px;
+        border-radius: 24px;
+    }
+    
+    .title {
+        font-size: 28px;
+    }
+    
+    .stats-row {
+        grid-template-columns: 1fr;
+        gap: 10px;
+    }
+    
+    .stat-card {
+        padding: 16px 12px;
+    }
+    
+    .stat-number {
+        font-size: 24px;
+    }
+    
+    .user-info {
+        padding: 10px 16px;
+        margin-bottom: 20px;
+    }
+    
+    .user-info img {
+        width: 36px;
+        height: 36px;
+        margin-right: 10px;
+    }
+    
+    .user-info span {
+        font-size: 15px;
+    }
+}
+
+/* ==================== ТЕМНАЯ ТЕМА VK ==================== */
+.vk-dark-theme {
+    --glass-bg: rgba(0, 0, 0, 0.2);
+    --glass-bg-strong: rgba(0, 0, 0, 0.3);
+    --glass-border: rgba(255, 255, 255, 0.1);
+    --text-primary: #ffffff;
+    --text-secondary: rgba(255, 255, 255, 0.8);
+    --text-muted: rgba(255, 255, 255, 0.6);
+}
+
+.vk-dark-theme body {
+    background: linear-gradient(135deg, #000000 0%, #1a1a1a 25%, #2d2d2d 75%, #404040 100%);
+}
+
+.vk-dark-theme .container {
+    background: rgba(0, 0, 0, 0.4);
+    border-color: rgba(255, 255, 255, 0.1);
+}
+
+.vk-dark-theme .mode-card {
+    background: rgba(0, 0, 0, 0.3);
+    border-color: rgba(255, 255, 255, 0.1);
+}
+
+.vk-dark-theme .mode-card:hover {
+    background: rgba(0, 0, 0, 0.4);
+    border-color: rgba(255, 255, 255, 0.2);
+}
+
+/* ==================== СКРЫВАЕМ НЕНУЖНЫЕ ЭЛЕМЕНТЫ ==================== */
+/* Полностью скрываем все дублирующиеся элементы */
+.expert-mode-container,
+.expert-container,
+.quiz-mode-btn,
+.expert-mode-btn,
+[class*="expert-mode"],
+[id*="expert-mode"] {
+    display: none !important;
+    visibility: hidden !important;
+    opacity: 0 !important;
+    position: absolute !important;
+    left: -9999px !important;
+}
+
+/* Убираем лишние кнопки режимов, добавляемые JavaScript */
+button[data-mode]:not(.mode-card) {
+    display: none !important;
+}
+
+/* ==================== АНИМАЦИИ ==================== */
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes slideInUp {
+    from { opacity: 0; transform: translateY(30px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes scaleIn {
+    from { opacity: 0; transform: scale(0.9); }
+    to { opacity: 1; transform: scale(1); }
+}
+
+/* Применяем анимации к элементам */
+.mode-card {
+    animation: fadeIn 0.6s ease-out forwards;
+}
+
+.mode-card:nth-child(1) { animation-delay: 0.1s; }
+.mode-card:nth-child(2) { animation-delay: 0.2s; }
+.mode-card:nth-child(3) { animation-delay: 0.3s; }
+.mode-card:nth-child(4) { animation-delay: 0.4s; }
+.mode-card:nth-child(5) { animation-delay: 0.5s; }
+.mode-card:nth-child(6) { animation-delay: 0.6s; }
+
+.stat-card {
+    animation: scaleIn 0.5s ease-out forwards;
+}
+
+.stat-card:nth-child(1) { animation-delay: 0.1s; }
+.stat-card:nth-child(2) { animation-delay: 0.2s; }
+.stat-card:nth-child(3) { animation-delay: 0.3s; }
+.stat-card:nth-child(4) { animation-delay: 0.4s; }
+
+/* ==================== ФИНАЛЬНЫЕ ПРАВКИ ==================== */
+/* Убеждаемся, что только наши карточки видны */
+.modes-grid > .mode-card {
+    display: flex !important;
+}
+
+/* Скрываем все остальные кнопки режимов */
+.modes-grid > button:not(.mode-card),
+.modes-grid > div:not(.mode-card) {
+    display: none !important;
+} 4px 8px rgba(0, 0, 0, 0.1);
     position: relative;
     animation: titlePulse 4s ease-in-out infinite;
 }
@@ -393,27 +669,29 @@ body {
     margin-bottom: 32px;
 }
 
+/* ВАЖНО: Единая сетка для всех режимов - 3 колонки */
 .modes-grid {
     display: grid;
-    grid-template-columns: repeat(2, 1fr);
-    gap: 18px;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 16px;
     margin-bottom: 28px;
 }
 
+/* БАЗОВЫЕ СТИЛИ ДЛЯ ВСЕХ КАРТОЧЕК РЕЖИМОВ */
 .mode-card {
     background: var(--glass-bg);
     backdrop-filter: blur(20px);
     -webkit-backdrop-filter: blur(20px);
     border: 1px solid var(--glass-border);
-    border-radius: 20px;
-    padding: 22px 18px;
+    border-radius: 18px;
+    padding: 20px 16px;
     cursor: pointer;
     transition: all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
     position: relative;
     overflow: hidden;
     box-shadow: var(--shadow-3d);
     transform-style: preserve-3d;
-    min-height: 90px;
+    min-height: 85px;
     display: flex;
     flex-direction: column;
     justify-content: center;
@@ -436,7 +714,7 @@ body {
 }
 
 .mode-card:hover {
-    transform: translateY(-6px) rotateX(8deg) rotateY(3deg);
+    transform: translateY(-5px) rotateX(6deg) rotateY(2deg);
     background: var(--glass-bg-strong);
     border-color: rgba(255, 255, 255, 0.25);
     box-shadow: var(--shadow-3d-hover), var(--glow-blue);
@@ -445,7 +723,7 @@ body {
 .mode-card.active {
     background: linear-gradient(135deg, rgba(5, 150, 105, 0.15) 0%, rgba(16, 185, 129, 0.1) 100%);
     border: 1px solid rgba(5, 150, 105, 0.4);
-    transform: translateY(-4px) rotateX(6deg);
+    transform: translateY(-3px) rotateX(4deg);
     box-shadow: var(--shadow-3d-hover), var(--glow-green);
 }
 
@@ -461,7 +739,7 @@ body {
         rgba(16, 185, 129, 0.2),
         rgba(5, 150, 105, 0.3)
     );
-    border-radius: 22px;
+    border-radius: 20px;
     z-index: -1;
     animation: activeGlow 2s ease-in-out infinite;
 }
@@ -471,18 +749,20 @@ body {
     50% { opacity: 0.8; }
 }
 
-/* ЭКСПЕРТНАЯ КАРТОЧКА */
-.mode-card.expert-card {
+/* ЭКСПЕРТНАЯ КАРТОЧКА - занимает всю ширину */
+.mode-card[data-mode="expert"] {
+    grid-column: 1 / -1; /* Занимает всю ширину сетки */
     background: linear-gradient(135deg, rgba(180, 83, 9, 0.12) 0%, rgba(217, 119, 6, 0.1) 100%);
     border: 1px solid rgba(180, 83, 9, 0.3);
-    position: relative;
+    min-height: 100px;
+    padding: 24px;
 }
 
-.mode-card.expert-card::after {
+.mode-card[data-mode="expert"]::after {
     content: 'EXPERT';
     position: absolute;
     top: 8px;
-    right: 8px;
+    right: 12px;
     background: linear-gradient(135deg, var(--expert-gold) 0%, var(--expert-amber) 100%);
     color: white;
     padding: 4px 8px;
@@ -500,20 +780,20 @@ body {
     50% { transform: scale(1.05); box-shadow: 0 4px 8px rgba(180, 83, 9, 0.5); }
 }
 
-.mode-card.expert-card:hover {
+.mode-card[data-mode="expert"]:hover {
     background: linear-gradient(135deg, rgba(180, 83, 9, 0.18) 0%, rgba(217, 119, 6, 0.15) 100%);
     border-color: rgba(180, 83, 9, 0.4);
     box-shadow: var(--shadow-3d-hover), var(--glow-gold);
 }
 
-.mode-card.expert-card.active {
+.mode-card[data-mode="expert"].active {
     background: linear-gradient(135deg, rgba(180, 83, 9, 0.25) 0%, rgba(217, 119, 6, 0.2) 100%);
     border: 1px solid rgba(180, 83, 9, 0.5);
     box-shadow: var(--shadow-3d-hover), var(--glow-gold);
 }
 
 .mode-title {
-    font-size: 16px;
+    font-size: 15px;
     font-weight: 700;
     color: var(--text-primary);
     margin-bottom: 6px;
@@ -526,10 +806,17 @@ body {
 }
 
 .mode-description {
-    font-size: 13px;
+    font-size: 12px;
     color: var(--text-secondary);
     line-height: 1.4;
     opacity: 0.9;
+}
+
+/* СКРЫВАЕМ ДУБЛИРУЮЩИЕСЯ ЭЛЕМЕНТЫ */
+.expert-mode-container,
+.expert-mode-btn,
+.quiz-mode-btn {
+    display: none !important;
 }
 
 /* Описание режима */
@@ -805,34 +1092,4 @@ body {
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
-    text-shadow: 0 4px 20px rgba(79, 209, 197, 0.3);
-    animation: scoreReveal 1.5s cubic-bezier(0.17, 0.67, 0.83, 0.67);
-    line-height: 1;
-}
-
-@keyframes scoreReveal {
-    0% { opacity: 0; transform: scale(0.3) rotateY(180deg); }
-    50% { opacity: 1; transform: scale(1.2) rotateY(0deg); }
-    100% { transform: scale(1) rotateY(0deg); }
-}
-
-.score-details {
-    font-size: 18px;
-    color: var(--text-secondary);
-    margin-bottom: 20px;
-}
-
-.result-message {
-    font-size: 18px;
-    color: var(--text-secondary);
-    background: var(--glass-bg);
-    backdrop-filter: blur(10px);
-    padding: 20px;
-    border-radius: 16px;
-    border: 1px solid var(--glass-border);
-    font-weight: 500;
-    line-height: 1.6;
-}
-
-.result-emoji {
-    font
+    text-shadow: 0
