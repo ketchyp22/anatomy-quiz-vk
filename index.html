@@ -32,11 +32,7 @@
         <div class="particle">⚕️</div>
     </div>
 
-    <!-- Виджет подсказок в правом верхнем углу -->
-    <div class="hints-widget">
-        <div class="hints-count">💡 <span id="hints-count-number">3</span></div>
-        <button class="daily-bonus-btn" id="daily-bonus-btn">🎁</button>
-    </div>
+    <!-- УБРАЛИ виджет подсказок отсюда - он будет создан автоматически в JavaScript -->
 
     <!-- Главный экран выбора -->
     <div id="start-screen">
@@ -52,18 +48,18 @@
                 <p class="subtitle">Прокачай свои медицинские знания</p>
             </div>
 
-            <!-- Статистика геймификации -->
-            <div id="gamification-stats" class="stats-row">
+            <!-- Статистика геймификации - УБРАЛИ дублирование id -->
+            <div class="stats-row">
                 <div class="stat-card">
-                    <span class="stat-number" id="total-quizzes-stat">0</span>
+                    <span class="stat-number">0</span>
                     <span class="stat-label">Тестов</span>
                 </div>
                 <div class="stat-card">
-                    <span class="stat-number" id="current-streak-stat">0🔥</span>
+                    <span class="stat-number">0🔥</span>
                     <span class="stat-label">Серия</span>
                 </div>
                 <div class="stat-card">
-                    <span class="stat-number" id="best-streak-stat">0⭐</span>
+                    <span class="stat-number">0⭐</span>
                     <span class="stat-label">Лучший</span>
                 </div>
                 <div class="stat-card">
