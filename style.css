@@ -492,8 +492,8 @@ body {
     /* УБРАНО: min-height: 100px; padding: 24px; */
 }
 
-/* Бейдж EXPERT теперь меньше */
-.mode-card[data-mode="expert"]::after {
+/* Бейдж EXPERT теперь меньше - ИСПОЛЬЗУЕМ ::before ВМЕСТО ::after */
+.mode-card[data-mode="expert"]::before {
     content: 'EXPERT';
     position: absolute;
     top: 6px;
@@ -510,6 +510,11 @@ body {
     animation: expertBadge 3s ease-in-out infinite;
 }
 
+/* УБИРАЕМ СТАРЫЙ ::after */
+.mode-card[data-mode="expert"]::after {
+    display: none !important;
+}
+
 @keyframes expertBadge {
     0%, 100% { transform: scale(1); box-shadow: 0 2px 4px rgba(180, 83, 9, 0.3); }
     50% { transform: scale(1.05); box-shadow: 0 4px 8px rgba(180, 83, 9, 0.5); }
@@ -523,15 +528,21 @@ body {
 
 /* ИСПРАВЛЕННОЕ АКТИВНОЕ СОСТОЯНИЕ ДЛЯ ЭКСПЕРТНОЙ КАРТОЧКИ */
 .mode-card[data-mode="expert"].active {
-    /* Убираем агрессивный оранжевый цвет */
-    background: linear-gradient(135deg, rgba(180, 83, 9, 0.15) 0%, rgba(217, 119, 6, 0.12) 100%);
-    border: 1px solid rgba(180, 83, 9, 0.4);
-    box-shadow: var(--shadow-3d-hover), 0 0 20px rgba(180, 83, 9, 0.2);
+    /* ИСПОЛЬЗУЕМ ТОТ ЖЕ СТИЛЬ КАК У ОБЫЧНЫХ АКТИВНЫХ КАРТОЧЕК */
+    background: linear-gradient(135deg, rgba(5, 150, 105, 0.15) 0%, rgba(16, 185, 129, 0.1) 100%) !important;
+    border: 1px solid rgba(5, 150, 105, 0.4) !important;
+    transform: translateY(-3px) rotateX(4deg);
+    box-shadow: var(--shadow-3d-hover), var(--glow-green) !important;
 }
 
-/* Переопределяем ::after для активной экспертной карточки */
+/* УБИРАЕМ ПОЛНОСТЬЮ ::after для активной экспертной карточки и заменяем на ::before */
 .mode-card[data-mode="expert"].active::after {
-    /* Сохраняем только бейдж EXPERT, убираем оранжевый overlay */
+    /* ПОЛНОСТЬЮ УБИРАЕМ ОРАНЖЕВЫЙ OVERLAY */
+    display: none !important;
+}
+
+/* СОЗДАЕМ НОВЫЙ ::before ТОЛЬКО ДЛЯ БЕЙДЖА */
+.mode-card[data-mode="expert"]::before {
     content: 'EXPERT';
     position: absolute;
     top: 6px;
