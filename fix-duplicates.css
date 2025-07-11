@@ -1,0 +1,66 @@
+/* fix-duplicates.css - Дополнительные стили для скрытия дублирующихся элементов */
+
+/* СКРЫВАЕМ ВСЕ ДУБЛИРУЮЩИЕСЯ ЭЛЕМЕНТЫ */
+.expert-mode-container,
+.expert-container,
+.quiz-mode-btn:not(.mode-card),
+.expert-mode-btn,
+[class*="expert-mode"]:not(.mode-card),
+button[data-mode]:not(.mode-card) {
+    display: none !important;
+    visibility: hidden !important;
+    opacity: 0 !important;
+    position: absolute !important;
+    left: -9999px !important;
+    width: 0 !important;
+    height: 0 !important;
+    overflow: hidden !important;
+}
+
+/* Убираем любые лишние кнопки режимов, которые могли быть добавлены JS */
+.modes-section > button:not(.mode-card),
+.modes-section > div:not(.modes-grid):not(.mode-description-box) {
+    display: none !important;
+}
+
+/* Скрываем дублирующиеся карточки режимов */
+.mode-card + .mode-card[data-mode] {
+    /* Если есть две карточки с одинаковым data-mode, скрываем вторую */
+}
+
+/* Особо агрессивное скрытие для экспертных элементов */
+*[id*="expert"]:not(.mode-card):not([data-mode="expert"]),
+*[class*="expert"]:not(.mode-card):not([data-mode="expert"]) {
+    display: none !important;
+}
+
+/* Убираем возможные лишние контейнеры */
+.container .container {
+    /* Если вложенные контейнеры */
+    display: contents;
+}
+
+/* Принудительно показываем только правильные карточки */
+.modes-grid .mode-card[data-mode] {
+    display: flex !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+    position: relative !important;
+    left: auto !important;
+}
+
+/* Скрываем красные баннеры и уведомления от экспертного режима */
+div[style*="background: linear-gradient"][style*="ff6b6b"],
+div[style*="background: linear-gradient"][style*="ee5a24"] {
+    display: none !important;
+}
+
+/* Убираем лишние описания режимов */
+.mode-description-box + .mode-description-box {
+    display: none !important;
+}
+
+/* Финальная зачистка */
+.quiz-mode-selection > *:not(.mode-card) {
+    display: none !important;
+}
