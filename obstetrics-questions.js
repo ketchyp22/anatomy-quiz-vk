@@ -1,4 +1,4 @@
-// obstetrics-questions.js - Полная версия с 40 вопросами
+// obstetrics-questions.js - Расширенная версия с 100 интересными вопросами
 (function() {
     // Объявляем переменную для отслеживания статуса загрузки
     window.obstetricsQuestionsLoaded = false;
@@ -20,8 +20,9 @@
         // Префикс для ID вопросов
         const PREFIX = 'obs_';
         
-        // Вопросы для режима Акушерство и гинекология - ОБЫЧНЫЙ УРОВЕНЬ (40 вопросов)
+        // Вопросы для режима Акушерство и гинекология - ОБЫЧНЫЙ УРОВЕНЬ (100 вопросов)
         const obstetricsQuestions = [
+            // ОРИГИНАЛЬНЫЕ 40 ВОПРОСОВ (001-040)
             {
                 id: PREFIX + '001',
                 text: "Какова продолжительность нормальной беременности?",
@@ -341,28 +342,486 @@
                 correctOptionIndex: 1,
                 mode: "obstetrics",
                 difficulty: "easy"
+            },
+            
+            // НОВЫЕ 60 ВОПРОСОВ (041-100)
+            {
+                id: PREFIX + '041',
+                text: "На каком сроке беременности формируется плацента?",
+                options: ["6-8 недель", "10-12 недель", "14-16 недель", "18-20 недель"],
+                correctOptionIndex: 1,
+                mode: "obstetrics",
+                difficulty: "easy"
+            },
+            {
+                id: PREFIX + '042',
+                text: "Что такое дисменорея?",
+                options: ["Отсутствие менструаций", "Болезненные менструации", "Обильные менструации", "Нерегулярные менструации"],
+                correctOptionIndex: 1,
+                mode: "obstetrics",
+                difficulty: "easy"
+            },
+            {
+                id: PREFIX + '043',
+                text: "Какой гормон отвечает за поддержание беременности в первом триместре?",
+                options: ["Эстрадиол", "Прогестерон", "Тестостерон", "Кортизол"],
+                correctOptionIndex: 1,
+                mode: "obstetrics",
+                difficulty: "easy"
+            },
+            {
+                id: PREFIX + '044',
+                text: "Что такое полименорея?",
+                options: ["Короткий менструальный цикл (менее 21 дня)", "Длинный менструальный цикл", "Обильные менструации", "Болезненные менструации"],
+                correctOptionIndex: 0,
+                mode: "obstetrics",
+                difficulty: "easy"
+            },
+            {
+                id: PREFIX + '045',
+                text: "На каком сроке беременности можно определить пол ребенка на УЗИ?",
+                options: ["8-10 недель", "12-14 недель", "16-18 недель", "20-22 недели"],
+                correctOptionIndex: 2,
+                mode: "obstetrics",
+                difficulty: "easy"
+            },
+            {
+                id: PREFIX + '046',
+                text: "Что такое олигоменорея?",
+                options: ["Редкие менструации", "Обильные менструации", "Болезненные менструации", "Нерегулярные менструации"],
+                correctOptionIndex: 0,
+                mode: "obstetrics",
+                difficulty: "easy"
+            },
+            {
+                id: PREFIX + '047',
+                text: "Какой гормон стимулирует сокращения матки во время родов?",
+                options: ["Эстроген", "Прогестерон", "Окситоцин", "Пролактин"],
+                correctOptionIndex: 2,
+                mode: "obstetrics",
+                difficulty: "easy"
+            },
+            {
+                id: PREFIX + '048',
+                text: "Что такое меноррагия?",
+                options: ["Отсутствие менструаций", "Болезненные менструации", "Обильные менструации", "Короткие менструации"],
+                correctOptionIndex: 2,
+                mode: "obstetrics",
+                difficulty: "easy"
+            },
+            {
+                id: PREFIX + '049',
+                text: "На каком сроке беременности рекомендуется второе плановое УЗИ?",
+                options: ["14-16 недель", "18-22 недели", "26-28 недель", "32-34 недели"],
+                correctOptionIndex: 1,
+                mode: "obstetrics",
+                difficulty: "easy"
+            },
+            {
+                id: PREFIX + '050',
+                text: "Что такое метроррагия?",
+                options: ["Межменструальные кровотечения", "Обильные менструации", "Отсутствие менструаций", "Болезненные менструации"],
+                correctOptionIndex: 0,
+                mode: "obstetrics",
+                difficulty: "easy"
+            },
+            {
+                id: PREFIX + '051',
+                text: "Какая нормальная масса тела новорожденного при доношенной беременности?",
+                options: ["2000-2500 г", "2500-4000 г", "4000-4500 г", "4500-5000 г"],
+                correctOptionIndex: 1,
+                mode: "obstetrics",
+                difficulty: "easy"
+            },
+            {
+                id: PREFIX + '052',
+                text: "Что такое эндометрит?",
+                options: ["Воспаление яичников", "Воспаление маточных труб", "Воспаление слизистой оболочки матки", "Воспаление шейки матки"],
+                correctOptionIndex: 2,
+                mode: "obstetrics",
+                difficulty: "easy"
+            },
+            {
+                id: PREFIX + '053',
+                text: "На каком сроке беременности рекомендуется третье плановое УЗИ?",
+                options: ["26-28 недель", "30-32 недели", "32-36 недель", "38-40 недель"],
+                correctOptionIndex: 2,
+                mode: "obstetrics",
+                difficulty: "easy"
+            },
+            {
+                id: PREFIX + '054',
+                text: "Что такое кольпит?",
+                options: ["Воспаление влагалища", "Воспаление матки", "Воспаление яичников", "Воспаление шейки матки"],
+                correctOptionIndex: 0,
+                mode: "obstetrics",
+                difficulty: "easy"
+            },
+            {
+                id: PREFIX + '055',
+                text: "Какая нормальная длина новорожденного при доношенной беременности?",
+                options: ["40-45 см", "46-52 см", "53-58 см", "59-65 см"],
+                correctOptionIndex: 1,
+                mode: "obstetrics",
+                difficulty: "easy"
+            },
+            {
+                id: PREFIX + '056',
+                text: "Что такое эндометриоз?",
+                options: ["Воспаление эндометрия", "Разрастание эндометрия вне полости матки", "Опухоль эндометрия", "Атрофия эндометрия"],
+                correctOptionIndex: 1,
+                mode: "obstetrics",
+                difficulty: "easy"
+            },
+            {
+                id: PREFIX + '057',
+                text: "Сколько периодов выделяют в родах?",
+                options: ["2", "3", "4", "5"],
+                correctOptionIndex: 1,
+                mode: "obstetrics",
+                difficulty: "easy"
+            },
+            {
+                id: PREFIX + '058',
+                text: "Что такое аднексит?",
+                options: ["Воспаление придатков матки", "Воспаление матки", "Воспаление влагалища", "Воспаление шейки матки"],
+                correctOptionIndex: 0,
+                mode: "obstetrics",
+                difficulty: "easy"
+            },
+            {
+                id: PREFIX + '059',
+                text: "Как называется первый период родов?",
+                options: ["Период изгнания", "Период раскрытия", "Последовый период", "Период восстановления"],
+                correctOptionIndex: 1,
+                mode: "obstetrics",
+                difficulty: "easy"
+            },
+            {
+                id: PREFIX + '060',
+                text: "Что такое мастит?",
+                options: ["Воспаление молочной железы", "Застой молока", "Трещины сосков", "Недостаток молока"],
+                correctOptionIndex: 0,
+                mode: "obstetrics",
+                difficulty: "easy"
+            },
+            {
+                id: PREFIX + '061',
+                text: "Как называется второй период родов?",
+                options: ["Период раскрытия", "Период изгнания", "Последовый период", "Ранний послеродовый период"],
+                correctOptionIndex: 1,
+                mode: "obstetrics",
+                difficulty: "easy"
+            },
+            {
+                id: PREFIX + '062',
+                text: "Что такое лактостаз?",
+                options: ["Воспаление молочной железы", "Застой молока в молочной железе", "Недостаток молока", "Избыток молока"],
+                correctOptionIndex: 1,
+                mode: "obstetrics",
+                difficulty: "easy"
+            },
+            {
+                id: PREFIX + '063',
+                text: "Как называется третий период родов?",
+                options: ["Период изгнания", "Период восстановления", "Последовый период", "Ранний послеродовый период"],
+                correctOptionIndex: 2,
+                mode: "obstetrics",
+                difficulty: "easy"
+            },
+            {
+                id: PREFIX + '064',
+                text: "Что такое галакторея?",
+                options: ["Отсутствие молока", "Патологическое выделение молока", "Застой молока", "Воспаление молочной железы"],
+                correctOptionIndex: 1,
+                mode: "obstetrics",
+                difficulty: "easy"
+            },
+            {
+                id: PREFIX + '065',
+                text: "Какова нормальная продолжительность первого периода родов у первородящих?",
+                options: ["4-6 часов", "8-12 часов", "12-18 часов", "18-24 часа"],
+                correctOptionIndex: 2,
+                mode: "obstetrics",
+                difficulty: "easy"
+            },
+            {
+                id: PREFIX + '066',
+                text: "Что такое поликистоз яичников?",
+                options: ["Воспаление яичников", "Множественные кисты в яичниках", "Отсутствие яичников", "Опухоль яичников"],
+                correctOptionIndex: 1,
+                mode: "obstetrics",
+                difficulty: "easy"
+            },
+            {
+                id: PREFIX + '067',
+                text: "Какова нормальная продолжительность второго периода родов у первородящих?",
+                options: ["30 минут - 1 час", "1-2 часа", "2-3 часа", "3-4 часа"],
+                correctOptionIndex: 1,
+                mode: "obstetrics",
+                difficulty: "easy"
+            },
+            {
+                id: PREFIX + '068',
+                text: "Что такое вагинизм?",
+                options: ["Воспаление влагалища", "Сухость влагалища", "Спазм мышц влагалища", "Опухоль влагалища"],
+                correctOptionIndex: 2,
+                mode: "obstetrics",
+                difficulty: "easy"
+            },
+            {
+                id: PREFIX + '069',
+                text: "Какова нормальная продолжительность третьего периода родов?",
+                options: ["5-10 минут", "15-30 минут", "30-60 минут", "1-2 часа"],
+                correctOptionIndex: 1,
+                mode: "obstetrics",
+                difficulty: "easy"
+            },
+            {
+                id: PREFIX + '070',
+                text: "Что такое диспареуния?",
+                options: ["Отсутствие полового влечения", "Болезненность при половом акте", "Нарушение оргазма", "Сухость влагалища"],
+                correctOptionIndex: 1,
+                mode: "obstetrics",
+                difficulty: "easy"
+            },
+            {
+                id: PREFIX + '071',
+                text: "На каком сроке беременности происходит имплантация эмбриона?",
+                options: ["3-5 дней", "6-8 дней", "10-12 дней", "14-16 дней"],
+                correctOptionIndex: 1,
+                mode: "obstetrics",
+                difficulty: "easy"
+            },
+            {
+                id: PREFIX + '072',
+                text: "Что такое либидо?",
+                options: ["Способность к оплодотворению", "Половое влечение", "Менструальная функция", "Способность к зачатию"],
+                correctOptionIndex: 1,
+                mode: "obstetrics",
+                difficulty: "easy"
+            },
+            {
+                id: PREFIX + '073',
+                text: "Когда начинает биться сердце у эмбриона?",
+                options: ["3-4 недели", "5-6 недель", "7-8 недель", "9-10 недель"],
+                correctOptionIndex: 1,
+                mode: "obstetrics",
+                difficulty: "easy"
+            },
+            {
+                id: PREFIX + '074',
+                text: "Что такое фригидность?",
+                options: ["Воспаление половых органов", "Снижение или отсутствие полового влечения", "Бесплодие", "Нарушение менструального цикла"],
+                correctOptionIndex: 1,
+                mode: "obstetrics",
+                difficulty: "easy"
+            },
+            {
+                id: PREFIX + '075',
+                text: "На каком сроке беременности формируется нервная трубка?",
+                options: ["2-3 недели", "4-5 недель", "6-7 недель", "8-9 недель"],
+                correctOptionIndex: 0,
+                mode: "obstetrics",
+                difficulty: "easy"
+            },
+            {
+                id: PREFIX + '076',
+                text: "Что такое бартолинит?",
+                options: ["Воспаление больших желез преддверия влагалища", "Воспаление яичников", "Воспаление матки", "Воспаление мочевого пузыря"],
+                correctOptionIndex: 0,
+                mode: "obstetrics",
+                difficulty: "easy"
+            },
+            {
+                id: PREFIX + '077',
+                text: "На каком сроке беременности заканчивается органогенез?",
+                options: ["8 недель", "12 недель", "16 недель", "20 недель"],
+                correctOptionIndex: 1,
+                mode: "obstetrics",
+                difficulty: "easy"
+            },
+            {
+                id: PREFIX + '078',
+                text: "Что такое крауроз вульвы?",
+                options: ["Воспаление вульвы", "Атрофические изменения вульвы", "Опухоль вульвы", "Травма вульвы"],
+                correctOptionIndex: 1,
+                mode: "obstetrics",
+                difficulty: "easy"
+            },
+            {
+                id: PREFIX + '079',
+                text: "Какое количество околоплодных вод считается нормальным к концу беременности?",
+                options: ["500-800 мл", "800-1200 мл", "1200-1500 мл", "1500-2000 мл"],
+                correctOptionIndex: 1,
+                mode: "obstetrics",
+                difficulty: "easy"
+            },
+            {
+                id: PREFIX + '080',
+                text: "Что такое лейкоплакия вульвы?",
+                options: ["Воспаление вульвы", "Белые пятна на вульве", "Опухоль вульвы", "Травма вульвы"],
+                correctOptionIndex: 1,
+                mode: "obstetrics",
+                difficulty: "easy"
+            },
+            {
+                id: PREFIX + '081',
+                text: "На каком сроке беременности плод считается жизнеспособным?",
+                options: ["20 недель", "22 недели", "24 недели", "26 недель"],
+                correctOptionIndex: 2,
+                mode: "obstetrics",
+                difficulty: "easy"
+            },
+            {
+                id: PREFIX + '082',
+                text: "Что такое кондиломы?",
+                options: ["Воспалительные образования", "Доброкачественные разрастания", "Злокачественные опухоли", "Кисты"],
+                correctOptionIndex: 1,
+                mode: "obstetrics",
+                difficulty: "easy"
+            },
+            {
+                id: PREFIX + '083',
+                text: "Какой объем крови теряется при нормальных родах?",
+                options: ["100-200 мл", "250-400 мл", "450-600 мл", "650-800 мл"],
+                correctOptionIndex: 1,
+                mode: "obstetrics",
+                difficulty: "easy"
+            },
+            {
+                id: PREFIX + '084',
+                text: "Что такое папиллома?",
+                options: ["Воспалительное заболевание", "Доброкачественная опухоль", "Злокачественная опухоль", "Киста"],
+                correctOptionIndex: 1,
+                mode: "obstetrics",
+                difficulty: "easy"
+            },
+            {
+                id: PREFIX + '085',
+                text: "Какова нормальная окружность головы новорожденного?",
+                options: ["30-32 см", "32-34 см", "34-36 см", "36-38 см"],
+                correctOptionIndex: 2,
+                mode: "obstetrics",
+                difficulty: "easy"
+            },
+            {
+                id: PREFIX + '086',
+                text: "Что такое эрозия шейки матки?",
+                options: ["Воспаление шейки матки", "Дефект эпителия шейки матки", "Опухоль шейки матки", "Киста шейки матки"],
+                correctOptionIndex: 1,
+                mode: "obstetrics",
+                difficulty: "easy"
+            },
+            {
+                id: PREFIX + '087',
+                text: "Какова нормальная окружность груди новорожденного?",
+                options: ["30-32 см", "32-34 см", "34-36 см", "36-38 см"],
+                correctOptionIndex: 1,
+                mode: "obstetrics",
+                difficulty: "easy"
+            },
+            {
+                id: PREFIX + '088',
+                text: "Что такое полип шейки матки?",
+                options: ["Воспаление шейки матки", "Доброкачественное разрастание слизистой", "Злокачественная опухоль", "Киста шейки матки"],
+                correctOptionIndex: 1,
+                mode: "obstetrics",
+                difficulty: "easy"
+            },
+            {
+                id: PREFIX + '089',
+                text: "На какой день после родов обычно приходит молоко?",
+                options: ["1-2 день", "3-5 день", "6-7 день", "8-10 день"],
+                correctOptionIndex: 1,
+                mode: "obstetrics",
+                difficulty: "easy"
+            },
+            {
+                id: PREFIX + '090',
+                text: "Что такое дисплазия шейки матки?",
+                options: ["Воспаление шейки матки", "Нарушение развития эпителия", "Опухоль шейки матки", "Травма шейки матки"],
+                correctOptionIndex: 1,
+                mode: "obstetrics",
+                difficulty: "easy"
+            },
+            {
+                id: PREFIX + '091',
+                text: "Сколько длится период лактации?",
+                options: ["6 месяцев", "1 год", "1,5-2 года", "3 года"],
+                correctOptionIndex: 2,
+                mode: "obstetrics",
+                difficulty: "easy"
+            },
+            {
+                id: PREFIX + '092',
+                text: "Что такое лейкорея?",
+                options: ["Кровянистые выделения", "Белые выделения из половых путей", "Гнойные выделения", "Отсутствие выделений"],
+                correctOptionIndex: 1,
+                mode: "obstetrics",
+                difficulty: "easy"
+            },
+            {
+                id: PREFIX + '093',
+                text: "Когда происходит полная инволюция матки после родов?",
+                options: ["2-3 недели", "4-6 недель", "8-10 недель", "12-14 недель"],
+                correctOptionIndex: 1,
+                mode: "obstetrics",
+                difficulty: "easy"
+            },
+            {
+                id: PREFIX + '094',
+                text: "Что такое вульвит?",
+                options: ["Воспаление наружных половых органов", "Воспаление влагалища", "Воспаление матки", "Воспаление яичников"],
+                correctOptionIndex: 0,
+                mode: "obstetrics",
+                difficulty: "easy"
+            },
+            {
+                id: PREFIX + '095',
+                text: "Какова продолжительность послеродового периода?",
+                options: ["2-3 недели", "4-6 недель", "8-10 недель", "12-14 недель"],
+                correctOptionIndex: 1,
+                mode: "obstetrics",
+                difficulty: "easy"
+            },
+            {
+                id: PREFIX + '096',
+                text: "Что такое молочница?",
+                options: ["Бактериальная инфекция", "Грибковая инфекция", "Вирусная инфекция", "Паразитарная инфекция"],
+                correctOptionIndex: 1,
+                mode: "obstetrics",
+                difficulty: "easy"
+            },
+            {
+                id: PREFIX + '097',
+                text: "На каком сроке после родов возобновляются менструации при грудном вскармливании?",
+                options: ["1-2 месяца", "3-4 месяца", "6-8 месяцев", "1 год"],
+                correctOptionIndex: 2,
+                mode: "obstetrics",
+                difficulty: "easy"
+            },
+            {
+                id: PREFIX + '098',
+                text: "Что такое трихомониаз?",
+                options: ["Бактериальная инфекция", "Вирусная инфекция", "Протозойная инфекция", "Грибковая инфекция"],
+                correctOptionIndex: 2,
+                mode: "obstetrics",
+                difficulty: "easy"
+            },
+            {
+                id: PREFIX + '099',
+                text: "Сколько раз в день новорожденный должен получать грудное молоко?",
+                options: ["4-6 раз", "6-8 раз", "8-12 раз", "12-15 раз"],
+                correctOptionIndex: 2,
+                mode: "obstetrics",
+                difficulty: "easy"
+            },
+            {
+                id: PREFIX + '100',
+                text: "Что такое хламидиоз?",
+                options: ["Вирусная инфекция", "Бактериальная инфекция", "Грибковая инфекция", "Протозойная инфекция"],
+                correctOptionIndex: 1,
+                mode: "obstetrics",
+                difficulty: "easy"
             }
-        ];
-        
-        // Добавляем вопросы в общий массив
-        obstetricsQuestions.forEach(question => {
-            // Проверяем, нет ли дубликатов
-            const existingQuestion = window.questions.find(q => q.id === question.id);
-            if (!existingQuestion) {
-                window.questions.push(question);
-            }
-        });
-        
-        // Устанавливаем флаг загрузки
-        window.obstetricsQuestionsLoaded = true;
-        
-        console.log(`Модуль "Акушерство и гинекология": добавлено ${obstetricsQuestions.length} вопросов`);
-        
-        // Обновляем описание режима (если нужно)
-        if (window.modeDescriptions) {
-            window.modeDescriptions['obstetrics'] = 'Вопросы о ведении беременности, родов и женском репродуктивном здоровье';
-        }
-    }
-    
-    console.log('✅ Вопросы акушерства загружены БЕЗ создания дублирующих кнопок');
-})();
