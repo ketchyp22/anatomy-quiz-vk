@@ -821,6 +821,15 @@
                 mode: "expert",
                 difficulty: "expert"
             }
+        ];
+        
+        // Добавляем вопросы в общий массив
+        expertQuestions.forEach(question => {
+            // Проверяем, нет ли дубликатов
+            const existingQuestion = window.questions.find(q => q.id === question.id);
+            if (!existingQuestion) {
+                window.questions.push(question);
+            }
         });
         
         console.log(`✅ Добавлено ${expertQuestions.length} экспертных вопросов`);
@@ -843,4 +852,3 @@
     window.addExpertQuestions = addExpertQuestions;
     
     console.log('🎯 Экспертные вопросы загружены');
-})();
