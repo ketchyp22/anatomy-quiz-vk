@@ -1,12 +1,12 @@
-// obstetrics-questions.js - Расширенная версия с 100 интересными вопросами
+// obstetrics-questions.js - ИСПРАВЛЕННАЯ версия с немедленной загрузкой
 (function() {
-    // Объявляем переменную для отслеживания статуса загрузки
-    window.obstetricsQuestionsLoaded = false;
+    'use strict';
+    
+    console.log('👶 Загружается модуль акушерства...');
     
     // Ждем полной загрузки DOM
     document.addEventListener('DOMContentLoaded', function() {
         addObstetricsQuestions();
-        // НЕ создаем новые кнопки, кнопка уже есть в HTML!
         console.log('✅ Вопросы акушерства загружены, кнопка уже существует в HTML');
     });
     
@@ -22,7 +22,6 @@
         
         // Вопросы для режима Акушерство и гинекология - ОБЫЧНЫЙ УРОВЕНЬ (100 вопросов)
         const obstetricsQuestions = [
-            // ОРИГИНАЛЬНЫЕ 40 ВОПРОСОВ (001-040)
             {
                 id: PREFIX + '001',
                 text: "Какова продолжительность нормальной беременности?",
@@ -343,8 +342,6 @@
                 mode: "obstetrics",
                 difficulty: "easy"
             },
-            
-            // НОВЫЕ 60 ВОПРОСОВ (041-100)
             {
                 id: PREFIX + '041',
                 text: "На каком сроке беременности формируется плацента?",
@@ -825,3 +822,37 @@
                 mode: "obstetrics",
                 difficulty: "easy"
             }
+        ];
+        
+        // Добавляем вопросы в общий массив
+        obstetricsQuestions.forEach(question => {
+            // Проверяем, нет ли дубликатов
+            const existingQuestion = window.questions.find(q => q.id === question.id);
+            if (!existingQuestion) {
+                window.questions.push(question);
+            }
+        });
+        
+        console.log(`✅ Добавлено ${obstetricsQuestions.length} вопросов акушерства (легкий уровень)`);
+        console.log(`📊 Всего вопросов в базе: ${window.questions.length}`);
+        
+        // Проверяем добавленные вопросы
+        const addedObstetrics = window.questions.filter(q => q.mode === 'obstetrics' && q.difficulty === 'easy').length;
+        console.log(`✔️ Проверка: найдено ${addedObstetrics} вопросов акушерства (easy)`);
+    }
+    
+    // Также добавляем в DOMContentLoaded как резерв
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', function() {
+            addObstetricsQuestions();
+        });
+    } else {
+        // Если DOM уже загружен, вызываем немедленно
+        addObstetricsQuestions();
+    }
+    
+    // Экспортируем функцию в глобальную область
+    window.addObstetricsQuestions = addObstetricsQuestions;
+    
+    console.log('🎯 Модуль акушерства (легкий) загружен');
+})();
