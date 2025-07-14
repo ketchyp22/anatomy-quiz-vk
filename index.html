@@ -12,6 +12,8 @@
     <link rel="stylesheet" href="style.css">
     <link rel="stylesheet" href="gamification.css">
     <link rel="stylesheet" href="hints-system.css">
+    <!-- ДОБАВЛЯЕМ СТИЛИ СИСТЕМЫ ДОСТИЖЕНИЙ -->
+    <link rel="stylesheet" href="achievements.css">
     
     <!-- Метаданные -->
     <meta property="og:title" content="MedQuiz Pro – прокачай свои медицинские знания!">
@@ -52,6 +54,41 @@
             --expert-gold: #d97706;
             --expert-amber: #f59e0b;
             --glow-gold: 0 0 20px rgba(217, 119, 6, 0.3);
+        }
+        
+        /* СТИЛИ ДЛЯ КНОПКИ ДОСТИЖЕНИЙ В ПРАВОМ ВЕРХНЕМ УГЛУ */
+        #achievements-button {
+            position: fixed !important;
+            top: 20px !important;
+            left: 20px !important;
+            background: linear-gradient(135deg, #ffd700 0%, #ffed4e 100%) !important;
+            color: #8b5a00 !important;
+            border: none !important;
+            padding: 12px 20px !important;
+            border-radius: 16px !important;
+            font-weight: 600 !important;
+            font-size: 14px !important;
+            cursor: pointer !important;
+            box-shadow: 0 4px 15px rgba(255, 215, 0, 0.4) !important;
+            transition: all 0.3s ease !important;
+            z-index: 1000 !important;
+            font-family: 'Inter', sans-serif !important;
+            border: 2px solid rgba(255, 255, 255, 0.3) !important;
+            animation: achievementButtonPulse 3s ease-in-out infinite !important;
+        }
+        
+        #achievements-button:hover {
+            transform: translateY(-2px) scale(1.05) !important;
+            box-shadow: 0 6px 20px rgba(255, 215, 0, 0.6) !important;
+        }
+        
+        @keyframes achievementButtonPulse {
+            0%, 100% {
+                box-shadow: 0 4px 15px rgba(255, 215, 0, 0.4) !important;
+            }
+            50% {
+                box-shadow: 0 6px 20px rgba(255, 215, 0, 0.7) !important;
+            }
         }
     </style>
 </head>
@@ -267,19 +304,24 @@
         
         console.log('🚑 MedQuiz Pro загружается...');
         console.log('🎬 Видео фон будет загружен из ambulance-video-background.js');
+        console.log('🏆 Система достижений будет загружена');
     </script>
     
     <!-- 3. ВИДЕО ФОН - ЗАГРУЖАЕТСЯ ПЕРВЫМ -->
     <script src="ambulance-video-background.js"></script>
     
-    <!-- 4. Основные скрипты приложения -->
+    <!-- 4. СИСТЕМА ДОСТИЖЕНИЙ - ЗАГРУЖАЕТСЯ СРАЗУ ПОСЛЕ ВИДЕО -->
+    <script src="achievements-system.js"></script>
+    <script src="achievements-adapter.js"></script>
+    
+    <!-- 5. Основные скрипты приложения -->
     <script src="questions.js"></script>
     <script src="app.js"></script>
     
-    <!-- 5. Исправление отображения пользователя -->
+    <!-- 6. Исправление отображения пользователя -->
     <script src="user-fix.js"></script>
     
-    <!-- 6. ВСЕ ФАЙЛЫ ВОПРОСОВ - ТЕПЕРЬ ПОДКЛЮЧЕНЫ! -->
+    <!-- 7. ВСЕ ФАЙЛЫ ВОПРОСОВ - ТЕПЕРЬ ПОДКЛЮЧЕНЫ! -->
     <script>
         console.log('📝 Загружаем ВСЕ файлы вопросов...');
     </script>
@@ -295,16 +337,16 @@
     <!-- Экспертный режим -->
     <script src="expert-questions.js"></script>
     
-    <!-- 7. Система геймификации -->
+    <!-- 8. Система геймификации -->
     <script src="gamification.js"></script>
     
-    <!-- 8. Система подсказок -->
+    <!-- 9. Система подсказок -->
     <script src="hints-system.js"></script>
     
-    <!-- 9. Правильное решение шеринга для VK -->
+    <!-- 10. Правильное решение шеринга для VK -->
     <script src="vk-share-correct.js"></script>
     
-    <!-- 10. ПРИНУДИТЕЛЬНАЯ ЗАГРУЗКА ВОПРОСОВ -->
+    <!-- 11. ПРИНУДИТЕЛЬНАЯ ЗАГРУЗКА ВОПРОСОВ -->
     <script>
         // КРИТИЧЕСКИ ВАЖНО: Принудительно вызываем функции загрузки вопросов
         // Потому что DOMContentLoaded уже прошел!
@@ -359,10 +401,11 @@
         }, 300);
     </script>
 
-    <!-- 11. Финальная инициализация и проверка -->
+    <!-- 12. Финальная инициализация и проверка -->
     <script>
         window.addEventListener('load', function() {
-            console.log('🎉 MedQuiz Pro полностью загружен со ВСЕМИ режимами');
+            console.log('🎉 MedQuiz Pro полностью загружен со ВСЕМИ системами');
+            console.log('🏆 Система достижений интегрирована');
             
             // Проверяем количество вопросов для каждого режима
             setTimeout(() => {
@@ -467,6 +510,8 @@
                     duplicateElements: document.querySelectorAll('.expert-mode-container, .quiz-mode-btn:not(.mode-card)').length + ' дублирующих элементов',
                     gamification: window.Gamification ? '✅ Геймификация готова' : '❌ Геймификация не загружена',
                     hintsSystem: window.HintsSystem ? '✅ Подсказки готовы' : '❌ Подсказки не загружены',
+                    achievementsSystem: window.AchievementsSystem ? '✅ Система достижений готова' : '❌ Система достижений не загружена',
+                    achievementsAdapter: window.AchievementsAdapter ? '✅ Адаптер достижений готов' : '❌ Адаптер достижений не загружен',
                     vkBridge: window.vkBridgeInstance ? '✅ VK Bridge готов' : '⚠️ VK Bridge в гостевом режиме',
                     shareSystem: typeof shareResults === 'function' ? '✅ Шеринг готов' : '❌ Шеринг не загружен'
                 };
@@ -480,6 +525,21 @@
                     console.log('🎉 ПРОБЛЕМА ДУБЛИРОВАНИЯ РЕШЕНА!');
                 } else {
                     console.warn('⚠️ Все еще есть дублирующиеся элементы:', status.duplicateElements);
+                }
+                
+                // Проверяем систему достижений
+                if (window.AchievementsSystem && window.AchievementsAdapter) {
+                    console.log('🏆 СИСТЕМА ДОСТИЖЕНИЙ ПОЛНОСТЬЮ ИНТЕГРИРОВАНА!');
+                    
+                    // Проверяем кнопку достижений
+                    const achievementsButton = document.querySelector('#achievements-button');
+                    if (achievementsButton) {
+                        console.log('🏆 Кнопка достижений найдена в интерфейсе');
+                    } else {
+                        console.warn('⚠️ Кнопка достижений не найдена');
+                    }
+                } else {
+                    console.warn('⚠️ Система достижений не полностью загружена');
                 }
                 
                 // Финальная проверка режимов
@@ -524,6 +584,152 @@
         
         // Экспортируем функцию для отладки
         window.debugQuizModes = window.checkQuizModes;
+        
+        // ФУНКЦИИ ДЛЯ ОТЛАДКИ СИСТЕМЫ ДОСТИЖЕНИЙ
+        window.debugAchievements = {
+            // Проверка состояния системы достижений
+            status: () => {
+                const status = {
+                    system: !!window.AchievementsSystem,
+                    adapter: !!window.AchievementsAdapter,
+                    initialized: window.AchievementsSystem?.isInitialized || false,
+                    achievements: window.AchievementsSystem?.achievements?.length || 0,
+                    userStats: window.AchievementsSystem?.userStats || {},
+                    button: !!document.querySelector('#achievements-button')
+                };
+                console.table(status);
+                return status;
+            },
+            
+            // Разблокировать случайное достижение
+            unlockRandom: () => {
+                if (window.AchievementsAdapter?.unlockRandom) {
+                    window.AchievementsAdapter.unlockRandom();
+                } else {
+                    console.error('❌ AchievementsAdapter не найден');
+                }
+            },
+            
+            // Показать все достижения
+            showAll: () => {
+                if (window.AchievementsSystem?.showAchievements) {
+                    window.AchievementsSystem.showAchievements();
+                } else {
+                    console.error('❌ AchievementsSystem не найден');
+                }
+            },
+            
+            // Получить список достижений
+            getList: () => {
+                if (window.AchievementsSystem?.getAchievementsList) {
+                    return window.AchievementsSystem.getAchievementsList();
+                } else {
+                    console.error('❌ AchievementsSystem не найден');
+                    return [];
+                }
+            },
+            
+            // Принудительная проверка достижений
+            check: () => {
+                if (window.AchievementsAdapter?.forceCheckAchievements) {
+                    window.AchievementsAdapter.forceCheckAchievements();
+                } else {
+                    console.error('❌ AchievementsAdapter не найден');
+                }
+            },
+            
+            // Сброс всех достижений (для тестирования)
+            reset: () => {
+                if (window.AchievementsAdapter?.resetAll) {
+                    window.AchievementsAdapter.resetAll();
+                } else {
+                    console.error('❌ AchievementsAdapter не найден');
+                }
+            },
+            
+            // Симуляция завершения квиза для тестирования достижений
+            simulateQuiz: (score = 8, total = 10, mode = 'anatomy') => {
+                console.log('🧪 Симулируем завершение квиза для тестирования достижений');
+                
+                // Симулируем событие завершения квиза
+                document.dispatchEvent(new CustomEvent('quizCompleted', {
+                    detail: { 
+                        score: score, 
+                        total: total, 
+                        percentage: Math.round((score / total) * 100),
+                        mode: mode,
+                        difficulty: 'easy'
+                    }
+                }));
+                
+                console.log(`✅ Симуляция: ${score}/${total} (${Math.round((score / total) * 100)}%) в режиме ${mode}`);
+            },
+            
+            // Добавить статистику
+            addStats: (quizzes = 1, correct = 10) => {
+                if (window.AchievementsAdapter?.getStats) {
+                    const currentStats = window.AchievementsAdapter.getStats();
+                    if (window.AchievementsSystem?.updateStats) {
+                        window.AchievementsSystem.updateStats({
+                            totalQuizzes: currentStats.totalQuizzes + quizzes,
+                            correctAnswers: currentStats.correctAnswers + correct
+                        });
+                        console.log(`➕ Добавлено ${quizzes} квизов и ${correct} правильных ответов`);
+                    }
+                }
+            }
+        };
     </script>
+    
+    <!-- 13. СПЕЦИАЛЬНАЯ ИНИЦИАЛИЗАЦИЯ СИСТЕМЫ ДОСТИЖЕНИЙ -->
+    <script>
+        // Убеждаемся, что система достижений инициализируется правильно
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('🏆 Специальная инициализация системы достижений...');
+            
+            // Проверяем через 2 секунды после загрузки DOM
+            setTimeout(() => {
+                if (window.AchievementsSystem && !window.AchievementsSystem.isInitialized) {
+                    console.log('🔧 Принудительная инициализация системы достижений');
+                    window.AchievementsSystem.init();
+                }
+                
+                // Проверяем адаптер
+                if (!window.AchievementsAdapter) {
+                    console.warn('⚠️ AchievementsAdapter не найден');
+                } else {
+                    console.log('✅ AchievementsAdapter готов');
+                }
+                
+                // Проверяем кнопку достижений
+                const achievementsButton = document.querySelector('#achievements-button');
+                if (!achievementsButton) {
+                    console.warn('⚠️ Кнопка достижений не найдена, возможно адаптер не загрузился');
+                } else {
+                    console.log('🏆 Кнопка достижений найдена и готова к использованию');
+                }
+            }, 2000);
+        });
+        
+        // Проверяем систему достижений при загрузке window
+        window.addEventListener('load', function() {
+            setTimeout(() => {
+                if (window.AchievementsSystem && window.AchievementsAdapter) {
+                    console.log('🎉 СИСТЕМА ДОСТИЖЕНИЙ ПОЛНОСТЬЮ ГОТОВА!');
+                    console.log('🔧 Доступные команды отладки:');
+                    console.log('  - window.debugAchievements.status() - проверить состояние');
+                    console.log('  - window.debugAchievements.showAll() - показать все достижения');
+                    console.log('  - window.debugAchievements.unlockRandom() - разблокировать случайное');
+                    console.log('  - window.debugAchievements.simulateQuiz() - симулировать квиз');
+                    console.log('  - window.debugAchievements.reset() - сброс (для тестирования)');
+                } else {
+                    console.error('❌ Система достижений не загружена полностью!');
+                    console.log('AchievementsSystem:', !!window.AchievementsSystem);
+                    console.log('AchievementsAdapter:', !!window.AchievementsAdapter);
+                }
+            }, 1000);
+        });
+    </script>
+</head>
 </body>
 </html>
