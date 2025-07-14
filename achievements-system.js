@@ -1,8 +1,8 @@
-// achievements-system.js - Основная система достижений для MedQuiz Pro
+// achievements-system.js - Полностью исправленная система достижений для MedQuiz Pro
 (function() {
     'use strict';
     
-    console.log('🏆 Загружается система достижений MedQuiz Pro...');
+    console.log('🏆 Загружается исправленная система достижений MedQuiz Pro...');
     
     // Конфигурация системы
     const CONFIG = {
@@ -11,7 +11,7 @@
         AUTO_SAVE: true
     };
     
-    // Данные достижений (адаптированные из вашего файла)
+    // Данные достижений
     const ACHIEVEMENTS_DATA = [
         {
             id: 'first_steps',
@@ -372,11 +372,11 @@
                     
                     <!-- Кнопки действий -->
                     <div class="achievement-actions">
-                        <button class="action-btn" onclick="window.AchievementsSystem.shareAchievements()">
+                        <button class="action-btn" onclick="window.AchievementsSystem.shareAchievementsFixed()">
                             📤 Поделиться достижениями
                         </button>
-                        <button class="action-btn secondary" onclick="window.AchievementsSystem.exportProgress()">
-                            💾 Экспорт прогресса
+                        <button class="action-btn secondary" onclick="window.AchievementsSystem.copyProgress()">
+                            📋 Скопировать прогресс
                         </button>
                     </div>
                 </div>
@@ -589,49 +589,450 @@
             }, 5000);
         },
         
-        // Поделиться достижениями
-        shareAchievements: function() {
+        // ИСПРАВЛЕННАЯ функция поделиться достижениями (без скачивания файла)
+        shareAchievementsFixed: function() {
+            console.log('📤 Поделиться достижениями (исправленная версия)');
+            
             const stats = this.userStats;
             const shareText = `🏆 Мои достижения в MedQuiz Pro:
 ✅ Получено: ${stats.totalAchievements}/${this.achievements.length} достижений
 📊 Завершено: ${stats.completionRate}%
 ⭐ Очков: ${stats.totalPoints.toLocaleString()}
 🎯 Проверь свои медицинские знания!`;
+
+            // Создаем модальное окно для выбора способа шеринга
+            this.showShareModal(shareText);
+        },
+        
+        // Создание модального окна для шеринга
+        showShareModal: function(shareText) {
+            const existingModals = document.querySelectorAll('.achievements-share-modal');
+            existingModals.forEach(modal => modal.remove());
+
+            const modal = document.createElement('div');
+            modal.className = 'achievements-share-modal';
+            modal.style.cssText = `
+                position: fixed;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                background: rgba(0, 0, 0, 0.85);
+                backdrop-filter: blur(8px);
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                z-index: 20000;
+                opacity: 0;
+                transition: opacity 0.3s ease;
+            `;
+
+            const vkBridge = window.vkBridgeInstance || window.vkBridge;
+            const hasVKBridge = !!vkBridge;
+
+            const content = document.createElement('div');
+            content.style.cssText = `
+                background: linear-gradient(145deg, #ffffff 0%, #f8fafc 100%);
+                border-radius: 24px;
+                padding: 32px;
+                max-width: 400px;
+                width: 90%;
+                text-align: center;
+                box-shadow: 0 25px 50px rgba(0, 0, 0, 0.25);
+                border: 1px solid rgba(255, 255, 255, 0.3);
+                transform: scale(0.9) translateY(-20px);
+                transition: all 0.3s ease;
+            `;
+
+            const achievementEmoji = this.getAchievementEmoji(this.userStats.completionRate);
+
+            content.innerHTML = `
+                <div style="margin-bottom: 24px;">
+                    <div style="font-size: 56px; margin-bottom: 12px;">${achievementEmoji}</div>
+                    <h3 style="margin: 0 0 8px 0; color: #1a202c; font-size: 24px; font-weight: 700;">
+                        Поделиться достижениями
+                    </h3>
+                    <div style="background: linear-gradient(135deg, #ffd700 0%, #ffed4e 100%); 
+                               color: #8b5a00; padding: 12px 20px; border-radius: 16px; 
+                               font-weight: 600; margin: 16px 0;">
+                        ${this.userStats.totalAchievements}/${this.achievements.length} достижений (${this.userStats.completionRate}%)
+                    </div>
+                </div>
+                
+                <div style="display: flex; flex-direction: column; gap: 12px; margin-bottom: 20px;">
+                    ${hasVKBridge ? `
+                        <button id="share-vk-message" style="
+                            padding: 14px 20px;
+                            background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
+                            color: white;
+                            border: none;
+                            border-radius: 16px;
+                            font-size: 15px;
+                            font-weight: 600;
+                            cursor: pointer;
+                            transition: all 0.3s ease;
+                        ">
+                            💬 Отправить в VK
+                        </button>
+                        
+                        <button id="share-vk-wall" style="
+                            padding: 14px 20px;
+                            background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%);
+                            color: white;
+                            border: none;
+                            border-radius: 16px;
+                            font-size: 15px;
+                            font-weight: 600;
+                            cursor: pointer;
+                            transition: all 0.3s ease;
+                        ">
+                            📝 На стену VK
+                        </button>
+                    ` : ''}
+                    
+                    <button id="share-copy-text" style="
+                        padding: 14px 20px;
+                        background: linear-gradient(135deg, #10b981 0%, #047857 100%);
+                        color: white;
+                        border: none;
+                        border-radius: 16px;
+                        font-size: 15px;
+                        font-weight: 600;
+                        cursor: pointer;
+                        transition: all 0.3s ease;
+                    ">
+                        📋 Скопировать текст
+                    </button>
+                </div>
+                
+                <button id="share-close" style="
+                    width: 100%;
+                    padding: 12px;
+                    background: #6b7280;
+                    color: white;
+                    border: none;
+                    border-radius: 12px;
+                    font-size: 14px;
+                    cursor: pointer;
+                    transition: background 0.3s ease;
+                ">
+                    Закрыть
+                </button>
+            `;
+
+            modal.appendChild(content);
+            document.body.appendChild(modal);
+
+            // Показываем модальное окно с анимацией
+            setTimeout(() => {
+                modal.style.opacity = '1';
+                content.style.transform = 'scale(1) translateY(0)';
+            }, 10);
+
+            // Обработчики событий
+            const closeModal = () => {
+                modal.style.opacity = '0';
+                content.style.transform = 'scale(0.9) translateY(-20px)';
+                setTimeout(() => modal.remove(), 300);
+            };
+
+            // VK шеринг
+            if (hasVKBridge) {
+                content.querySelector('#share-vk-message').onclick = async () => {
+                    closeModal();
+                    await this.shareVKMessage(shareText, vkBridge);
+                };
+                
+                content.querySelector('#share-vk-wall').onclick = async () => {
+                    closeModal();
+                    await this.shareVKWall(shareText, vkBridge);
+                };
+            }
             
-            if (navigator.share) {
-                navigator.share({
-                    title: 'Мои достижения в MedQuiz Pro',
-                    text: shareText
+            // Копирование текста
+            content.querySelector('#share-copy-text').onclick = () => {
+                closeModal();
+                this.copyTextToClipboard(shareText);
+            };
+            
+            // Закрытие модального окна
+            content.querySelector('#share-close').onclick = closeModal;
+            
+            // Закрытие по клику на фон
+            modal.onclick = (e) => {
+                if (e.target === modal) closeModal();
+            };
+        },
+        
+        // Отправка сообщения в VK
+        shareVKMessage: async function(text, bridge) {
+            console.log('💬 Отправляем сообщение в VK');
+            
+            try {
+                const result = await bridge.send('VKWebAppShare', {
+                    text: text
                 });
-            } else {
-                this.copyToClipboard(shareText);
-                this.showNotification('Текст скопирован в буфер обмена!');
+                
+                console.log('✅ Сообщение отправлено:', result);
+                this.showNotification('💬 Сообщение отправлено!');
+                
+            } catch (error) {
+                console.error('❌ Ошибка отправки сообщения:', error);
+                
+                if (error.error_type === 'client_error' && error.error_data?.error_reason === 'User denied') {
+                    this.showNotification('ℹ️ Отправка отменена');
+                } else {
+                    this.showNotification('❌ Не удалось отправить. Текст скопирован в буфер.');
+                    setTimeout(() => this.copyTextToClipboard(text), 1000);
+                }
             }
         },
         
-        // Экспорт прогресса
-        exportProgress: function() {
-            const data = {
-                exportDate: new Date().toISOString(),
-                achievements: this.achievements.map(a => ({
-                    id: a.id,
-                    title: a.title,
-                    unlocked: a.unlocked,
-                    progress: a.progress,
-                    points: a.unlocked ? a.points : 0
-                })),
-                summary: this.userStats
+        // Публикация на стене VK
+        shareVKWall: async function(text, bridge) {
+            console.log('📝 Публикуем на стене VK');
+            
+            try {
+                const result = await bridge.send('VKWebAppShowWallPostBox', {
+                    message: text
+                });
+                
+                console.log('✅ Запись опубликована:', result);
+                this.showNotification('📝 Запись опубликована на стене!');
+                
+            } catch (error) {
+                console.error('❌ Ошибка публикации:', error);
+                
+                if (error.error_type === 'client_error' && error.error_data?.error_reason === 'User denied') {
+                    this.showNotification('ℹ️ Публикация отменена');
+                } else {
+                    this.showNotification('❌ Не удалось опубликовать. Текст скопирован в буфер.');
+                    setTimeout(() => this.copyTextToClipboard(text), 1000);
+                }
+            }
+        },
+        
+        // Копирование текста в буфер обмена
+        copyTextToClipboard: function(text) {
+            console.log('📋 Копируем текст в буфер обмена');
+            
+            try {
+                if (navigator.clipboard && window.isSecureContext) {
+                    navigator.clipboard.writeText(text).then(() => {
+                        this.showNotification('📋 Текст скопирован в буфер обмена!');
+                    }).catch(() => {
+                        this.fallbackCopyText(text);
+                    });
+                } else {
+                    this.fallbackCopyText(text);
+                }
+            } catch (error) {
+                console.error('Ошибка копирования:', error);
+                this.fallbackCopyText(text);
+            }
+        },
+        
+        // Резервный способ копирования
+        fallbackCopyText: function(text) {
+            try {
+                const textArea = document.createElement('textarea');
+                textArea.value = text;
+                textArea.style.position = 'fixed';
+                textArea.style.left = '-9999px';
+                textArea.style.top = '-9999px';
+                document.body.appendChild(textArea);
+                textArea.focus();
+                textArea.select();
+                
+                const successful = document.execCommand('copy');
+                document.body.removeChild(textArea);
+                
+                if (successful) {
+                    this.showNotification('📋 Текст скопирован!');
+                } else {
+                    this.showCopyModal(text);
+                }
+            } catch (error) {
+                console.error('Резервное копирование не удалось:', error);
+                this.showCopyModal(text);
+            }
+        },
+        
+        // Показ модального окна для ручного копирования
+        showCopyModal: function(text) {
+            const modal = document.createElement('div');
+            modal.className = 'copy-modal';
+            modal.style.cssText = `
+                position: fixed;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                background: rgba(0, 0, 0, 0.85);
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                z-index: 20001;
+            `;
+            
+            const dialog = document.createElement('div');
+            dialog.style.cssText = `
+                background: white;
+                border-radius: 20px;
+                padding: 30px;
+                max-width: 420px;
+                width: 90%;
+                text-align: center;
+                box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+            `;
+            
+            dialog.innerHTML = `
+                <h3 style="margin: 0 0 20px 0; color: #333; font-size: 22px;">📤 Скопировать достижения</h3>
+                <p style="color: #666; margin-bottom: 18px; line-height: 1.5;">
+                    Выделите и скопируйте текст:
+                </p>
+                <textarea readonly id="copy-textarea" style="
+                    width: 100%; 
+                    height: 140px; 
+                    padding: 16px; 
+                    border: 2px solid #e2e8f0; 
+                    border-radius: 12px; 
+                    font-size: 14px; 
+                    resize: none; 
+                    margin-bottom: 20px;
+                    font-family: inherit;
+                    line-height: 1.4;
+                    background: #f8fafc;
+                ">${text}</textarea>
+                <div style="display: flex; gap: 12px;">
+                    <button onclick="this.parentElement.parentElement.parentElement.querySelector('#copy-textarea').select(); document.execCommand('copy'); this.closest('.copy-modal').remove(); window.AchievementsSystem.showNotification('📋 Текст скопирован!');" style="
+                        flex: 1;
+                        background: linear-gradient(135deg, #059669 0%, #047857 100%);
+                        color: white; 
+                        border: none; 
+                        padding: 14px 20px; 
+                        border-radius: 12px; 
+                        cursor: pointer;
+                        font-weight: 600;
+                        font-size: 15px;
+                    ">📋 Скопировать</button>
+                    <button onclick="this.closest('.copy-modal').remove();" style="
+                        flex: 1;
+                        background: #6b7280; 
+                        color: white; 
+                        border: none; 
+                        padding: 14px 20px; 
+                        border-radius: 12px; 
+                        cursor: pointer;
+                        font-weight: 500;
+                        font-size: 15px;
+                    ">Закрыть</button>
+                </div>
+            `;
+            
+            modal.appendChild(dialog);
+            document.body.appendChild(modal);
+            
+            // Автовыделение текста
+            const textarea = dialog.querySelector('#copy-textarea');
+            textarea.onclick = () => textarea.select();
+            
+            modal.onclick = (e) => {
+                if (e.target === modal) modal.remove();
             };
+        },
+        
+        // ИСПРАВЛЕННАЯ функция копирования прогресса (без скачивания файла)
+        copyProgress: function() {
+            console.log('📋 Копируем прогресс достижений в текстовом виде');
             
-            const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
-            const url = URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = `medquiz_achievements_${new Date().toISOString().split('T')[0]}.json`;
-            a.click();
-            URL.revokeObjectURL(url);
+            const stats = this.userStats;
+            const unlockedAchievements = this.achievements.filter(a => a.unlocked);
             
-            this.showNotification('Прогресс экспортирован!');
+            let progressText = `🏆 Мой прогресс в MedQuiz Pro
+📅 Дата: ${new Date().toLocaleDateString('ru-RU')}
+
+📊 ОБЩАЯ СТАТИСТИКА:
+✅ Получено достижений: ${stats.totalAchievements}/${this.achievements.length}
+📈 Процент завершения: ${stats.completionRate}%
+⭐ Общее количество очков: ${stats.totalPoints.toLocaleString()}
+🏅 Редчайший значок: ${stats.rarestBadge}
+
+🏆 РАЗБЛОКИРОВАННЫЕ ДОСТИЖЕНИЯ:
+`;
+
+            if (unlockedAchievements.length > 0) {
+                unlockedAchievements.forEach(achievement => {
+                    progressText += `${achievement.icon} ${achievement.title} (${achievement.points} очков)\n`;
+                });
+            } else {
+                progressText += 'Пока нет разблокированных достижений\n';
+            }
+            
+            progressText += `\n🔒 ЗАБЛОКИРОВАННЫЕ ДОСТИЖЕНИЯ:
+`;
+            
+            const lockedAchievements = this.achievements.filter(a => !a.unlocked);
+            lockedAchievements.forEach(achievement => {
+                progressText += `${achievement.icon} ${achievement.title} (${achievement.progress}%)\n`;
+            });
+            
+            progressText += `\n💪 Проверь свои медицинские знания в MedQuiz Pro!`;
+            
+            // Копируем в буфер обмена
+            this.copyTextToClipboard(progressText);
+        },
+        
+        // Получение эмодзи для достижения
+        getAchievementEmoji: function(completionRate) {
+            if (completionRate >= 90) return '🏆';
+            if (completionRate >= 70) return '🌟';
+            if (completionRate >= 50) return '🎉';
+            if (completionRate >= 30) return '👏';
+            if (completionRate >= 10) return '📚';
+            return '🚀';
+        },
+        
+        // Показ уведомлений
+        showNotification: function(message) {
+            // Удаляем существующие уведомления
+            const existing = document.querySelectorAll('.achievements-notification');
+            existing.forEach(notif => notif.remove());
+            
+            const notification = document.createElement('div');
+            notification.className = 'achievements-notification';
+            notification.style.cssText = `
+                position: fixed;
+                top: 80px;
+                right: 20px;
+                background: linear-gradient(135deg, #059669 0%, #047857 100%);
+                color: white;
+                padding: 16px 24px;
+                border-radius: 16px;
+                font-size: 14px;
+                font-weight: 500;
+                z-index: 10001;
+                box-shadow: 0 8px 25px rgba(5, 150, 105, 0.4);
+                max-width: 300px;
+                transform: translateX(100%);
+                transition: transform 0.4s ease;
+                border: 1px solid rgba(255, 255, 255, 0.2);
+            `;
+            notification.textContent = message;
+            document.body.appendChild(notification);
+            
+            setTimeout(() => {
+                notification.style.transform = 'translateX(0)';
+            }, 100);
+            
+            setTimeout(() => {
+                notification.style.transform = 'translateX(100%)';
+                setTimeout(() => {
+                    if (notification.parentNode) {
+                        notification.parentNode.removeChild(notification);
+                    }
+                }, 400);
+            }, 4000);
         },
         
         // Вспомогательные методы
@@ -644,43 +1045,6 @@
                 mythic: 'Мифическое'
             };
             return names[rarity] || 'Неизвестное';
-        },
-        
-        copyToClipboard: function(text) {
-            navigator.clipboard.writeText(text).catch(() => {
-                const textArea = document.createElement('textarea');
-                textArea.value = text;
-                textArea.style.position = 'fixed';
-                textArea.style.opacity = '0';
-                document.body.appendChild(textArea);
-                textArea.select();
-                document.execCommand('copy');
-                document.body.removeChild(textArea);
-            });
-        },
-        
-        showNotification: function(message) {
-            const notification = document.createElement('div');
-            notification.style.cssText = `
-                position: fixed;
-                top: 20px;
-                right: 20px;
-                background: linear-gradient(135deg, #10b981, #059669);
-                color: white;
-                padding: 16px 24px;
-                border-radius: 12px;
-                font-weight: 600;
-                z-index: 10000;
-                animation: slideInRight 0.3s ease-out;
-                box-shadow: 0 4px 15px rgba(16, 185, 129, 0.4);
-            `;
-            notification.textContent = message;
-            document.body.appendChild(notification);
-            
-            setTimeout(() => {
-                notification.style.animation = 'slideOutRight 0.3s ease-out';
-                setTimeout(() => notification.remove(), 300);
-            }, 3000);
         },
         
         closeModal: function(modal) {
@@ -718,11 +1082,15 @@
         },
         
         resetAchievements: function() {
-            this.achievements = ACHIEVEMENTS_DATA.map(a => ({...a, unlocked: false, progress: 0}));
-            this.calculateStats();
-            this.saveAchievements();
+            if (confirm('Вы уверены, что хотите сбросить все достижения? Это действие нельзя отменить.')) {
+                this.achievements = ACHIEVEMENTS_DATA.map(a => ({...a, unlocked: false, progress: 0}));
+                this.calculateStats();
+                this.saveAchievements();
+                this.showNotification('🔄 Все достижения сброшены');
+                console.log('🔄 Все достижения сброшены');
+            }
         }
     };
     
-    console.log('✅ Система достижений загружена');
+    console.log('✅ Исправленная система достижений загружена (без скачиваний файлов)');
 })();
